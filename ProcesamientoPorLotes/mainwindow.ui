@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>858</width>
+    <height>763</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGroupBox" name="groupBox">
+   <widget class="QGroupBox" name="gprBx_LoteActual">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>50</y>
+      <x>20</x>
+      <y>80</y>
       <width>241</width>
       <height>361</height>
      </rect>
@@ -27,7 +27,7 @@
      <string>Lote Actual</string>
     </property>
    </widget>
-   <widget class="QGroupBox" name="groupBox_2">
+   <widget class="QGroupBox" name="gprBx_ProcEjec">
     <property name="geometry">
      <rect>
       <x>280</x>
@@ -40,7 +40,7 @@
      <string>Proceso en Ejecución</string>
     </property>
    </widget>
-   <widget class="QGroupBox" name="groupBox_3">
+   <widget class="QGroupBox" name="gprBx_Terminados">
     <property name="geometry">
      <rect>
       <x>510</x>
@@ -53,7 +53,7 @@
      <string>Terminados</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="lbl_NumLotPend">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -66,11 +66,149 @@
      <string>Número de Lotes Pendientes</string>
     </property>
    </widget>
-   <widget class="QLCDNumber" name="lcdNumber">
+   <widget class="QLCDNumber" name="lcd_LotesRestantes">
     <property name="geometry">
      <rect>
       <x>220</x>
       <y>10</y>
+      <width>64</width>
+      <height>16</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_CantProceso">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>480</y>
+      <width>147</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cantidad de Procesos</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_NomProgr">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>510</y>
+      <width>175</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Nombre del Programador</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_Operacion">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>550</y>
+      <width>306</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Operación (m para módulo y p para potencia)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_ID_Progr">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>660</y>
+      <width>110</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ID del Programa</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_TME">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>610</y>
+      <width>176</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Tiempo Máximo Estimado</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ldt_CantProc">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>480</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ldt_NombProgr">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>530</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ldt_Operacion">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>580</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ldt_TME">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>620</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="ldt_ID_Progr">
+    <property name="geometry">
+     <rect>
+      <x>570</x>
+      <y>650</y>
+      <width>113</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbl_ContGlobal">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>112</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Contador Global</string>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="lcd_ContGlobal">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>40</y>
       <width>64</width>
       <height>16</height>
      </rect>
@@ -82,7 +220,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>858</width>
      <height>22</height>
     </rect>
    </property>
