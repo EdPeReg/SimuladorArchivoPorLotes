@@ -1,7 +1,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <string>
 #include <QMainWindow>
+#include <QVector>
+#include <cmath>
+#include <QDebug>
+#include <QMessageBox>
+
+#include "Batch.h"
+#include "Process.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,5 +25,27 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+    QVector<Batch*> batches;
+
+    const int LIMITE_PROCESO = 4;
+
+    bool errorOperation;
+    bool firstTime;
+    int processInserted;
+    int processRemaining;
+    int batchesCount;
+
+    void removeSpace(std::string& operation);
+    int getOperandPos(const std::string& operation);
+    int getLeftOperand(const std::string& operation);
+    int getRightOperand(const std::string& operation);
+    int computebatcheses(int numProcess);
+    int doOperation(std::string& operation);
+
+private slots:
+    void sendData();
+
+
 };
 #endif // MAINWINDOW_H

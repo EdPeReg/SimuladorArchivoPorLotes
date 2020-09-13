@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
+    <width>1254</width>
     <height>786</height>
    </rect>
   </property>
@@ -17,22 +17,15 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
+      <x>480</x>
+      <y>480</y>
       <width>269</width>
-      <height>54</height>
+      <height>83</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="1">
       <widget class="QLCDNumber" name="lcd_LotesRestantes"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="lbl_ContGlobal">
-       <property name="text">
-        <string>Contador Global</string>
-       </property>
-      </widget>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="lbl_NumLotPend">
@@ -41,8 +34,29 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lbl_ContGlobal">
+       <property name="text">
+        <string>Contador Global</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="1">
       <widget class="QLCDNumber" name="lcd_ContGlobal"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lbl_ProcRestantes">
+       <property name="text">
+        <string>Procesos Restante</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLCDNumber" name="lcd_ProcRestante">
+       <property name="intValue" stdset="0">
+        <number>0</number>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -50,9 +64,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>550</y>
+      <y>480</y>
       <width>456</width>
-      <height>182</height>
+      <height>185</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
@@ -62,9 +76,6 @@
         <string>Cantidad de Procesos</string>
        </property>
       </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="ldt_CantProc"/>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="lbl_NomProgr">
@@ -93,18 +104,12 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="ldt_TME"/>
-     </item>
      <item row="4" column="0">
       <widget class="QLabel" name="lbl_ID_Progr">
        <property name="text">
         <string>ID del Programa</string>
        </property>
       </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="ldt_ID_Progr"/>
      </item>
      <item row="5" column="1">
       <widget class="QPushButton" name="btn_Enviar">
@@ -113,15 +118,32 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="spnBx_CantProcesos">
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="spnBx_TME"/>
+     </item>
+     <item row="4" column="1">
+      <widget class="QSpinBox" name="spnBx_ID">
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>70</y>
-      <width>1011</width>
-      <height>481</height>
+      <x>0</x>
+      <y>0</y>
+      <width>1241</width>
+      <height>471</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -132,7 +154,7 @@
        </property>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <widget class="QTableWidget" name="tableWidget"/>
+         <widget class="QTableWidget" name="tblWdt_LoteActual"/>
         </item>
        </layout>
       </widget>
@@ -144,7 +166,7 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <widget class="QTableWidget" name="tableWidget_2"/>
+         <widget class="QTableWidget" name="tblWdt_ProcesoEjec"/>
         </item>
        </layout>
       </widget>
@@ -156,7 +178,7 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <widget class="QTableWidget" name="tableWidget_3"/>
+         <widget class="QTableWidget" name="tblWdt_Terminados"/>
         </item>
        </layout>
       </widget>
@@ -169,13 +191,24 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1027</width>
+     <width>1254</width>
      <height>22</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <tabstops>
+  <tabstop>spnBx_CantProcesos</tabstop>
+  <tabstop>ldt_NombProgr</tabstop>
+  <tabstop>ldt_Operacion</tabstop>
+  <tabstop>spnBx_TME</tabstop>
+  <tabstop>spnBx_ID</tabstop>
+  <tabstop>btn_Enviar</tabstop>
+  <tabstop>tblWdt_LoteActual</tabstop>
+  <tabstop>tblWdt_ProcesoEjec</tabstop>
+  <tabstop>tblWdt_Terminados</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
