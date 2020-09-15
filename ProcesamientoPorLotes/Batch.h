@@ -30,8 +30,11 @@ class Batch {
             int i = 1;
             for(auto it = processes.begin(); it != processes.end(); ++it) {
                 qDebug() << "Proceso: " << i;
-                qDebug() << (*it)->getProgrammerName();
-                qDebug() << (*it)->getId();
+                qDebug() << "BATCH: " << (*it)->getNumBatch();
+                qDebug() << "Name: " << (*it)->getProgrammerName();
+                qDebug() << "Operation: " << (*it)->getOperation();
+                qDebug() << "TME: " << (*it)->getTiempoMaximoEst();
+                qDebug() << "ID: " << (*it)->getId();
                 ++i;
             }
         }

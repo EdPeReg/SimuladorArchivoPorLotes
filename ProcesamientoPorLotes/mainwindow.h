@@ -31,10 +31,12 @@ private:
     const int LIMITE_PROCESO = 4;
 
     bool errorOperation;
+    bool errorID;
     bool firstTime;
     int processInserted;
     int processRemaining;
     int batchesCount;
+    int indexProcess;
 
     void removeSpace(std::string& operation);
     int getOperandPos(const std::string& operation);

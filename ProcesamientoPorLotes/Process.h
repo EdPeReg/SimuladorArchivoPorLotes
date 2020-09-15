@@ -9,8 +9,9 @@ class Process {
         QString operation;
         int tiempoMaximoEst;
         int id;
+        int numBatch;
     public:
-        Process() : programmerName(""), operation(""), tiempoMaximoEst(0), id(0) { };
+        Process() : programmerName(""), operation(""), tiempoMaximoEst(0), id(0), numBatch(0) { };
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -28,6 +29,10 @@ class Process {
             this->id = id;
         }
 
+        void setNumBatch(int numBatch) {
+            this->numBatch = numBatch;
+        }
+
         QString getProgrammerName() const {
             return programmerName;
         }
@@ -42,6 +47,10 @@ class Process {
 
         int getId() const {
             return id;
+        }
+
+        int getNumBatch() const {
+            return numBatch;
         }
 };
 

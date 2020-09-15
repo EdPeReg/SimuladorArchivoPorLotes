@@ -1,14 +1,20 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// TODO
+// VALIDAR ID Y QUE LCA CANTIDAD DE LOTES SE ACTUALICE CORRECTAMENTE
+// BUSCAR MANERA DE EVITAR MEMORY LEAKS
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , errorOperation(false)
+    , errorID(false)
     , firstTime(false)
     , processInserted(0)
     , processRemaining(0)
     , batchesCount(0)
+    , indexProcess(1)
 {
     ui->setupUi(this);
 
@@ -115,9 +121,9 @@ int MainWindow::doOperation(std::string& operation) {
 void MainWindow::sendData()
 {
     batchesCount = computebatcheses(ui->spnBx_CantProcesos->value());
+    Process* process = new Process;
 
     if(!firstTime) {
-        qDebug() << "dentro";
         batches.clear();
 
         processRemaining = ui->spnBx_CantProcesos->value();
@@ -128,50 +134,58 @@ void MainWindow::sendData()
         }
     }
 
-//    if(processInserted != 0) {
-        ui->spnBx_CantProcesos->setEnabled(false);
+    ui->spnBx_CantProcesos->setEnabled(false);
 
-        Process* process = new Process;
-        int index = 0;
-        int rightOperand = 0;
-        QString programmerName = ui->ldt_NombProgr->text();
-        process->setProgrammerName(programmerName);
+    int index = 0;
+    int rightOperand = 0;
+    QString programmerName = ui->ldt_NombProgr->text();
+    process->setProgrammerName(programmerName);
 
-        QString aux = ui->ldt_Operacion->text();
-        std::string operation = aux.toStdString();
-        removeSpace(operation);
+    QString aux = ui->ldt_Operacion->text();
+    std::string operation = aux.toStdString();
+    removeSpace(operation);
 
-        rightOperand = getRightOperand(operation);
-        if(rightOperand == 0) {
-            QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
-            errorOperation = true;
-            ui->ldt_Operacion->clear();
-        } else {
-            errorOperation = false;
+    rightOperand = getRightOperand(operation);
+    if(rightOperand == 0) {
+        QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
+        errorOperation = true;
+        ui->ldt_Operacion->clear();
+    } else {
+        errorOperation = false;
+    }
+
+    if(!errorOperation) {
+        process->setOperation(aux);
+
+        int tiempoMaximoEst = ui->spnBx_TME->value();
+        process->setTiempoMaximoEst(tiempoMaximoEst);
+
+        int id = ui->spnBx_ID->value();
+        Batch* b = batches.at(index);
+        QVector<Process*> p = b->getProcesses();
+        for(int i = 0; i < p.size(); ++i) {
+            if(p.at(i)->getId() == id) {
+                QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("El ID ingresado ya existe, por favor ingrese otra ID distinta"));
+                ui->spnBx_ID->clear();
+                errorID = true;
+                break;
+            } else {
+                errorID = false;
+            }
         }
 
-        if(!errorOperation) {
-            process->setOperation(aux);
-
-            int tiempoMaximoEst = ui->spnBx_TME->value();
-            process->setTiempoMaximoEst(tiempoMaximoEst);
-
-            int id = ui->spnBx_ID->value();
-////            Batch b(batches.at(index));
-////            QVector<Process> p = b.getProcesses();
-////            for(QVector<Process>::iterator it = p.begin(); it != p.end(); ++it) {
-////                if(it->getId() == id) {
-////                    QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("ID ingresado ya existen, por favor ingrese otra ID distinta"));
-////                    ui->spnBx_ID->clear();
-////                    break;
-////                }
-////            }
+        if(!errorID) {
             process->setId(id);
 
             batches.at(index)->insertProcess(process);
             if(++processInserted > LIMITE_PROCESO) {
+                qDebug() << "cambiando lote: " << indexProcess;
                 ++index;
-                processInserted = 0;
+                process->setNumBatch(++indexProcess);
+                processInserted = 1;
+            } else {
+                qDebug() << "mismo lote: " << indexProcess;
+                process->setNumBatch(indexProcess);
             }
 
             ui->lcd_LotesRestantes->display(batchesCount);
@@ -188,7 +202,7 @@ void MainWindow::sendData()
             ui->spnBx_TME->setValue(0);
             ui->spnBx_ID->setValue(0);
         }
-//    }
+    }
 
     for(auto it = batches.begin(); it != batches.end(); ++it) {
         (*it)->showProccesses();
