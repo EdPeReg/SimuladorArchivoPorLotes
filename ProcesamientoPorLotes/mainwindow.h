@@ -36,7 +36,7 @@ private:
     int processInserted;
     int processRemaining;
     int batchesCount;
-    int indexProcess;
+    int batchNum;
 
     void removeSpace(std::string& operation);
     int getOperandPos(const std::string& operation);

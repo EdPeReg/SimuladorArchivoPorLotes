@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     , processInserted(0)
     , processRemaining(0)
     , batchesCount(0)
-    , indexProcess(1)
+    , batchNum(1)
 {
     ui->setupUi(this);
 
@@ -124,7 +124,7 @@ void MainWindow::sendData()
     Process* process = new Process;
 
     if(!firstTime) {
-        batches.clear();
+//        batches.clear(); // without deleting, you can validate any id from any batch.
 
         processRemaining = ui->spnBx_CantProcesos->value();
         firstTime = true;
@@ -165,7 +165,7 @@ void MainWindow::sendData()
         QVector<Process*> p = b->getProcesses();
         for(int i = 0; i < p.size(); ++i) {
             if(p.at(i)->getId() == id) {
-                QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("El ID ingresado ya existe, por favor ingrese otra ID distinta"));
+                QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("ID ya existente, por favor ingrese otra ID distinta"));
                 ui->spnBx_ID->clear();
                 errorID = true;
                 break;
@@ -179,13 +179,11 @@ void MainWindow::sendData()
 
             batches.at(index)->insertProcess(process);
             if(++processInserted > LIMITE_PROCESO) {
-                qDebug() << "cambiando lote: " << indexProcess;
                 ++index;
-                process->setNumBatch(++indexProcess);
+                process->setNumBatch(++batchNum);
                 processInserted = 1;
             } else {
-                qDebug() << "mismo lote: " << indexProcess;
-                process->setNumBatch(indexProcess);
+                process->setNumBatch(batchNum);
             }
 
             ui->lcd_LotesRestantes->display(batchesCount);
