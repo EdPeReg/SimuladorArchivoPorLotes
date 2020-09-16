@@ -8,6 +8,8 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QStyle>
+#include <QThread>
+#include <QMutex>
 
 #include "Batch.h"
 #include "Process.h"
@@ -28,6 +30,8 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Batch*> batches;
+    QThread *thread = new QThread(this);
+    QThread *threadGlobalCounter = new QThread(this);
 
     const int LIMITE_PROCESO = 4;
 
@@ -40,6 +44,7 @@ private:
     int batchesCount;
     int batchNum;
     int indexBatch;
+    int globalCounter;
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
@@ -49,11 +54,11 @@ private:
     int computebatcheses(int numProcess);
     int doOperation(std::string& operation);
     bool validID(int id);
-
+    void updateGlobalCounter(int& value);
 
 private slots:
     void sendData();
-
+    void run();
 
     void on_action_Procesar_Lote_triggered();
 };

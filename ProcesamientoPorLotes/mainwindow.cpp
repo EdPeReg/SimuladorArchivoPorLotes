@@ -4,7 +4,6 @@
 // TODO
 // BUSCAR MANERA DE EVITAR MEMORY LEAKS
 // VALIDAR MQUE EL 0 FUNCIONE EN LAS DEMAS OPERACIONES .
-// WHEN AT THE BEGGINING YOU INSERT LESS THAN 4 PROCESSES, THE BATCH ACCOUNT DOESN'T UPDATE.
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     , batchesCount(0)
     , batchNum(1)
     , indexBatch(0)
+    , globalCounter(0)
 {
     ui->setupUi(this);
 
@@ -181,6 +181,11 @@ bool MainWindow::validID(int id)
     return true;
 }
 
+void MainWindow::updateGlobalCounter(int& value)
+{
+    ui->lcd_ContGlobal->display(++value);
+}
+
 void MainWindow::sendData()
 {
     if(!onlyOnce) {
@@ -229,6 +234,24 @@ void MainWindow::sendData()
     qDebug() << "Cantidad de procesos en el lote: " << batches.at(indexBatch)->getSize();
 }
 
+void MainWindow::run()
+{
+    qDebug() << "\n\n";
+    qDebug() << "Cantidad de lotes: " << batches.size();
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            int aux = 1;
+            thread->start();
+//            threadGlobalCounter->start();
+            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+                qDebug() << aux++;
+                updateGlobalCounter(globalCounter);
+                thread->sleep(1);
+            }
+        }
+    }
+}
+
 
 void MainWindow::on_action_Procesar_Lote_triggered()
 {
@@ -239,6 +262,15 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->spnBx_TME->setEnabled(false);
         ui->spnBx_CantProcesos->setEnabled(false);
         ui->btn_Enviar->setEnabled(false);
+
+        run();
+
+        ui->ldt_NombProgr->setEnabled(true);
+        ui->ldt_Operacion->setEnabled(true);
+        ui->spnBx_ID->setEnabled(true);
+        ui->spnBx_TME->setEnabled(true);
+        ui->spnBx_CantProcesos->setEnabled(true);
+        ui->btn_Enviar->setEnabled(true);
     } else {
         QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos, inserte procesos para empezar analizar los lotes"));
     }
