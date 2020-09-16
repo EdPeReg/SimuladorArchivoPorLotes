@@ -8,6 +8,7 @@
 
 class Batch {
     private:
+        int size = 0;
         QVector<Process*> processes;
     public:
         Batch() {  };
@@ -18,12 +19,21 @@ class Batch {
             }
         }
 
+        int getSize() const {
+            return size;
+        }
+
+        void setSize(int size) {
+            this->size = size;
+        }
+
         QVector<Process*> getProcesses() const {
             return processes;
         }
 
         void insertProcess(Process* process) {
             processes.push_back(process);
+            ++size;
         }
 
         void showProccesses() const {
@@ -37,6 +47,10 @@ class Batch {
                 qDebug() << "ID: " << (*it)->getId();
                 ++i;
             }
+        }
+
+        bool isFull() const {
+            return size == 4;
         }
 };
 

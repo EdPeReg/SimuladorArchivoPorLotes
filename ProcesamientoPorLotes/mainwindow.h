@@ -33,17 +33,22 @@ private:
     bool errorOperation;
     bool errorID;
     bool firstTime;
+    bool onlyOnce;
     int processInserted;
     int processRemaining;
     int batchesCount;
     int batchNum;
+    int indexBatch;
 
     void removeSpace(std::string& operation);
+    void insertProcess(int& index);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
     int computebatcheses(int numProcess);
     int doOperation(std::string& operation);
+    bool validID(int id);
+
 
 private slots:
     void sendData();
