@@ -7,6 +7,7 @@
 #include <cmath>
 #include <QDebug>
 #include <QMessageBox>
+#include <QStyle>
 
 #include "Batch.h"
 #include "Process.h"
@@ -54,5 +55,6 @@ private slots:
     void sendData();
 
 
+    void on_action_Procesar_Lote_triggered();
 };
 #endif // MAINWINDOW_H

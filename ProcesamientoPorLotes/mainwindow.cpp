@@ -4,7 +4,7 @@
 // TODO
 // BUSCAR MANERA DE EVITAR MEMORY LEAKS
 // VALIDAR MQUE EL 0 FUNCIONE EN LAS DEMAS OPERACIONES .
-// INCREMENTA EL LOTE CUANDO ALGO ES INVALIDO, NO DEBE INCREMENTAR.
+// WHEN AT THE BEGGINING YOU INSERT LESS THAN 4 PROCESSES, THE BATCH ACCOUNT DOESN'T UPDATE.
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -186,7 +186,9 @@ void MainWindow::sendData()
     if(!onlyOnce) {
         onlyOnce = true;
         batchesCount = computebatcheses(ui->spnBx_CantProcesos->value());
+        ui->lcd_LotesRestantes->display(batchesCount);
     }
+
     if(!firstTime) {
 //        batches.clear(); // without deleting, you can validate any id from any batch.
         processRemaining = ui->spnBx_CantProcesos->value();
@@ -227,3 +229,17 @@ void MainWindow::sendData()
     qDebug() << "Cantidad de procesos en el lote: " << batches.at(indexBatch)->getSize();
 }
 
+
+void MainWindow::on_action_Procesar_Lote_triggered()
+{
+    if(!batches.empty()) {
+        ui->ldt_NombProgr->setEnabled(false);
+        ui->ldt_Operacion->setEnabled(false);
+        ui->spnBx_ID->setEnabled(false);
+        ui->spnBx_TME->setEnabled(false);
+        ui->spnBx_CantProcesos->setEnabled(false);
+        ui->btn_Enviar->setEnabled(false);
+    } else {
+        QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos, inserte procesos para empezar analizar los lotes"));
+    }
+}

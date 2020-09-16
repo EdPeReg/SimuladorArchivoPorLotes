@@ -17,15 +17,19 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>480</y>
-      <width>269</width>
-      <height>83</height>
+      <x>490</x>
+      <y>490</y>
+      <width>301</width>
+      <height>141</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="0" column="1">
-      <widget class="QLCDNumber" name="lcd_LotesRestantes"/>
+     <item row="2" column="1">
+      <widget class="QLCDNumber" name="lcd_ProcRestante">
+       <property name="intValue" stdset="0">
+        <number>0</number>
+       </property>
+      </widget>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="lbl_NumLotPend">
@@ -41,8 +45,8 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLCDNumber" name="lcd_ContGlobal"/>
+     <item row="0" column="1">
+      <widget class="QLCDNumber" name="lcd_LotesRestantes"/>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="lbl_ProcRestantes">
@@ -51,8 +55,32 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLCDNumber" name="lcd_ProcRestante">
+     <item row="4" column="0">
+      <widget class="QLabel" name="lbl_TiempoRestante">
+       <property name="text">
+        <string>Tiempo Restante Por Ejecutar</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLCDNumber" name="lcd_ContGlobal"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="lbl_TiempoTranscurrido">
+       <property name="text">
+        <string>Tiempo Transcurrido En Ejecución</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLCDNumber" name="lcd_TiempoTranscurrido">
+       <property name="intValue" stdset="0">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLCDNumber" name="lcd_TiempoRestante">
        <property name="intValue" stdset="0">
         <number>0</number>
        </property>
@@ -63,8 +91,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>480</y>
+      <x>20</x>
+      <y>490</y>
       <width>456</width>
       <height>185</height>
      </rect>
@@ -144,8 +172,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
+      <x>10</x>
+      <y>10</y>
       <width>1241</width>
       <height>471</height>
      </rect>
@@ -199,8 +227,20 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu_Procesaro_Lote">
+    <property name="title">
+     <string>&amp;Lote opciones</string>
+    </property>
+    <addaction name="action_Procesar_Lote"/>
+   </widget>
+   <addaction name="menu_Procesaro_Lote"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_Procesar_Lote">
+   <property name="text">
+    <string>&amp;Procesar Lote</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>spnBx_CantProcesos</tabstop>
