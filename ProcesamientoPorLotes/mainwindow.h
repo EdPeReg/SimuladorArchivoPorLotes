@@ -7,7 +7,8 @@
 #include <cmath>
 #include <QDebug>
 #include <QMessageBox>
-#include <QStyle>
+#include <QTableWidget>
+#include <stdexcept>
 
 #include "Batch.h"
 #include "Process.h"
@@ -16,6 +17,10 @@
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+enum COLUMN_CURRENT_BATCH {
+    ID, TME
+};;
 
 class MainWindow : public QMainWindow
 {
@@ -52,8 +57,8 @@ private:
     int computebatcheses(int numProcess);
     int doOperation(std::string& operation);
     bool validID(int id);
-    void updateGlobalCounter(int& value);
-    void run();
+    void updateGlobalCounter();
+    void insertDataTableCurrentBatch();
 
 public:
     QVector<Batch *> getBatches() const;

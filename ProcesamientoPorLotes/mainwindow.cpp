@@ -23,18 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     threadGlobalCounter = new ThreadGlobalCounter;
 
-    connect(threadGlobalCounter, &ThreadGlobalCounter::updateGlobalCounter, [&]() {
-        globalCounter = 0;
-        for(const auto& batch : batches) {
-            for(const auto& process : batch->getProcesses()) {
-                int aux = 1;
-                for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
-                    qDebug() << aux++;
-                    ui->lcd_ContGlobal->display(++globalCounter);
-                }
-            }
-        }
-    });
+    connect(threadGlobalCounter, &ThreadGlobalCounter::updateGlobalCounter, this, &MainWindow::updateGlobalCounter);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -52,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_Terminados->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("RESULTADO")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+
+
 
     connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
 }
@@ -196,9 +187,36 @@ bool MainWindow::validID(int id)
     return true;
 }
 
-void MainWindow::updateGlobalCounter(int& value)
+void MainWindow::updateGlobalCounter()
 {
-//    ui->lcd_ContGlobal->display(++value);
+    insertDataTableCurrentBatch();
+
+    globalCounter = 0;
+
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            int aux = 1;
+            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+                qDebug() << aux++;
+                ui->lcd_ContGlobal->display(++globalCounter);
+            }
+        }
+    }
+}
+
+void MainWindow::insertDataTableCurrentBatch()
+{
+    int row = 0;
+
+    ui->tblWdt_LoteActual->setRowCount(batches.at(indexBatch)->getSize());
+    Batch *b = batches.at(indexBatch);
+    for(const auto& process : b->getProcesses()) {
+        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
+        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+        ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+        ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
+        ++row;
+    }
 }
 
 void MainWindow::sendData()
@@ -249,8 +267,8 @@ void MainWindow::sendData()
     qDebug() << "Cantidad de procesos en el lote: " << batches.at(indexBatch)->getSize();
 }
 
-void MainWindow::run()
-{
+//void MainWindow::run()
+//{
 //    qDebug() << "\n\n";
 //    qDebug() << "Cantidad de lotes: " << batches.size();
 //    for(const auto& batch : batches) {
@@ -265,36 +283,39 @@ void MainWindow::run()
 //            }
 //        }
     //    }
-}
+//}
 
 QVector<Batch *> MainWindow::getBatches() const
 {
     return batches;
 }
 
-
 void MainWindow::on_action_Procesar_Lote_triggered()
 {
     if(!batches.empty()) {
-        ui->ldt_NombProgr->setEnabled(false);
-        ui->ldt_Operacion->setEnabled(false);
-        ui->spnBx_ID->setEnabled(false);
-        ui->spnBx_TME->setEnabled(false);
-        ui->spnBx_CantProcesos->setEnabled(false);
-        ui->btn_Enviar->setEnabled(false);
+        int processesInBatch = batches.at(indexBatch)->getSize();
+        if(processesInBatch == LIMITE_PROCESO) {
+            ui->ldt_NombProgr->setEnabled(false);
+            ui->ldt_Operacion->setEnabled(false);
+            ui->spnBx_ID->setEnabled(false);
+            ui->spnBx_TME->setEnabled(false);
+            ui->spnBx_CantProcesos->setEnabled(false);
+            ui->btn_Enviar->setEnabled(false);
 
-        threadGlobalCounter->start();
+            threadGlobalCounter->start();
 
-//        threadGlobalCounter->start();
-//        thread->start();
-
-        ui->ldt_NombProgr->setEnabled(true);
-        ui->ldt_Operacion->setEnabled(true);
-        ui->spnBx_ID->setEnabled(true);
-        ui->spnBx_TME->setEnabled(true);
-        ui->spnBx_CantProcesos->setEnabled(true);
-        ui->btn_Enviar->setEnabled(true);
+            ui->ldt_NombProgr->setEnabled(true);
+            ui->ldt_Operacion->setEnabled(true);
+            ui->spnBx_ID->setEnabled(true);
+            ui->spnBx_TME->setEnabled(true);
+            ui->spnBx_CantProcesos->setEnabled(true);
+            ui->btn_Enviar->setEnabled(true);
+        } else {
+            QMessageBox::information(this, tr("Lote No Completado"), tr("Lote no completo, "
+                                              "complete el lote para proceder"));
+        }
     } else {
-        QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos, inserte procesos para empezar analizar los lotes"));
+            QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
+                                                          "inserte procesos"));
     }
 }
