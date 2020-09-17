@@ -21,6 +21,21 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    threadGlobalCounter = new ThreadGlobalCounter;
+
+    connect(threadGlobalCounter, &ThreadGlobalCounter::updateGlobalCounter, [&]() {
+        globalCounter = 0;
+        for(const auto& batch : batches) {
+            for(const auto& process : batch->getProcesses()) {
+                int aux = 1;
+                for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+                    qDebug() << aux++;
+                    ui->lcd_ContGlobal->display(++globalCounter);
+                }
+            }
+        }
+    });
+
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
@@ -183,7 +198,7 @@ bool MainWindow::validID(int id)
 
 void MainWindow::updateGlobalCounter(int& value)
 {
-    ui->lcd_ContGlobal->display(++value);
+//    ui->lcd_ContGlobal->display(++value);
 }
 
 void MainWindow::sendData()
@@ -236,20 +251,25 @@ void MainWindow::sendData()
 
 void MainWindow::run()
 {
-    qDebug() << "\n\n";
-    qDebug() << "Cantidad de lotes: " << batches.size();
-    for(const auto& batch : batches) {
-        for(const auto& process : batch->getProcesses()) {
-            int aux = 1;
-            thread->start();
-//            threadGlobalCounter->start();
-            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
-                qDebug() << aux++;
-                updateGlobalCounter(globalCounter);
-                thread->sleep(1);
-            }
-        }
-    }
+//    qDebug() << "\n\n";
+//    qDebug() << "Cantidad de lotes: " << batches.size();
+//    for(const auto& batch : batches) {
+//        for(const auto& process : batch->getProcesses()) {
+//            int aux = 1;
+//            thread->start();
+////            threadGlobalCounter->start();
+//            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+//                qDebug() << aux++;
+//                updateGlobalCounter(globalCounter);
+//                thread->sleep(1);
+//            }
+//        }
+    //    }
+}
+
+QVector<Batch *> MainWindow::getBatches() const
+{
+    return batches;
 }
 
 
@@ -263,7 +283,10 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->spnBx_CantProcesos->setEnabled(false);
         ui->btn_Enviar->setEnabled(false);
 
-        run();
+        threadGlobalCounter->start();
+
+//        threadGlobalCounter->start();
+//        thread->start();
 
         ui->ldt_NombProgr->setEnabled(true);
         ui->ldt_Operacion->setEnabled(true);

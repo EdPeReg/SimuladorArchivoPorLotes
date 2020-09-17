@@ -8,11 +8,10 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QStyle>
-#include <QThread>
-#include <QMutex>
 
 #include "Batch.h"
 #include "Process.h"
+#include "ThreadGlobalCounter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -30,8 +29,7 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Batch*> batches;
-    QThread *thread = new QThread(this);
-    QThread *threadGlobalCounter = new QThread(this);
+    ThreadGlobalCounter *threadGlobalCounter;
 
     const int LIMITE_PROCESO = 4;
 
@@ -55,10 +53,13 @@ private:
     int doOperation(std::string& operation);
     bool validID(int id);
     void updateGlobalCounter(int& value);
+    void run();
+
+public:
+    QVector<Batch *> getBatches() const;
 
 private slots:
     void sendData();
-    void run();
 
     void on_action_Procesar_Lote_triggered();
 };
