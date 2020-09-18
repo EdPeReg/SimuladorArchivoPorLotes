@@ -253,6 +253,7 @@ void MainWindow::insertDataTableCurrentBatch()
                 threadProcessRunning->setProcess(process);
                 threadTimeElapsed->setTME(process->getTiempoMaximoEst());
                 threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
+                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
             }
             batch->setIsAnalized(true);
         }
@@ -260,6 +261,7 @@ void MainWindow::insertDataTableCurrentBatch()
     threadProcessRunning->start();
     threadTimeElapsed->start();
     threadTimeLeft->start();
+    threadGlobalCounter->start();
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {

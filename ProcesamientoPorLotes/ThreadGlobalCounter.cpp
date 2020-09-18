@@ -2,17 +2,20 @@
 
 ThreadGlobalCounter::ThreadGlobalCounter(QThread *parent) :
     QThread(parent)
-  , tiempoMaxEst(0)
-  , sum(0)
+  , globalCounter(0)
 {
 }
 
 void ThreadGlobalCounter::run()
 {
-    for(int i = 0; i < 9; ++i) {
-        emit updateCounter(i);
-        sleep(1);
+    for(const auto& TME : tiemposEstimados) {
+        for(int i = 0; i < TME; ++i) {
+            emit updateCounter(++globalCounter);
+            sleep(1);
+        }
     }
+
+    tiemposEstimados.clear();
 
 //    emit updateTableRunningProcess();
     // GLOBAL COUNTER.
