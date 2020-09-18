@@ -35,7 +35,6 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Batch*> batches;
-//    DialogCounters *dialogCounters;
     ThreadGlobalCounter *threadGlobalCounter;
 
     const int LIMITE_PROCESO = 4;
@@ -46,7 +45,6 @@ private:
     bool onlyOnce;
     int processInserted;
     int processRemaining;
-    int batchesCount;
     int batchNum;
     int indexBatch;
     int globalCounter;
@@ -57,7 +55,6 @@ private:
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
-    int computebatcheses(int numProcess);
     int doOperation(std::string& operation);
     bool validID(int id);
     void updateGlobalCounter(int n);

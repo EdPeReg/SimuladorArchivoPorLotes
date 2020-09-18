@@ -12,9 +12,8 @@ MainWindow::MainWindow(QWidget *parent)
     , errorID(false)
     , firstTime(false)
     , onlyOnce(false)
-    , processInserted(1)
+    , processInserted(0)
     , processRemaining(0)
-    , batchesCount(0)
     , batchNum(0)
     , indexBatch(0)
     , globalCounter(0)
@@ -96,19 +95,18 @@ void MainWindow::insertProcess(int& index)
 
         if(validID(id)) {
             process->setId(id);
+            batches.at(index)->insertProcess(process);
 
-            if(processInserted++ == LIMITE_PROCESO) {
-                ++index;
+            if(++processInserted == LIMITE_PROCESO) {
                 process->setNumBatch(++batchNum);
                 ui->lcd_LotesRestantes->display(batchNum);
-                processInserted = 1;
+                processInserted = 0;
             } else {
                 process->setNumBatch(batchNum);
             }
             qDebug() << " ";
             qDebug() << "Indice antes de insertar: " << index;
             qDebug() << "LOtes totales antes de insertar: " << batches.size();
-            batches.at(index)->insertProcess(process);
         }
     }
 }
@@ -130,18 +128,6 @@ int MainWindow::getLeftOperand(const std::string& operation) {
 int MainWindow::getRightOperand(const std::string& operation) {
     int operandPos = getOperandPos(operation);
     return stoi(operation.substr(operandPos + 1));
-}
-
-int MainWindow::computebatcheses(int numProcess) {
-    int batchesCount = 0;
-    if(numProcess % 4 == 0) {
-        batchesCount = numProcess / 4;
-    } else {
-        batchesCount = numProcess / 4;
-        ++batchesCount;
-    }
-
-    return batchesCount;
 }
 
 int MainWindow::doOperation(std::string& operation) {
@@ -192,11 +178,7 @@ bool MainWindow::validID(int id)
 
 void MainWindow::updateGlobalCounter(int i)
 {
-//    insertDataTableCurrentBatch();
     ui->lcd_ContGlobal->display(i);
-
-//    globalCounter += i;
-
 }
 
 void MainWindow::getTMEProcess()
@@ -247,31 +229,32 @@ void MainWindow::sendData()
         Batch *batch = new Batch;
         batches.push_back(batch);
         onlyOnce = true;
-//        batchesCount = computebatcheses(ui->spnBx_CantProcesos->value());
-//        ui->lcd_LotesRestantes->display(batchesCount);
     }
 
     if(!firstTime) {
 //        batches.clear(); // without deleting, you can validate any id from any batch.
         processRemaining = ui->spnBx_CantProcesos->value();
         firstTime = true;
-//        for(int i = 0; i < batchesCount; ++i) {
-//            Batch *batch = new Batch;
-//            batches.push_back(batch);
-//        }
     }
 
-    ui->spnBx_CantProcesos->setEnabled(false);
-
-    if(processInserted == LIMITE_PROCESO) {
+    if(batches.at(indexBatch)->getSize() == LIMITE_PROCESO) {
         Batch *batch = new Batch;
         batches.push_back(batch);
-
-        insertProcess(indexBatch);
-        batches.at(indexBatch)->setSize(1); // Update the batch size.
-    } else {
-        insertProcess(indexBatch);
+        ++indexBatch;
     }
+    ui->spnBx_CantProcesos->setEnabled(false);
+
+    insertProcess(indexBatch);
+
+//    if(processInserted++ == LIMITE_PROCESO) {
+//        Batch *batch = new Batch;
+//        batches.push_back(batch);
+
+//        insertProcess(indexBatch);
+////        batches.at(indexBatch)->setSize(1); // Update the batch size.
+//    } else {
+//        insertProcess(indexBatch);
+//    }
 
     if(!errorOperation and !errorID) {
         ui->lcd_ProcRestante->display(--processRemaining);
@@ -301,6 +284,7 @@ QVector<Batch *> MainWindow::getBatches() const
 
 void MainWindow::on_action_Procesar_Lote_triggered()
 {
+    qDebug() << "sssssssssssssssss: " << batches.size();
     if(!batches.empty()) {
         int processesInBatch = batches.at(indexBatch)->getSize();
         if(processesInBatch == LIMITE_PROCESO) {
