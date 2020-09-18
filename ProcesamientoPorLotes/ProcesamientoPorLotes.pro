@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     DialogCounters.cpp \
     ThreadGlobalCounter.cpp \
+    ThreadProcessRunning.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -26,10 +27,10 @@ HEADERS += \
     DialogCounters.h \
     Process.h \
     ThreadGlobalCounter.h \
+    ThreadProcessRunning.h \
     mainwindow.h
 
 FORMS += \
-    dialogcounters.ui \
     mainwindow.ui
 
 # Default rules for deployment.

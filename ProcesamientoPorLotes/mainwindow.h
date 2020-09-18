@@ -13,15 +13,20 @@
 #include "Batch.h"
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
+#include "ThreadProcessRunning.h"
 #include "DialogCounters.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-enum COLUMN_CURRENT_BATCH {
+enum CURRENT_BATCH {
     ID, TME
 };;
+
+enum RUNNING_PROCESS {
+    ID_RP, NOMBRE_RP, OPERACION_RP, TME_RP, TT_RP, TR_RP
+};
 
 class MainWindow : public QMainWindow
 {
@@ -36,6 +41,7 @@ private:
 
     QVector<Batch*> batches;
     ThreadGlobalCounter *threadGlobalCounter;
+    ThreadProcessRunning *threadProcessRunning;
 
     const int LIMITE_PROCESO = 4;
 
@@ -60,9 +66,7 @@ private:
     void updateGlobalCounter(int n);
     void getTMEProcess();
     void insertDataTableCurrentBatch();
-
-public:
-    QVector<Batch *> getBatches() const;
+    void insertDataTableRunningProcess(Process* runningProcess);
 
 private slots:
     void sendData();

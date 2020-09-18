@@ -9,12 +9,19 @@ ThreadGlobalCounter::ThreadGlobalCounter(QThread *parent) :
 
 void ThreadGlobalCounter::run()
 {
-    for(const auto tiempoMaximo : tiemposEstimados) {
-        for(int i = 0; i < tiempoMaximo; ++i) {
-            qDebug() << "i: " << i;
-            sum += i;
-            emit updateCounter(sum);
-            sleep(1);
-        }
+    for(int i = 0; i < 9; ++i) {
+        emit updateCounter(i);
+        sleep(1);
     }
+
+//    emit updateTableRunningProcess();
+    // GLOBAL COUNTER.
+//    for(const auto tiempoMaximo : tiemposEstimados) {
+//        for(int i = 0; i < tiempoMaximo; ++i) {
+//            qDebug() << "i: " << i;
+//            sum += i;
+//            emit updateCounter(sum);
+//            sleep(1);
+//        }
+//    }
 }

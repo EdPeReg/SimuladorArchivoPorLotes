@@ -22,17 +22,27 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     threadGlobalCounter = new ThreadGlobalCounter;
+    threadProcessRunning = new ThreadProcessRunning;
+
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
+    connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
     ui->tblWdt_LoteActual->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
-    ui->tblWdt_ProcesoEjec->setColumnCount(2);
-    ui->tblWdt_ProcesoEjec->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("NOMBRE")));
-    ui->tblWdt_ProcesoEjec->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("INFORMACION")));
+    ui->tblWdt_ProcesoEjec->setColumnCount(1);
+    ui->tblWdt_ProcesoEjec->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("DATOS")));
     ui->tblWdt_ProcesoEjec->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+
+    ui->tblWdt_ProcesoEjec->setRowCount(6);
+    ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(0, new QTableWidgetItem(("ID")));
+    ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(1, new QTableWidgetItem(("NOMBRE")));
+    ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(2, new QTableWidgetItem(("OPERACION")));
+    ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(3, new QTableWidgetItem(("TME")));
+    ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(4, new QTableWidgetItem(("TT")));
+    ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(5, new QTableWidgetItem(("TR")));
 
     ui->tblWdt_Terminados->setColumnCount(4);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -53,6 +63,9 @@ MainWindow::~MainWindow()
     for(QVector<Batch*>::iterator it = batches.begin(); it != batches.end(); ++it) {
         delete (*it);
     }
+
+    delete threadGlobalCounter;
+    delete threadProcessRunning;
 }
 
 void MainWindow::removeSpace(std::string& operation) {
@@ -185,14 +198,14 @@ void MainWindow::getTMEProcess()
 {
     for(const auto& batch : batches) {
         for(const auto& process : batch->getProcesses()) {
-            threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-            ++globalCounter;
+//            threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
+//            ++globalCounter;
 //            int n = process->getTiempoMaximoEst();
 //            threadGlobalCounter->setTiempoMaxEst(n);
         }
     }
 //    threadGlobalCounter->start();
-    qDebug() << "global coutnerrrrrrrrrrrrrr: " << globalCounter;
+//    qDebug() << "global coutnerrrrrrrrrrrrrr: " << globalCounter;
 //    ui->lcd_ContGlobal->display(globalCounter);
 }
 
@@ -211,15 +224,40 @@ void MainWindow::insertDataTableCurrentBatch()
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
         if(!batch->getIsAnalized()) {
-            for(const auto& process : batch->getProcesses()) {
+            for(Process *process : batch->getProcesses()) {
                 QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
                 QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
                 ui->tblWdt_LoteActual->setItem(row, ID, itemID);
                 ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                 ++row;
+
+                threadProcessRunning->setProcess(process);
             }
             batch->setIsAnalized(true);
         }
+    }
+    threadProcessRunning->start();
+}
+
+void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
+    qDebug() << "DATOOOOS: " << runningProcess->getId();
+    int timeElapsed = runningProcess->getTiempoMaximoEst();
+    int timeLeft = 0;
+
+    for(int i = 0; i < 6; ++i) {
+        QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
+        QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
+        QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
+        QTableWidgetItem *TME = new QTableWidgetItem(QString::number(runningProcess->getTiempoMaximoEst()));
+        QTableWidgetItem *TT = new QTableWidgetItem(QString::number(runningProcess->getId()));
+        QTableWidgetItem *TR = new QTableWidgetItem(QString::number(runningProcess->getId()));
+        ui->tblWdt_ProcesoEjec->setItem(0, ID_RP, ID);
+        ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
+        ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
+        ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
+//        ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, ID);
+//        ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, ID);
+//        threadProcessRunning->sleep(1);
     }
 }
 
@@ -246,16 +284,6 @@ void MainWindow::sendData()
 
     insertProcess(indexBatch);
 
-//    if(processInserted++ == LIMITE_PROCESO) {
-//        Batch *batch = new Batch;
-//        batches.push_back(batch);
-
-//        insertProcess(indexBatch);
-////        batches.at(indexBatch)->setSize(1); // Update the batch size.
-//    } else {
-//        insertProcess(indexBatch);
-//    }
-
     if(!errorOperation and !errorID) {
         ui->lcd_ProcRestante->display(--processRemaining);
     }
@@ -277,14 +305,8 @@ void MainWindow::sendData()
     qDebug() << "Cantidad de procesos en el lote: " << batches.at(indexBatch)->getSize();
 }
 
-QVector<Batch *> MainWindow::getBatches() const
-{
-    return batches;
-}
-
 void MainWindow::on_action_Procesar_Lote_triggered()
 {
-    qDebug() << "sssssssssssssssss: " << batches.size();
     if(!batches.empty()) {
         int processesInBatch = batches.at(indexBatch)->getSize();
         if(processesInBatch == LIMITE_PROCESO) {
