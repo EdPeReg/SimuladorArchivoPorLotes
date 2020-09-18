@@ -15,7 +15,7 @@
 #include "ThreadGlobalCounter.h"
 #include "ThreadProcessRunning.h"
 #include "ThreadTImeElapsed.h"
-#include "DialogCounters.h"
+#include "ThreadTImeLeft.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -44,6 +44,7 @@ private:
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
     ThreadTImeElapsed *threadTimeElapsed;
+    ThreadTImeLeft *threadTimeLeft;
 
     const int LIMITE_PROCESO = 4;
 
@@ -67,6 +68,7 @@ private:
     bool validID(int id);
     void updateGlobalCounter(int n);
     void updateTimeElapsed(int n);
+    void updateTimeLeft(int n);
     void getTMEProcess();
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);

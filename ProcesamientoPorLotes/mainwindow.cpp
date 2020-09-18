@@ -8,6 +8,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , threadGlobalCounter(nullptr)
+    , threadProcessRunning(nullptr)
+    , threadTimeElapsed(nullptr)
     , errorOperation(false)
     , errorID(false)
     , firstTime(false)
@@ -24,10 +27,12 @@ MainWindow::MainWindow(QWidget *parent)
     threadGlobalCounter = new ThreadGlobalCounter;
     threadProcessRunning = new ThreadProcessRunning;
     threadTimeElapsed = new ThreadTImeElapsed;
+    threadTimeLeft = new ThreadTImeLeft;
 
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
+    connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -53,8 +58,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_Terminados->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
-
-
     connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
 }
 
@@ -69,6 +72,7 @@ MainWindow::~MainWindow()
     delete threadGlobalCounter;
     delete threadProcessRunning;
     delete threadTimeElapsed;
+    delete threadTimeLeft;
 }
 
 void MainWindow::removeSpace(std::string& operation) {
@@ -199,9 +203,14 @@ void MainWindow::updateGlobalCounter(int i)
 
 void MainWindow::updateTimeElapsed(int n)
 {
-    qDebug() << "tiepom transcurridooooooooooooooooooooo: " << n;
     QTableWidgetItem *TT = new QTableWidgetItem(QString::number(n));
     ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+}
+
+void MainWindow::updateTimeLeft(int n) {
+    qDebug() << "NUMEROOOOOOOOOOOOOOOOOOOOOO: " << n;
+    QTableWidgetItem *TR = new QTableWidgetItem(QString::number(n));
+    ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 }
 
 void MainWindow::getTMEProcess()
@@ -243,12 +252,14 @@ void MainWindow::insertDataTableCurrentBatch()
 
                 threadProcessRunning->setProcess(process);
                 threadTimeElapsed->setTME(process->getTiempoMaximoEst());
+                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
             }
             batch->setIsAnalized(true);
         }
     }
     threadProcessRunning->start();
     threadTimeElapsed->start();
+    threadTimeLeft->start();
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
@@ -259,14 +270,10 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
         QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
         QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
         QTableWidgetItem *TME = new QTableWidgetItem(QString::number(runningProcess->getTiempoMaximoEst()));
-        QTableWidgetItem *TT = new QTableWidgetItem(QString::number(runningProcess->getId()));
-        QTableWidgetItem *TR = new QTableWidgetItem(QString::number(runningProcess->getId()));
         ui->tblWdt_ProcesoEjec->setItem(0, ID_RP, ID);
         ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
         ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
         ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
-//        ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, ID);
-//        ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, ID);
     }
 }
 

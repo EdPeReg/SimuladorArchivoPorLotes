@@ -16,20 +16,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    DialogCounters.cpp \
     ThreadGlobalCounter.cpp \
     ThreadProcessRunning.cpp \
     ThreadTImeElapsed.cpp \
+    ThreadTImeLeft.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     Batch.h \
-    DialogCounters.h \
     Process.h \
     ThreadGlobalCounter.h \
     ThreadProcessRunning.h \
     ThreadTImeElapsed.h \
+    ThreadTImeLeft.h \
     mainwindow.h
 
 FORMS += \
