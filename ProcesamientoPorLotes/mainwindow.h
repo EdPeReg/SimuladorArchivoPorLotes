@@ -14,6 +14,7 @@
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
 #include "ThreadProcessRunning.h"
+#include "ThreadTImeElapsed.h"
 #include "DialogCounters.h"
 
 QT_BEGIN_NAMESPACE
@@ -42,6 +43,7 @@ private:
     QVector<Batch*> batches;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
+    ThreadTImeElapsed *threadTimeElapsed;
 
     const int LIMITE_PROCESO = 4;
 
@@ -64,6 +66,7 @@ private:
     int doOperation(std::string& operation);
     bool validID(int id);
     void updateGlobalCounter(int n);
+    void updateTimeElapsed(int n);
     void getTMEProcess();
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);

@@ -19,6 +19,7 @@ SOURCES += \
     DialogCounters.cpp \
     ThreadGlobalCounter.cpp \
     ThreadProcessRunning.cpp \
+    ThreadTImeElapsed.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -28,6 +29,7 @@ HEADERS += \
     Process.h \
     ThreadGlobalCounter.h \
     ThreadProcessRunning.h \
+    ThreadTImeElapsed.h \
     mainwindow.h
 
 FORMS += \

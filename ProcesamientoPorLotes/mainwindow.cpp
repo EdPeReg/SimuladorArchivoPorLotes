@@ -23,9 +23,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     threadGlobalCounter = new ThreadGlobalCounter;
     threadProcessRunning = new ThreadProcessRunning;
+    threadTimeElapsed = new ThreadTImeElapsed;
 
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
+    connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -66,6 +68,7 @@ MainWindow::~MainWindow()
 
     delete threadGlobalCounter;
     delete threadProcessRunning;
+    delete threadTimeElapsed;
 }
 
 void MainWindow::removeSpace(std::string& operation) {
@@ -194,6 +197,13 @@ void MainWindow::updateGlobalCounter(int i)
     ui->lcd_ContGlobal->display(i);
 }
 
+void MainWindow::updateTimeElapsed(int n)
+{
+    qDebug() << "tiepom transcurridooooooooooooooooooooo: " << n;
+    QTableWidgetItem *TT = new QTableWidgetItem(QString::number(n));
+    ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+}
+
 void MainWindow::getTMEProcess()
 {
     for(const auto& batch : batches) {
@@ -232,19 +242,19 @@ void MainWindow::insertDataTableCurrentBatch()
                 ++row;
 
                 threadProcessRunning->setProcess(process);
+                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
             }
             batch->setIsAnalized(true);
         }
     }
     threadProcessRunning->start();
+    threadTimeElapsed->start();
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
     qDebug() << "DATOOOOS: " << runningProcess->getId();
-    int timeElapsed = runningProcess->getTiempoMaximoEst();
-    int timeLeft = 0;
 
-    for(int i = 0; i < 6; ++i) {
+    for(int i = 0; i < 4; ++i) {
         QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
         QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
         QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
@@ -257,7 +267,6 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
         ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
 //        ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, ID);
 //        ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, ID);
-//        threadProcessRunning->sleep(1);
     }
 }
 
