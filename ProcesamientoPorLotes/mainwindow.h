@@ -13,6 +13,7 @@
 #include "Batch.h"
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
+#include "DialogCounters.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,6 +35,7 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Batch*> batches;
+//    DialogCounters *dialogCounters;
     ThreadGlobalCounter *threadGlobalCounter;
 
     const int LIMITE_PROCESO = 4;
@@ -48,6 +50,7 @@ private:
     int batchNum;
     int indexBatch;
     int globalCounter;
+    int indexCurrentBatch;
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
@@ -57,7 +60,8 @@ private:
     int computebatcheses(int numProcess);
     int doOperation(std::string& operation);
     bool validID(int id);
-    void updateGlobalCounter();
+    void updateGlobalCounter(int n);
+    void getTMEProcess();
     void insertDataTableCurrentBatch();
 
 public:

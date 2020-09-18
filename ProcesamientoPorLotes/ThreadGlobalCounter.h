@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QDebug>
+#include <QVector>
 
 class ThreadGlobalCounter : public QThread
 {
@@ -10,13 +11,20 @@ class ThreadGlobalCounter : public QThread
 public:
     explicit ThreadGlobalCounter(QThread *parent = nullptr);
 
+    void setTiemposEstimados(int tiempoEstimado) {
+        tiemposEstimados.push_back(tiempoEstimado);
+    }
+
 private:
+    int tiempoMaxEst;
+    int sum;
+    QVector<int> tiemposEstimados;
 
 protected:
     void run();
 
 signals:
-    void updateGlobalCounter();
+    void updateCounter(int n);
 };
 
 #endif // THREADGLOBALCOUNTER_H

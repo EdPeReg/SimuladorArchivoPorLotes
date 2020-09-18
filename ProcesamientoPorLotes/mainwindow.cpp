@@ -12,18 +12,18 @@ MainWindow::MainWindow(QWidget *parent)
     , errorID(false)
     , firstTime(false)
     , onlyOnce(false)
-    , processInserted(0)
+    , processInserted(1)
     , processRemaining(0)
     , batchesCount(0)
-    , batchNum(1)
+    , batchNum(0)
     , indexBatch(0)
     , globalCounter(0)
+    , indexCurrentBatch(0)
 {
     ui->setupUi(this);
 
     threadGlobalCounter = new ThreadGlobalCounter;
-
-    connect(threadGlobalCounter, &ThreadGlobalCounter::updateGlobalCounter, this, &MainWindow::updateGlobalCounter);
+    connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -97,7 +97,7 @@ void MainWindow::insertProcess(int& index)
         if(validID(id)) {
             process->setId(id);
 
-            if(++processInserted > LIMITE_PROCESO) {
+            if(processInserted++ == LIMITE_PROCESO) {
                 ++index;
                 process->setNumBatch(++batchNum);
                 ui->lcd_LotesRestantes->display(batchNum);
@@ -105,6 +105,9 @@ void MainWindow::insertProcess(int& index)
             } else {
                 process->setNumBatch(batchNum);
             }
+            qDebug() << " ";
+            qDebug() << "Indice antes de insertar: " << index;
+            qDebug() << "LOtes totales antes de insertar: " << batches.size();
             batches.at(index)->insertProcess(process);
         }
     }
@@ -187,59 +190,83 @@ bool MainWindow::validID(int id)
     return true;
 }
 
-void MainWindow::updateGlobalCounter()
+void MainWindow::updateGlobalCounter(int i)
 {
-    insertDataTableCurrentBatch();
+//    insertDataTableCurrentBatch();
+    ui->lcd_ContGlobal->display(i);
 
-    globalCounter = 0;
+//    globalCounter += i;
 
+}
+
+void MainWindow::getTMEProcess()
+{
     for(const auto& batch : batches) {
         for(const auto& process : batch->getProcesses()) {
-            int aux = 1;
-            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
-                qDebug() << aux++;
-                ui->lcd_ContGlobal->display(++globalCounter);
-            }
+            threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
+            ++globalCounter;
+//            int n = process->getTiempoMaximoEst();
+//            threadGlobalCounter->setTiempoMaxEst(n);
         }
     }
+//    threadGlobalCounter->start();
+    qDebug() << "global coutnerrrrrrrrrrrrrr: " << globalCounter;
+//    ui->lcd_ContGlobal->display(globalCounter);
 }
 
 void MainWindow::insertDataTableCurrentBatch()
 {
     int row = 0;
+    int totalProcesses = 0;
 
-    ui->tblWdt_LoteActual->setRowCount(batches.at(indexBatch)->getSize());
-    Batch *b = batches.at(indexBatch);
-    for(const auto& process : b->getProcesses()) {
-        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
-        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-        ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-        ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-        ++row;
+    for(const auto& batch : batches) {
+        if(!batch->getIsAnalized()) {
+            totalProcesses += batch->getSize();
+        }
+    }
+    ui->tblWdt_LoteActual->setRowCount(totalProcesses);
+
+    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
+    for(const auto& batch : batches) {
+        if(!batch->getIsAnalized()) {
+            for(const auto& process : batch->getProcesses()) {
+                QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
+                QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+                ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+                ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
+                ++row;
+            }
+            batch->setIsAnalized(true);
+        }
     }
 }
 
 void MainWindow::sendData()
 {
     if(!onlyOnce) {
+        Batch *batch = new Batch;
+        batches.push_back(batch);
         onlyOnce = true;
-        batchesCount = computebatcheses(ui->spnBx_CantProcesos->value());
-        ui->lcd_LotesRestantes->display(batchesCount);
+//        batchesCount = computebatcheses(ui->spnBx_CantProcesos->value());
+//        ui->lcd_LotesRestantes->display(batchesCount);
     }
 
     if(!firstTime) {
 //        batches.clear(); // without deleting, you can validate any id from any batch.
         processRemaining = ui->spnBx_CantProcesos->value();
         firstTime = true;
-        for(int i = 0; i < batchesCount; ++i) {
-            Batch *batch = new Batch;
-            batches.push_back(batch);
-        }
+//        for(int i = 0; i < batchesCount; ++i) {
+//            Batch *batch = new Batch;
+//            batches.push_back(batch);
+//        }
     }
 
     ui->spnBx_CantProcesos->setEnabled(false);
 
     if(processInserted == LIMITE_PROCESO) {
+        Batch *batch = new Batch;
+        batches.push_back(batch);
+
         insertProcess(indexBatch);
         batches.at(indexBatch)->setSize(1); // Update the batch size.
     } else {
@@ -267,24 +294,6 @@ void MainWindow::sendData()
     qDebug() << "Cantidad de procesos en el lote: " << batches.at(indexBatch)->getSize();
 }
 
-//void MainWindow::run()
-//{
-//    qDebug() << "\n\n";
-//    qDebug() << "Cantidad de lotes: " << batches.size();
-//    for(const auto& batch : batches) {
-//        for(const auto& process : batch->getProcesses()) {
-//            int aux = 1;
-//            thread->start();
-////            threadGlobalCounter->start();
-//            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
-//                qDebug() << aux++;
-//                updateGlobalCounter(globalCounter);
-//                thread->sleep(1);
-//            }
-//        }
-    //    }
-//}
-
 QVector<Batch *> MainWindow::getBatches() const
 {
     return batches;
@@ -302,7 +311,8 @@ void MainWindow::on_action_Procesar_Lote_triggered()
             ui->spnBx_CantProcesos->setEnabled(false);
             ui->btn_Enviar->setEnabled(false);
 
-            threadGlobalCounter->start();
+            insertDataTableCurrentBatch();
+            getTMEProcess();
 
             ui->ldt_NombProgr->setEnabled(true);
             ui->ldt_Operacion->setEnabled(true);
