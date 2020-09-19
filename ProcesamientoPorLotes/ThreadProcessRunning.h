@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QVector>
+#include <QDebug>
 
 #include "Process.h"
 
@@ -10,18 +11,20 @@ class ThreadProcessRunning : public QThread
 {
     Q_OBJECT
 private:
-    int timeElapsed;
     QVector<Process*> processes;
 
 public:
     explicit ThreadProcessRunning(QThread *parent = nullptr);
 
-    int gettimeElapsed() const {
-        return timeElapsed;
-    }
+    bool finish;
+    int counter = 0;
 
     void setProcess(Process* process) {
         processes.push_back(process);
+    }
+
+    void doSomething() {
+        qDebug() << "another somehting";
     }
 
 protected:

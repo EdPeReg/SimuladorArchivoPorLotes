@@ -10,6 +10,8 @@ class Process {
         int tiempoMaximoEst;
         int id;
         int numBatch;
+        int result;
+
     public:
         Process() : programmerName(""), operation(""), tiempoMaximoEst(0), id(0), numBatch(0) { };
 
@@ -33,6 +35,10 @@ class Process {
             this->numBatch = numBatch;
         }
 
+        void setResult(int result) {
+            this->result = result;
+        }
+
         QString getProgrammerName() const {
             return programmerName;
         }
@@ -51,6 +57,10 @@ class Process {
 
         int getNumBatch() const {
             return numBatch;
+        }
+
+        int getResult() const {
+            return result;
         }
 };
 

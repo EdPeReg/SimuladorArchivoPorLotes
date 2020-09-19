@@ -2,15 +2,18 @@
 
 ThreadProcessRunning::ThreadProcessRunning(QThread *parent) :
     QThread(parent)
-  , timeElapsed(0)
+  , finish(false)
 {
 
 }
 
 void ThreadProcessRunning::run() {
-    for(int i = 0; i < processes.size(); ++i) {
-        emit updateTable(processes.at(i));
-        sleep(processes.at(i)->getTiempoMaximoEst());
+    if(!finish) {
+        for(int i = 0; i < processes.size(); ++i) {
+            emit updateTable(processes.at(i));
+            sleep(processes.at(i)->getTiempoMaximoEst());
+        }
     }
+
     processes.clear();
 }

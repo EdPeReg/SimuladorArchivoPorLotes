@@ -14,17 +14,5 @@ void ThreadGlobalCounter::run()
             sleep(1);
         }
     }
-
     tiemposEstimados.clear();
-
-//    emit updateTableRunningProcess();
-    // GLOBAL COUNTER.
-//    for(const auto tiempoMaximo : tiemposEstimados) {
-//        for(int i = 0; i < tiempoMaximo; ++i) {
-//            qDebug() << "i: " << i;
-//            sum += i;
-//            emit updateCounter(sum);
-//            sleep(1);
-//        }
-//    }
 }

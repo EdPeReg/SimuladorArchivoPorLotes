@@ -16,6 +16,7 @@
 #include "ThreadProcessRunning.h"
 #include "ThreadTImeElapsed.h"
 #include "ThreadTImeLeft.h"
+#include "ThreadFinish.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,6 +30,10 @@ enum RUNNING_PROCESS {
     ID_RP, NOMBRE_RP, OPERACION_RP, TME_RP, TT_RP, TR_RP
 };
 
+enum FINISH_PROCESS{
+    ID_FP, NOMBRE_FP, OPERACION_FP, RESULT_FP, TME_FP, LOTE_FP
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -40,13 +45,18 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    QVector<Batch*> batchesFinished;
     QVector<Batch*> batches;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
     ThreadTImeElapsed *threadTimeElapsed;
     ThreadTImeLeft *threadTimeLeft;
+    ThreadFinish *threadFinish;
 
     const int LIMITE_PROCESO = 4;
+
+    int j = 0;
+
 
     bool errorOperation;
     bool errorID;
@@ -56,8 +66,9 @@ private:
     int processRemaining;
     int batchNum;
     int indexBatch;
-    int globalCounter;
-    int indexCurrentBatch;
+    int rows;
+    int columns;
+    int aux;
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
@@ -69,7 +80,8 @@ private:
     void updateGlobalCounter(int n);
     void updateTimeElapsed(int n);
     void updateTimeLeft(int n);
-    void getTMEProcess();
+//    void updateTableFinish();
+    void updateTableFinish(Process *process);
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);
 
