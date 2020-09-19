@@ -16,7 +16,6 @@
 #include "ThreadProcessRunning.h"
 #include "ThreadTImeElapsed.h"
 #include "ThreadTImeLeft.h"
-#include "ThreadFinish.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,13 +50,10 @@ private:
     ThreadProcessRunning *threadProcessRunning;
     ThreadTImeElapsed *threadTimeElapsed;
     ThreadTImeLeft *threadTimeLeft;
-    ThreadFinish *threadFinish;
 
     const int LIMITE_PROCESO = 4;
 
     int j = 0;
-
-
     bool errorOperation;
     bool errorID;
     bool firstTime;
@@ -80,7 +76,6 @@ private:
     void updateGlobalCounter(int n);
     void updateTimeElapsed(int n);
     void updateTimeLeft(int n);
-//    void updateTableFinish();
     void updateTableFinish(Process *process);
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);

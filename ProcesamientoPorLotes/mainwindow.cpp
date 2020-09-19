@@ -4,6 +4,13 @@
 // TODO
 // BUSCAR MANERA DE EVITAR MEMORY LEAKS
 // VALIDAR MQUE EL 0 FUNCIONE EN LAS DEMAS OPERACIONES .
+//
+// NOTES:
+//
+// I used a lot of vectors in each threads, I don't want to use only vectors to get only
+// one element, find a better wa.
+//
+// Maybe I can create a thread only for update tables and another thread for counters.
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -11,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent)
     , threadGlobalCounter(nullptr)
     , threadProcessRunning(nullptr)
     , threadTimeElapsed(nullptr)
-    , threadFinish(nullptr)
     , errorOperation(false)
     , errorID(false)
     , firstTime(false)
@@ -30,13 +36,11 @@ MainWindow::MainWindow(QWidget *parent)
     threadProcessRunning = new ThreadProcessRunning;
     threadTimeElapsed = new ThreadTImeElapsed;
     threadTimeLeft = new ThreadTImeLeft;
-    threadFinish = new ThreadFinish;
 
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
     connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
-//    connect(threadFinish, &ThreadFinish::updateTable, this, &MainWindow::updateTableFinish);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -55,19 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(4, new QTableWidgetItem(("TT")));
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(5, new QTableWidgetItem(("TR")));
 
-
     ui->tblWdt_Terminados->setColumnCount(1);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("DATOS")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
-
-//    ui->tblWdt_Terminados->setRowCount(6);
-//    ui->tblWdt_Terminados->setVerticalHeaderItem(0, new QTableWidgetItem(tr("ID")));
-//    ui->tblWdt_Terminados->setVerticalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
-//    ui->tblWdt_Terminados->setVerticalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
-//    ui->tblWdt_Terminados->setVerticalHeaderItem(3, new QTableWidgetItem(tr("RESULTADO")));
-//    ui->tblWdt_Terminados->setVerticalHeaderItem(4, new QTableWidgetItem(tr("TME")));
-//    ui->tblWdt_Terminados->setVerticalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
-//    ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
 }
@@ -220,18 +214,11 @@ void MainWindow::updateTimeElapsed(int n)
 }
 
 void MainWindow::updateTimeLeft(int n) {
-    if(n == 1) {
-//        threadProcessRunning->setFinish(true);
-//        updateTableFinish();
-//        threadFinish->start();
-    }
     QTableWidgetItem *TR = new QTableWidgetItem(QString::number(n));
     ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 }
 
 void MainWindow::updateTableFinish(Process *process) {
-    qDebug() << "loteeeeeeeeeeeeeeeee;" << process->getNumBatch();
-
     ui->tblWdt_Terminados->setRowCount(rows);
     rows += 6;
 
@@ -243,8 +230,6 @@ void MainWindow::updateTableFinish(Process *process) {
     ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
-//    ui->tblWdt_Terminados->setRowCount(rows);
-//    ui->tblWdt_Terminados->setRowCount(ui->tblWdt_Terminados->rowCount());
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
     QTableWidgetItem *itemName = new QTableWidgetItem(process->getProgrammerName());
     QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
@@ -258,39 +243,6 @@ void MainWindow::updateTableFinish(Process *process) {
     ui->tblWdt_Terminados->setItem(columns, TME_FP, itemTME);
     ui->tblWdt_Terminados->setItem(columns, LOTE_FP, itemLote);
     columns += 6;
-
-
-//    ui->tblWdt_Terminados->setRowCount(rows);
-//    rows += 6;
-//    int row = ui->tblWdt_Terminados->rowCount() - 1;
-
-    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
-//    for(const auto& batch : batchesFinished) {
-//        for(Process *process : batch->getProcesses()) {
-//            QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
-//            QTableWidgetItem *itemName = new QTableWidgetItem(process->getProgrammerName());
-//            QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
-//            QTableWidgetItem *itemResult = new QTableWidgetItem(QString::number(process->getResult()));
-//            QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-//            QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
-//            ui->tblWdt_Terminados->setItem(0, ID_FP, itemID);
-//            ui->tblWdt_Terminados->setItem(0, NOMBRE_FP, itemName);
-//            ui->tblWdt_Terminados->setItem(0, OPERACION_FP, itemOperation);
-//            ui->tblWdt_Terminados->setItem(0, RESULT_FP, itemResult);
-//            ui->tblWdt_Terminados->setItem(0, TME_FP, itemTME);
-//            ui->tblWdt_Terminados->setItem(0, LOTE_FP, itemLote);
-//        }
-////        ui->tblWdt_Terminados->setRowCount(rows);
-
-////        ui->tblWdt_Terminados->setVerticalHeaderItem(0, new QTableWidgetItem(tr("ID")));
-////        ui->tblWdt_Terminados->setVerticalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
-////        ui->tblWdt_Terminados->setVerticalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
-////        ui->tblWdt_Terminados->setVerticalHeaderItem(3, new QTableWidgetItem(tr("RESULTADO")));
-////        ui->tblWdt_Terminados->setVerticalHeaderItem(4, new QTableWidgetItem(tr("TME")));
-////        ui->tblWdt_Terminados->setVerticalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
-
-////        rows += 6;
-//    }
 }
 
 void MainWindow::insertDataTableCurrentBatch()
@@ -315,16 +267,11 @@ void MainWindow::insertDataTableCurrentBatch()
                 ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                 ++row;
 
-//                updateTableFinish(process);
-
                 threadProcessRunning->setProcess(process);
                 threadTimeElapsed->setTME(process->getTiempoMaximoEst());
                 threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
                 threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-                threadFinish->setProcessFinished(process);
-//                threadFinish->setTME(process->getTiempoMaximoEst());
             }
-//            batchesFinished.push_back(batch);
             batch->setIsAnalized(true);
         }
     }
@@ -346,6 +293,7 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
         ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
         ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
 
+        // If the process finished to be inserted.
         ++j;
         if(j == 4) {
             threadProcessRunning->finish = true;
