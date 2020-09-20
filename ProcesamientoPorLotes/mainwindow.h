@@ -16,6 +16,7 @@
 #include "ThreadProcessRunning.h"
 #include "ThreadTImeElapsed.h"
 #include "ThreadTImeLeft.h"
+#include "ThreadBatchCounter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -44,12 +45,12 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QVector<Batch*> batchesFinished;
     QVector<Batch*> batches;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
     ThreadTImeElapsed *threadTimeElapsed;
     ThreadTImeLeft *threadTimeLeft;
+    ThreadBatchCounter *threadBatchCounter;
 
     const int LIMITE_PROCESO = 4;
 
@@ -58,6 +59,7 @@ private:
     bool errorID;
     bool firstTime;
     bool onlyOnce;
+    bool resetCall;
     int processInserted;
     int processRemaining;
     int batchNum;
@@ -65,6 +67,7 @@ private:
     int rows;
     int columns;
     int aux;
+    int auxClean;
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
@@ -73,16 +76,17 @@ private:
     int getRightOperand(const std::string& operation);
     int doOperation(std::string& operation);
     bool validID(int id);
+
+private slots:
+    void sendData();
     void updateGlobalCounter(int n);
     void updateTimeElapsed(int n);
     void updateTimeLeft(int n);
     void updateTableFinish(Process *process);
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);
-
-private slots:
-    void sendData();
-
+    void reset();
+    void updateBatchCounter(int n);
     void on_action_Procesar_Lote_triggered();
 };
 #endif // MAINWINDOW_H

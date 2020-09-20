@@ -18,10 +18,12 @@ MainWindow::MainWindow(QWidget *parent)
     , threadGlobalCounter(nullptr)
     , threadProcessRunning(nullptr)
     , threadTimeElapsed(nullptr)
+    , threadBatchCounter(nullptr)
     , errorOperation(false)
     , errorID(false)
     , firstTime(false)
     , onlyOnce(false)
+    , resetCall(false)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -29,16 +31,21 @@ MainWindow::MainWindow(QWidget *parent)
     , rows(6)
     , columns(0)
     , aux(0)
+    , auxClean(0)
 {
     ui->setupUi(this);
 
     threadGlobalCounter = new ThreadGlobalCounter;
+    threadBatchCounter = new ThreadBatchCounter;
     threadProcessRunning = new ThreadProcessRunning;
     threadTimeElapsed = new ThreadTImeElapsed;
     threadTimeLeft = new ThreadTImeLeft;
 
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
+    connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
+    connect(threadProcessRunning, &ThreadProcessRunning::reset, this, &MainWindow::reset);
+//    connect(threadProcessRunning, &ThreadProcessRunning::updateBatchCounter, this, &MainWindow::updateBatchCounter);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
     connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
 
@@ -70,8 +77,12 @@ MainWindow::~MainWindow()
 {
     delete ui;
 
-    for(QVector<Batch*>::iterator it = batches.begin(); it != batches.end(); ++it) {
-        delete (*it);
+    if(!resetCall) {
+        for(QVector<Batch*>::iterator it = batches.begin(); it != batches.end(); ++it) {
+            delete (*it);
+        }
+    } else {
+        resetCall = false;
     }
 
     delete threadGlobalCounter;
@@ -256,9 +267,11 @@ void MainWindow::insertDataTableCurrentBatch()
         }
     }
     ui->tblWdt_LoteActual->setRowCount(totalProcesses);
+    threadBatchCounter->currentBatchCounter = batchNum;
 
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
+        threadBatchCounter->setBatch(batch);
         if(!batch->getIsAnalized()) {
             for(Process *process : batch->getProcesses()) {
                 QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
@@ -279,6 +292,7 @@ void MainWindow::insertDataTableCurrentBatch()
     threadTimeElapsed->start();
     threadTimeLeft->start();
     threadGlobalCounter->start();
+    threadBatchCounter->start();
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
@@ -303,6 +317,35 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
     }
 }
 
+void MainWindow::reset()
+{
+//    resetCall = true;
+    qDebug() << "reseteando";
+    qDebug() << batches.size();
+//    for(auto& batch : batches) {
+//        delete batch;
+//        batch = nullptr;
+//    }
+    batches.clear(); // MEMORY LEAKS, IT SEEEMS I'M NOT DELETING THE POINTERS.
+    qDebug() << batches.size();
+
+    errorOperation = false;
+    errorID = false;
+    firstTime = false;
+    onlyOnce = false;
+    processInserted = 0;
+    processRemaining = 0;
+    batchNum = 1;
+    indexBatch = 0;
+    j = 0;
+    ui->lcd_LotesRestantes->display(0);
+}
+
+void MainWindow::updateBatchCounter(int n)
+{
+    ui->lcd_LotesRestantes->display(n);
+}
+
 void MainWindow::sendData()
 {
     if(!onlyOnce) {
@@ -312,7 +355,6 @@ void MainWindow::sendData()
     }
 
     if(!firstTime) {
-//        batches.clear(); // without deleting, you can validate any id from any batch.
         processRemaining = ui->spnBx_CantProcesos->value();
         firstTime = true;
     }

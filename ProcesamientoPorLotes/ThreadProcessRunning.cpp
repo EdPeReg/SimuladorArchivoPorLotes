@@ -15,5 +15,7 @@ void ThreadProcessRunning::run() {
         }
     }
 
+    emit reset();
+
     processes.clear();
 }

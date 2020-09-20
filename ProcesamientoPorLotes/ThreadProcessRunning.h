@@ -23,15 +23,12 @@ public:
         processes.push_back(process);
     }
 
-    void doSomething() {
-        qDebug() << "another somehting";
-    }
-
 protected:
     void run() override;
 
 signals:
     void updateTable(Process *process);
+    void reset();
 };
 
 #endif // THREADPROCESSRUNNING_H
