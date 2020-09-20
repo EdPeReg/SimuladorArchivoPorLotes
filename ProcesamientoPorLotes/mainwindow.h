@@ -59,7 +59,6 @@ private:
     bool errorID;
     bool firstTime;
     bool onlyOnce;
-    bool resetCall;
     int processInserted;
     int processRemaining;
     int batchNum;

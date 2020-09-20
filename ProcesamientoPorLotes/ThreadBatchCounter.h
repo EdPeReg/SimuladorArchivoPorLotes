@@ -13,17 +13,10 @@ class ThreadBatchCounter : public QThread
 private:
     QVector<Batch *> batches;
 
-    void clean() {
-        for(auto& batch : batches) {
-            delete batch;
-        }
-    }
-
 public:
     explicit ThreadBatchCounter(QThread *parent = nullptr);
 
     int currentBatchCounter;
-    bool finish;
 
     void setBatch(Batch *batch) {
         batches.push_back(batch);

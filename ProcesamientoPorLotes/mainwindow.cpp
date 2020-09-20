@@ -23,7 +23,6 @@ MainWindow::MainWindow(QWidget *parent)
     , errorID(false)
     , firstTime(false)
     , onlyOnce(false)
-    , resetCall(false)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -45,7 +44,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
     connect(threadProcessRunning, &ThreadProcessRunning::reset, this, &MainWindow::reset);
-//    connect(threadProcessRunning, &ThreadProcessRunning::updateBatchCounter, this, &MainWindow::updateBatchCounter);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
     connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
 
@@ -77,15 +75,8 @@ MainWindow::~MainWindow()
 {
     delete ui;
 
-    if(!resetCall) {
-        for(QVector<Batch*>::iterator it = batches.begin(); it != batches.end(); ++it) {
-            delete (*it);
-        }
-    } else {
-        resetCall = false;
-    }
-
     delete threadGlobalCounter;
+    delete threadBatchCounter;
     delete threadProcessRunning;
     delete threadTimeElapsed;
     delete threadTimeLeft;
@@ -319,14 +310,13 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
 
 void MainWindow::reset()
 {
-//    resetCall = true;
     qDebug() << "reseteando";
     qDebug() << batches.size();
-//    for(auto& batch : batches) {
-//        delete batch;
-//        batch = nullptr;
-//    }
-    batches.clear(); // MEMORY LEAKS, IT SEEEMS I'M NOT DELETING THE POINTERS.
+    for(auto& batch : batches) {
+        delete batch;
+        batch = nullptr;
+    }
+    batches.clear();
     qDebug() << batches.size();
 
     errorOperation = false;
