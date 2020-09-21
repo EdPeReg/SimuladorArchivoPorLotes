@@ -107,13 +107,16 @@ void MainWindow::insertProcess(int& index)
     std::string operation = aux.toStdString();
     removeSpace(operation);
 
-    rightOperand = getRightOperand(operation);
-    if(rightOperand == 0) {
-        QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
-        errorOperation = true;
-        ui->ldt_Operacion->clear();
-    } else {
-        errorOperation = false;
+    int operatorPos = getOperandPos(operation);
+    if(operation.at(operatorPos) == '/' or operation.at(operatorPos) == 'm') {
+        rightOperand = getRightOperand(operation);
+        if(rightOperand == 0) {
+            QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
+            errorOperation = true;
+            ui->ldt_Operacion->clear();
+        } else {
+            errorOperation = false;
+        }
     }
 
     if(!errorOperation) {
