@@ -27,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent)
     , processRemaining(0)
     , batchNum(1)
     , indexBatch(0)
-    , rows(6)
     , columns(0)
     , aux(0)
     , auxClean(0)
@@ -64,8 +63,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(4, new QTableWidgetItem(("TT")));
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(5, new QTableWidgetItem(("TR")));
 
-    ui->tblWdt_Terminados->setColumnCount(1);
-    ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("DATOS")));
+    ui->tblWdt_Terminados->setColumnCount(6);
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("RESULTADO")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("TME")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
@@ -221,16 +225,9 @@ void MainWindow::updateTimeLeft(int n) {
 }
 
 void MainWindow::updateTableFinish(Process *process) {
-    ui->tblWdt_Terminados->setRowCount(rows);
-    rows += 6;
 
-    ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("ID")));
-    ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("NOMBRE")));
-    ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("OPERACION")));
-    ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("RESULTADO")));
-    ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("TME")));
-    ui->tblWdt_Terminados->setVerticalHeaderItem(aux++, new QTableWidgetItem(tr("LOTE")));
-    ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+    ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
+    int fila = ui->tblWdt_Terminados->rowCount() - 1;
 
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
     QTableWidgetItem *itemName = new QTableWidgetItem(process->getProgrammerName());
@@ -238,13 +235,12 @@ void MainWindow::updateTableFinish(Process *process) {
     QTableWidgetItem *itemResult = new QTableWidgetItem(QString::number(process->getResult()));
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
     QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
-    ui->tblWdt_Terminados->setItem(columns, ID_FP, itemID);
-    ui->tblWdt_Terminados->setItem(columns, NOMBRE_FP, itemName);
-    ui->tblWdt_Terminados->setItem(columns, OPERACION_FP, itemOperation);
-    ui->tblWdt_Terminados->setItem(columns, RESULT_FP, itemResult);
-    ui->tblWdt_Terminados->setItem(columns, TME_FP, itemTME);
-    ui->tblWdt_Terminados->setItem(columns, LOTE_FP, itemLote);
-    columns += 6;
+    ui->tblWdt_Terminados->setItem(fila, ID_FP, itemID);
+    ui->tblWdt_Terminados->setItem(fila, NOMBRE_FP, itemName);
+    ui->tblWdt_Terminados->setItem(fila, OPERACION_FP, itemOperation);
+    ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
+    ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
+    ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
 }
 
 void MainWindow::insertDataTableCurrentBatch()

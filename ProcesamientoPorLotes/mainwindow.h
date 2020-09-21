@@ -63,7 +63,6 @@ private:
     int processRemaining;
     int batchNum;
     int indexBatch;
-    int rows;
     int columns;
     int aux;
     int auxClean;
