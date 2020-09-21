@@ -20,12 +20,6 @@ public:
         tiemposEstimados.push_back(tiempoEstimado);
     }
 
-
-public:
-    void setContadorGlobal(int contadorGlobal) {
-        tiemposEstimados.push_back(contadorGlobal);
-    }
-
 protected:
     void run() override;
 

@@ -8,11 +8,11 @@
 
 class Batch {
     private:
-        bool isAnalized;
+        bool analized;
         int size;
         QVector<Process*> processes;
     public:
-        Batch() : isAnalized(false), size(0){  };
+        Batch() : analized(false), size(0) {  };
 
         ~Batch() {
             for(auto it = processes.begin(); it != processes.end(); ++it) {
@@ -20,20 +20,16 @@ class Batch {
             }
         }
 
-        bool getIsAnalized() const {
-            return isAnalized;
+        bool isAnalized() const {
+            return analized;
         }
 
         int getSize() const {
             return size;
         }
 
-        void setIsAnalized(bool isAnalized) {
-            this->isAnalized = isAnalized;
-        }
-
-        void setSize(int size) {
-            this->size = size;
+        void setIsAnalized(bool analized) {
+            this->analized = analized;
         }
 
         QVector<Process*> getProcesses() const {
@@ -56,10 +52,6 @@ class Batch {
                 qDebug() << "ID: " << (*it)->getId();
                 ++i;
             }
-        }
-
-        bool isFull() const {
-            return size == 4;
         }
 };
 

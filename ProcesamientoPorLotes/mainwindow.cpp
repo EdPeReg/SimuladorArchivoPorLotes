@@ -3,7 +3,6 @@
 
 // TODO
 // BUSCAR MANERA DE EVITAR MEMORY LEAKS
-// VALIDAR MQUE EL 0 FUNCIONE EN LAS DEMAS OPERACIONES .
 //
 // NOTES:
 //
@@ -15,6 +14,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , process(nullptr)
     , threadGlobalCounter(nullptr)
     , threadProcessRunning(nullptr)
     , threadTimeElapsed(nullptr)
@@ -27,9 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     , processRemaining(0)
     , batchNum(1)
     , indexBatch(0)
-    , columns(0)
     , aux(0)
-    , auxClean(0)
 {
     ui->setupUi(this);
 
@@ -98,7 +96,7 @@ void MainWindow::removeSpace(std::string& operation) {
 
 void MainWindow::insertProcess(int& index)
 {
-    Process* process = new Process;
+    process = new Process;
     int rightOperand = 0;
     QString programmerName = ui->ldt_NombProgr->text();
     process->setProgrammerName(programmerName);
@@ -107,19 +105,23 @@ void MainWindow::insertProcess(int& index)
     std::string operation = aux.toStdString();
     removeSpace(operation);
 
-    int operatorPos = getOperandPos(operation);
+    int operatorPos = getOperatorPos(operation);
+    qDebug() << "posicioooooooooooon " << operatorPos;
     if(operation.at(operatorPos) == '/' or operation.at(operatorPos) == 'm') {
+        qDebug() << "dentro revisando si es / o m";
         rightOperand = getRightOperand(operation);
         if(rightOperand == 0) {
+            qDebug() << "operando derecho 000000000000000000";
             QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
             errorOperation = true;
             ui->ldt_Operacion->clear();
-        } else {
-            errorOperation = false;
         }
+    } else {
+        errorOperation = false;
     }
 
     if(!errorOperation) {
+        qDebug() << "noooooooo hay error de operaicon";
         process->setOperation(aux);
         process->setResult(doOperation(operation));
 
@@ -129,10 +131,12 @@ void MainWindow::insertProcess(int& index)
         int id = ui->spnBx_ID->value();
 
         if(validID(id)) {
+            qDebug() << "si es un id avalidoooooooooooooooooooo";
             process->setId(id);
             batches.at(index)->insertProcess(process);
 
             if(++processInserted == LIMITE_PROCESO) {
+                qDebug() << "llegaos al militeeeeeeeeeeeeeeeeeeeee";
                 process->setNumBatch(batchNum);
                 ui->lcd_LotesRestantes->display(batchNum++);
                 processInserted = 0;
@@ -144,6 +148,14 @@ void MainWindow::insertProcess(int& index)
             qDebug() << "LOtes totales antes de insertar: " << batches.size();
         }
     }
+}
+
+int MainWindow::getOperatorPos(const std::string& operation) {
+    size_t posOperator = operation.find_first_of("/m");
+    if(posOperator != std::string::npos) {
+        return posOperator;
+    }
+    return 0;
 }
 
 int MainWindow::getOperandPos(const std::string& operation) {
@@ -211,19 +223,19 @@ bool MainWindow::validID(int id)
     return true;
 }
 
-void MainWindow::updateGlobalCounter(int i)
+void MainWindow::updateGlobalCounter(int value)
 {
-    ui->lcd_ContGlobal->display(i);
+    ui->lcd_ContGlobal->display(value);
 }
 
-void MainWindow::updateTimeElapsed(int n)
+void MainWindow::updateTimeElapsed(int value)
 {
-    QTableWidgetItem *TT = new QTableWidgetItem(QString::number(n));
+    QTableWidgetItem *TT = new QTableWidgetItem(QString::number(value));
     ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
 }
 
-void MainWindow::updateTimeLeft(int n) {
-    QTableWidgetItem *TR = new QTableWidgetItem(QString::number(n));
+void MainWindow::updateTimeLeft(int value) {
+    QTableWidgetItem *TR = new QTableWidgetItem(QString::number(value));
     ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 }
 
@@ -252,7 +264,7 @@ void MainWindow::insertDataTableCurrentBatch()
     int totalProcesses = 0;
 
     for(const auto& batch : batches) {
-        if(!batch->getIsAnalized()) {
+        if(!batch->isAnalized()) {
             totalProcesses += batch->getSize();
         }
     }
@@ -262,7 +274,7 @@ void MainWindow::insertDataTableCurrentBatch()
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
         threadBatchCounter->setBatch(batch);
-        if(!batch->getIsAnalized()) {
+        if(!batch->isAnalized()) {
             for(Process *process : batch->getProcesses()) {
                 QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
                 QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
@@ -310,13 +322,11 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
 void MainWindow::reset()
 {
     qDebug() << "reseteando";
-    qDebug() << batches.size();
     for(auto& batch : batches) {
         delete batch;
         batch = nullptr;
     }
     batches.clear();
-    qDebug() << batches.size();
 
     errorOperation = false;
     errorID = false;
@@ -328,11 +338,16 @@ void MainWindow::reset()
     indexBatch = 0;
     j = 0;
     ui->lcd_LotesRestantes->display(0);
+
+        QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
+
+    ui->tblWdt_LoteActual->clearContents();
+    ui->tblWdt_ProcesoEjec->clearContents();
 }
 
-void MainWindow::updateBatchCounter(int n)
+void MainWindow::updateBatchCounter(int value)
 {
-    ui->lcd_LotesRestantes->display(n);
+    ui->lcd_LotesRestantes->display(value);
 }
 
 void MainWindow::sendData()
@@ -344,6 +359,7 @@ void MainWindow::sendData()
     }
 
     if(!firstTime) {
+        qDebug() << "dentroooooooooooooooooo de !first time";
         processRemaining = ui->spnBx_CantProcesos->value();
         firstTime = true;
     }

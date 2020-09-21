@@ -17,7 +17,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     ThreadBatchCounter.cpp \
-    ThreadFinish.cpp \
     ThreadGlobalCounter.cpp \
     ThreadProcessRunning.cpp \
     ThreadTImeElapsed.cpp \
@@ -29,7 +28,6 @@ HEADERS += \
     Batch.h \
     Process.h \
     ThreadBatchCounter.h \
-    ThreadFinish.h \
     ThreadGlobalCounter.h \
     ThreadProcessRunning.h \
     ThreadTImeElapsed.h \

@@ -17,7 +17,6 @@ public:
     explicit ThreadProcessRunning(QThread *parent = nullptr);
 
     bool finish;
-    int counter = 0;
 
     void setProcess(Process* process) {
         processes.push_back(process);

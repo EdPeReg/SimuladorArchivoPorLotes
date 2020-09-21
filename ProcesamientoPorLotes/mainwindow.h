@@ -1,14 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <string>
 #include <QMainWindow>
 #include <QVector>
 #include <cmath>
 #include <QDebug>
 #include <QMessageBox>
 #include <QTableWidget>
-#include <stdexcept>
 
 #include "Batch.h"
 #include "Process.h"
@@ -46,6 +44,7 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Batch*> batches;
+    Process *process;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
     ThreadTImeElapsed *threadTimeElapsed;
@@ -63,12 +62,11 @@ private:
     int processRemaining;
     int batchNum;
     int indexBatch;
-    int columns;
     int aux;
-    int auxClean;
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
+    int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
@@ -77,14 +75,14 @@ private:
 
 private slots:
     void sendData();
-    void updateGlobalCounter(int n);
-    void updateTimeElapsed(int n);
-    void updateTimeLeft(int n);
+    void updateGlobalCounter(int value);
+    void updateTimeElapsed(int value);
+    void updateTimeLeft(int value);
     void updateTableFinish(Process *process);
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);
     void reset();
-    void updateBatchCounter(int n);
+    void updateBatchCounter(int value);
     void on_action_Procesar_Lote_triggered();
 };
 #endif // MAINWINDOW_H
