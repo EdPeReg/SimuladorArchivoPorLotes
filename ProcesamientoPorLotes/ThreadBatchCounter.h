@@ -2,7 +2,7 @@
 #define THREADBATCHCOUNTER_H
 
 #include <QThread>
-#include <QVector>
+#include <QList>
 
 #include "Batch.h"
 
@@ -11,7 +11,7 @@ class ThreadBatchCounter : public QThread
     Q_OBJECT
 
 private:
-    QVector<Batch *> batches;
+    QList<Batch *> batches;
 
 public:
     explicit ThreadBatchCounter(QThread *parent = nullptr);

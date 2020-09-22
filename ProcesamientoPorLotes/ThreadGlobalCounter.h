@@ -2,7 +2,7 @@
 #define THREADGLOBALCOUNTER_H
 
 #include <QThread>
-#include <QVector>
+#include <QList>
 
 class ThreadGlobalCounter : public QThread
 {
@@ -11,7 +11,7 @@ class ThreadGlobalCounter : public QThread
 
 private:
     int globalCounter;
-    QVector<int> tiemposEstimados;
+    QList<int> tiemposEstimados;
 
 public:
     explicit ThreadGlobalCounter(QThread *parent = nullptr);

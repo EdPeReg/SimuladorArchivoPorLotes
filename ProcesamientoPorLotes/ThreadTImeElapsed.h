@@ -2,14 +2,14 @@
 #define THREADTIMEELAPSED_H
 
 #include <QThread>
-#include <QVector>
+#include <QList>
 
 class ThreadTImeElapsed : public QThread
 {
     Q_OBJECT
 
 private:
-    QVector<int> tiemposEstimados;
+    QList<int> tiemposEstimados;
 
 public:
     explicit ThreadTImeElapsed(QThread *parent = nullptr);

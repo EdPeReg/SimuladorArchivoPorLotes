@@ -1,7 +1,7 @@
 #ifndef BATCH_H
 #define BATCH_H
 
-#include <QVector>
+#include <QList>
 #include <QDebug>
 
 #include "Process.h"
@@ -10,7 +10,7 @@ class Batch {
     private:
         bool analized;
         int size;
-        QVector<Process*> processes;
+        QList<Process*> processes;
     public:
         Batch() : analized(false), size(0) {  };
 
@@ -32,7 +32,7 @@ class Batch {
             this->analized = analized;
         }
 
-        QVector<Process*> getProcesses() const {
+        QList<Process*> getProcesses() const {
             return processes;
         }
 

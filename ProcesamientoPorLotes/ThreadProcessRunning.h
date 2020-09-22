@@ -2,7 +2,7 @@
 #define THREADPROCESSRUNNING_H
 
 #include <QThread>
-#include <QVector>
+#include <QList>
 #include <QDebug>
 
 #include "Process.h"
@@ -11,7 +11,7 @@ class ThreadProcessRunning : public QThread
 {
     Q_OBJECT
 private:
-    QVector<Process*> processes;
+    QList<Process*> processes;
 
 public:
     explicit ThreadProcessRunning(QThread *parent = nullptr);

@@ -115,6 +115,8 @@ void MainWindow::insertProcess(int& index)
         } else {
             errorOperation = false;
         }
+    } else {
+        errorOperation = false;
     }
 
     if(!errorOperation) {
@@ -130,6 +132,7 @@ void MainWindow::insertProcess(int& index)
         if(validID(id)) {
             process->setId(id);
             batches.at(index)->insertProcess(process);
+            ui->lcd_LotesRestantes->display(batchNum);
 
             if(++processInserted == LIMITE_PROCESO) {
                 process->setNumBatch(batchNum);
@@ -138,6 +141,7 @@ void MainWindow::insertProcess(int& index)
             } else {
                 process->setNumBatch(batchNum);
             }
+            insertDataTableCurrentBatch();
             qDebug() << " ";
             qDebug() << "Indice antes de insertar: " << index;
             qDebug() << "LOtes totales antes de insertar: " << batches.size();
@@ -255,41 +259,49 @@ void MainWindow::updateTableFinish(Process *process) {
 
 void MainWindow::insertDataTableCurrentBatch()
 {
-    int row = 0;
-    int totalProcesses = 0;
+    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
+    int fila = ui->tblWdt_LoteActual->rowCount() - 1;
 
-    for(const auto& batch : batches) {
-        if(!batch->isAnalized()) {
-            totalProcesses += batch->getSize();
-        }
-    }
-    ui->tblWdt_LoteActual->setRowCount(totalProcesses);
-    threadBatchCounter->currentBatchCounter = batchNum;
+    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(ui->spnBx_ID->value()));
+    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(ui->spnBx_TME->value()));
+    ui->tblWdt_LoteActual->setItem(fila, ID, itemID);
+    ui->tblWdt_LoteActual->setItem(fila, TME, itemTME);
+
+//    int row = 0;
+//    int totalProcesses = 0;
+
+//    for(const auto& batch : batches) {
+//        if(!batch->isAnalized()) {
+//            totalProcesses += batch->getSize();
+//        }
+//    }
+//    ui->tblWdt_LoteActual->setRowCount(totalProcesses);
+//    threadBatchCounter->currentBatchCounter = batchNum;
 
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
-    for(const auto& batch : batches) {
-        threadBatchCounter->setBatch(batch);
-        if(!batch->isAnalized()) {
-            for(Process *process : batch->getProcesses()) {
-                QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
-                QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-                ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-                ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-                ++row;
+//    for(const auto& batch : batches) {
+//        threadBatchCounter->setBatch(batch);
+//        if(!batch->isAnalized()) {
+//            for(Process *process : batch->getProcesses()) {
+//                QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
+//                QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+//                ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+//                ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
+//                ++row;
 
-                threadProcessRunning->setProcess(process);
-                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
-                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
-                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-            }
-            batch->setIsAnalized(true);
-        }
-    }
-    threadProcessRunning->start();
-    threadTimeElapsed->start();
-    threadTimeLeft->start();
-    threadGlobalCounter->start();
-    threadBatchCounter->start();
+//                threadProcessRunning->setProcess(process);
+//                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
+//                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
+//                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
+//            }
+//            batch->setIsAnalized(true);
+//        }
+//    }
+//    threadProcessRunning->start();
+//    threadTimeElapsed->start();
+//    threadTimeLeft->start();
+//    threadGlobalCounter->start();
+//    threadBatchCounter->start();
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
@@ -354,7 +366,6 @@ void MainWindow::sendData()
     }
 
     if(!firstTime) {
-        qDebug() << "dentroooooooooooooooooo de !first time";
         processRemaining = ui->spnBx_CantProcesos->value();
         firstTime = true;
     }
@@ -367,6 +378,7 @@ void MainWindow::sendData()
     ui->spnBx_CantProcesos->setEnabled(false);
 
     insertProcess(indexBatch);
+//    insertDataTableCurrentBatch();
 
     if(!errorOperation and !errorID) {
         ui->lcd_ProcRestante->display(--processRemaining);
@@ -402,7 +414,7 @@ void MainWindow::on_action_Procesar_Lote_triggered()
             ui->btn_Enviar->setEnabled(false);
 
             threadProcessRunning->finish = false;
-            insertDataTableCurrentBatch();
+//            insertDataTableCurrentBatch();
 
             ui->ldt_NombProgr->setEnabled(true);
             ui->ldt_Operacion->setEnabled(true);

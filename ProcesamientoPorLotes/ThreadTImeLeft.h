@@ -2,14 +2,14 @@
 #define THREADTIMELEFT_H
 
 #include <QThread>
-#include <QVector>
+#include <QList>
 
 class ThreadTImeLeft : public QThread
 {
     Q_OBJECT
 
 private:
-    QVector<int> tiemposRestantes;
+    QList<int> tiemposRestantes;
 
 public:
     explicit ThreadTImeLeft(QThread *parent = nullptr);

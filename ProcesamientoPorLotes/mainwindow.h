@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QVector>
+#include <QList>
 #include <cmath>
 #include <QDebug>
 #include <QMessageBox>
@@ -43,7 +43,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QVector<Batch*> batches;
+    QList<Batch*> batches;
     Process *process;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
