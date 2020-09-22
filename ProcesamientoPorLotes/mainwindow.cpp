@@ -106,22 +106,19 @@ void MainWindow::insertProcess(int& index)
     removeSpace(operation);
 
     int operatorPos = getOperatorPos(operation);
-    qDebug() << "posicioooooooooooon " << operatorPos;
     if(operation.at(operatorPos) == '/' or operation.at(operatorPos) == 'm') {
-        qDebug() << "dentro revisando si es / o m";
         rightOperand = getRightOperand(operation);
         if(rightOperand == 0) {
-            qDebug() << "operando derecho 000000000000000000";
             QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
             errorOperation = true;
             ui->ldt_Operacion->clear();
+        } else {
+            errorOperation = false;
         }
-    } else {
-        errorOperation = false;
     }
 
     if(!errorOperation) {
-        qDebug() << "noooooooo hay error de operaicon";
+        qDebug() << "dentro de !error operation";
         process->setOperation(aux);
         process->setResult(doOperation(operation));
 
@@ -131,12 +128,10 @@ void MainWindow::insertProcess(int& index)
         int id = ui->spnBx_ID->value();
 
         if(validID(id)) {
-            qDebug() << "si es un id avalidoooooooooooooooooooo";
             process->setId(id);
             batches.at(index)->insertProcess(process);
 
             if(++processInserted == LIMITE_PROCESO) {
-                qDebug() << "llegaos al militeeeeeeeeeeeeeeeeeeeee";
                 process->setNumBatch(batchNum);
                 ui->lcd_LotesRestantes->display(batchNum++);
                 processInserted = 0;
