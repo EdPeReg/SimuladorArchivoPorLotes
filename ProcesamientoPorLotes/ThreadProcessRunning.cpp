@@ -9,9 +9,10 @@ ThreadProcessRunning::ThreadProcessRunning(QThread *parent) :
 
 void ThreadProcessRunning::run() {
     if(!finish) {
-        for(int i = 0; i < processes.size(); ++i) {
-            emit updateTable(processes.at(i));
-            sleep(processes.at(i)->getTiempoMaximoEst());
+        for(const auto& process : processes) {
+            emit updateTable(process);
+            sleep(process->getTiempoMaximoEst());
+            emit updateTableFinish(process);
         }
     }
 

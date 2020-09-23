@@ -14,7 +14,7 @@ void ThreadBatchCounter::run()
         for(const auto& process : batch->getProcesses()) {
             totalTME += process->getTiempoMaximoEst();
         }
-        emit updateBatchCounter(--currentBatchCounter);
+        emit updateBatchCounter(currentBatchCounter--);
         sleep(totalTME);
     }
     batches.clear();

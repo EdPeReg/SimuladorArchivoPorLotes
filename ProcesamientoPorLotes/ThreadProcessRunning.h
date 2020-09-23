@@ -27,6 +27,7 @@ protected:
 
 signals:
     void updateTable(Process *process);
+    void updateTableFinish(Process *process);
     void reset();
 };
 

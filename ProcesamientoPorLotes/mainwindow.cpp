@@ -10,7 +10,6 @@
 // one element, find a better wa.
 //
 // Maybe I can create a thread only for update tables and another thread for counters.o
-// VALIDATE ALL ID
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -41,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
     connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
+    connect(threadProcessRunning, &ThreadProcessRunning::updateTableFinish, this, &MainWindow::updateTableFinish);
     connect(threadProcessRunning, &ThreadProcessRunning::reset, this, &MainWindow::reset);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
     connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
@@ -349,23 +349,18 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
         ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
 
         // If the process finished to be inserted.
-        ++j;
-        if(j == 4) {
-            threadProcessRunning->finish = true;
-            j = 0;
-            updateTableFinish(runningProcess);
-        }
+//        ++j;
+//        if(j == 4) {
+//            threadProcessRunning->finish = true;
+//            j = 0;
+//            updateTableFinish(runningProcess);
+//        }
     }
 }
 
 void MainWindow::reset()
 {
     qDebug() << "reseteando";
-//    for(auto& batch : batches) {
-//        delete batch;
-//        batch = nullptr;
-//    }
-//    batches.clear();
 
     errorOperation = false;
     errorID = false;
@@ -378,10 +373,10 @@ void MainWindow::reset()
     j = 0;
     ui->lcd_LotesRestantes->display(0);
 
-        QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
+    QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
 
-    ui->tblWdt_LoteActual->clearContents();
     ui->tblWdt_ProcesoEjec->clearContents();
+    ui->tblWdt_LoteActual->setRowCount(0);
 }
 
 void MainWindow::updateBatchCounter(int value)
@@ -436,28 +431,22 @@ void MainWindow::sendData()
 void MainWindow::on_action_Procesar_Lote_triggered()
 {
     if(!batches.empty()) {
-        int processesInBatch = batches.at(indexBatch)->getSize();
-//        if(processesInBatch == LIMITE_PROCESO) {
-            ui->ldt_NombProgr->setEnabled(false);
-            ui->ldt_Operacion->setEnabled(false);
-            ui->spnBx_ID->setEnabled(false);
-            ui->spnBx_TME->setEnabled(false);
-            ui->spnBx_CantProcesos->setEnabled(false);
-            ui->btn_Enviar->setEnabled(false);
+        ui->ldt_NombProgr->setEnabled(false);
+        ui->ldt_Operacion->setEnabled(false);
+        ui->spnBx_ID->setEnabled(false);
+        ui->spnBx_TME->setEnabled(false);
+        ui->spnBx_CantProcesos->setEnabled(false);
+        ui->btn_Enviar->setEnabled(false);
 
-            threadProcessRunning->finish = false;
-            runThreads();
+        threadProcessRunning->finish = false;
+        runThreads();
 
-            ui->ldt_NombProgr->setEnabled(true);
-            ui->ldt_Operacion->setEnabled(true);
-            ui->spnBx_ID->setEnabled(true);
-            ui->spnBx_TME->setEnabled(true);
-            ui->spnBx_CantProcesos->setEnabled(true);
-            ui->btn_Enviar->setEnabled(true);
-        //} //else {
-//            QMessageBox::information(this, tr("Lote No Completado"), tr("Lote no completo, "
-//                                              "complete el lote para proceder"));
-//        }
+        ui->ldt_NombProgr->setEnabled(true);
+        ui->ldt_Operacion->setEnabled(true);
+        ui->spnBx_ID->setEnabled(true);
+        ui->spnBx_TME->setEnabled(true);
+        ui->spnBx_CantProcesos->setEnabled(true);
+        ui->btn_Enviar->setEnabled(true);
     } else {
             QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
                                                           "inserte procesos"));
