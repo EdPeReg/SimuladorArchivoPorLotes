@@ -9,7 +9,8 @@
 // I used a lot of vectors in each threads, I don't want to use only vectors to get only
 // one element, find a better wa.
 //
-// Maybe I can create a thread only for update tables and another thread for counters.
+// Maybe I can create a thread only for update tables and another thread for counters.o
+// VALIDATE ALL ID
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -76,6 +77,11 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    for(auto& batch : batches) {
+        delete batch;
+        batch = nullptr;
+    }
 
     delete threadGlobalCounter;
     delete threadBatchCounter;
@@ -147,6 +153,30 @@ void MainWindow::insertProcess(int& index)
             qDebug() << "LOtes totales antes de insertar: " << batches.size();
         }
     }
+}
+
+void MainWindow::runThreads()
+{
+    threadBatchCounter->currentBatchCounter = batchNum;
+
+    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
+    for(const auto& batch : batches) {
+        threadBatchCounter->setBatch(batch);
+        if(!batch->isAnalized()) {
+            for(Process *process : batch->getProcesses()) {
+                threadProcessRunning->setProcess(process);
+                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
+                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
+                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
+            }
+            batch->setIsAnalized(true);
+        }
+    }
+    threadProcessRunning->start();
+    threadTimeElapsed->start();
+    threadTimeLeft->start();
+    threadGlobalCounter->start();
+    threadBatchCounter->start();
 }
 
 int MainWindow::getOperatorPos(const std::string& operation) {
@@ -267,6 +297,7 @@ void MainWindow::insertDataTableCurrentBatch()
     ui->tblWdt_LoteActual->setItem(fila, ID, itemID);
     ui->tblWdt_LoteActual->setItem(fila, TME, itemTME);
 
+
 //    int row = 0;
 //    int totalProcesses = 0;
 
@@ -302,6 +333,7 @@ void MainWindow::insertDataTableCurrentBatch()
 //    threadTimeLeft->start();
 //    threadGlobalCounter->start();
 //    threadBatchCounter->start();
+
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
@@ -329,11 +361,11 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
 void MainWindow::reset()
 {
     qDebug() << "reseteando";
-    for(auto& batch : batches) {
-        delete batch;
-        batch = nullptr;
-    }
-    batches.clear();
+//    for(auto& batch : batches) {
+//        delete batch;
+//        batch = nullptr;
+//    }
+//    batches.clear();
 
     errorOperation = false;
     errorID = false;
@@ -405,7 +437,7 @@ void MainWindow::on_action_Procesar_Lote_triggered()
 {
     if(!batches.empty()) {
         int processesInBatch = batches.at(indexBatch)->getSize();
-        if(processesInBatch == LIMITE_PROCESO) {
+//        if(processesInBatch == LIMITE_PROCESO) {
             ui->ldt_NombProgr->setEnabled(false);
             ui->ldt_Operacion->setEnabled(false);
             ui->spnBx_ID->setEnabled(false);
@@ -414,7 +446,7 @@ void MainWindow::on_action_Procesar_Lote_triggered()
             ui->btn_Enviar->setEnabled(false);
 
             threadProcessRunning->finish = false;
-//            insertDataTableCurrentBatch();
+            runThreads();
 
             ui->ldt_NombProgr->setEnabled(true);
             ui->ldt_Operacion->setEnabled(true);
@@ -422,10 +454,10 @@ void MainWindow::on_action_Procesar_Lote_triggered()
             ui->spnBx_TME->setEnabled(true);
             ui->spnBx_CantProcesos->setEnabled(true);
             ui->btn_Enviar->setEnabled(true);
-        } else {
-            QMessageBox::information(this, tr("Lote No Completado"), tr("Lote no completo, "
-                                              "complete el lote para proceder"));
-        }
+        //} //else {
+//            QMessageBox::information(this, tr("Lote No Completado"), tr("Lote no completo, "
+//                                              "complete el lote para proceder"));
+//        }
     } else {
             QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
                                                           "inserte procesos"));

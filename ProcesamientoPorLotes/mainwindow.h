@@ -66,6 +66,7 @@ private:
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
+    void runThreads(); // new;
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
