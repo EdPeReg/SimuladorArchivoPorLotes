@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QList>
+#include <QVector>
 #include <cmath>
 #include <QDebug>
 #include <QMessageBox>
@@ -44,6 +45,7 @@ private:
     Ui::MainWindow *ui;
 
     QList<Batch*> batches;
+    QVector<int> ids;
     Process *process;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
@@ -53,7 +55,6 @@ private:
 
     const int LIMITE_PROCESO = 4;
 
-    int j = 0;
     bool errorOperation;
     bool errorID;
     bool firstTime;

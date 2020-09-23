@@ -126,7 +126,6 @@ void MainWindow::insertProcess(int& index)
     }
 
     if(!errorOperation) {
-        qDebug() << "dentro de !error operation";
         process->setOperation(aux);
         process->setResult(doOperation(operation));
 
@@ -136,6 +135,7 @@ void MainWindow::insertProcess(int& index)
         int id = ui->spnBx_ID->value();
 
         if(validID(id)) {
+            ids.push_back(id);
             process->setId(id);
             batches.at(index)->insertProcess(process);
             ui->lcd_LotesRestantes->display(batchNum);
@@ -161,6 +161,8 @@ void MainWindow::runThreads()
 
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
+        qDebug() << "baaaaaaaaaaaaaaaaaaaaaaaaaatch: ";
+        batch->showProccesses();
         threadBatchCounter->setBatch(batch);
         if(!batch->isAnalized()) {
             for(Process *process : batch->getProcesses()) {
@@ -169,8 +171,8 @@ void MainWindow::runThreads()
                 threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
                 threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
             }
-            batch->setIsAnalized(true);
         }
+        batch->setIsAnalized(true);
     }
     threadProcessRunning->start();
     threadTimeElapsed->start();
@@ -238,16 +240,15 @@ int MainWindow::doOperation(std::string& operation) {
 
 bool MainWindow::validID(int id)
 {
-    for(const auto& batch : batches) {
-        for(const auto& process : batch->getProcesses()) {
-            if(process->getId() == id) {
-                QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("ID ya existente, por favor ingrese otra ID distinta"));
-                ui->spnBx_ID->clear();
-                errorID = true;
-                return false;
-            }
+    for(const auto ID : ids) {
+        if(id == ID) {
+            QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("ID ya existente, por favor ingrese otra ID distinta"));
+            ui->spnBx_ID->clear();
+            errorID = true;
+            return false;
         }
     }
+
     errorID = false;
     return true;
 }
@@ -296,71 +297,28 @@ void MainWindow::insertDataTableCurrentBatch()
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(ui->spnBx_TME->value()));
     ui->tblWdt_LoteActual->setItem(fila, ID, itemID);
     ui->tblWdt_LoteActual->setItem(fila, TME, itemTME);
-
-
-//    int row = 0;
-//    int totalProcesses = 0;
-
-//    for(const auto& batch : batches) {
-//        if(!batch->isAnalized()) {
-//            totalProcesses += batch->getSize();
-//        }
-//    }
-//    ui->tblWdt_LoteActual->setRowCount(totalProcesses);
-//    threadBatchCounter->currentBatchCounter = batchNum;
-
-    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
-//    for(const auto& batch : batches) {
-//        threadBatchCounter->setBatch(batch);
-//        if(!batch->isAnalized()) {
-//            for(Process *process : batch->getProcesses()) {
-//                QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
-//                QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-//                ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-//                ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-//                ++row;
-
-//                threadProcessRunning->setProcess(process);
-//                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
-//                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
-//                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-//            }
-//            batch->setIsAnalized(true);
-//        }
-//    }
-//    threadProcessRunning->start();
-//    threadTimeElapsed->start();
-//    threadTimeLeft->start();
-//    threadGlobalCounter->start();
-//    threadBatchCounter->start();
-
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
-    int i;
-    for(i = 0; i < 4; ++i) {
-        QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
-        QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
-        QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
-        QTableWidgetItem *TME = new QTableWidgetItem(QString::number(runningProcess->getTiempoMaximoEst()));
-        ui->tblWdt_ProcesoEjec->setItem(0, ID_RP, ID);
-        ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
-        ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
-        ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
-
-        // If the process finished to be inserted.
-//        ++j;
-//        if(j == 4) {
-//            threadProcessRunning->finish = true;
-//            j = 0;
-//            updateTableFinish(runningProcess);
-//        }
-    }
+    qDebug() << "insertando en la tabla de procesos que se estan corriendoooooooooooo";
+    QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
+    QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
+    QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
+    QTableWidgetItem *TME = new QTableWidgetItem(QString::number(runningProcess->getTiempoMaximoEst()));
+    ui->tblWdt_ProcesoEjec->setItem(0, ID_RP, ID);
+    ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
+    ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
+    ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
 }
 
 void MainWindow::reset()
 {
     qDebug() << "reseteando";
+
+    for(auto& batch : batches) {
+        delete batch;
+    }
+    batches.clear();
 
     errorOperation = false;
     errorID = false;
@@ -370,7 +328,6 @@ void MainWindow::reset()
     processRemaining = 0;
     batchNum = 1;
     indexBatch = 0;
-    j = 0;
     ui->lcd_LotesRestantes->display(0);
 
     QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
@@ -405,7 +362,6 @@ void MainWindow::sendData()
     ui->spnBx_CantProcesos->setEnabled(false);
 
     insertProcess(indexBatch);
-//    insertDataTableCurrentBatch();
 
     if(!errorOperation and !errorID) {
         ui->lcd_ProcRestante->display(--processRemaining);
@@ -438,7 +394,6 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->spnBx_CantProcesos->setEnabled(false);
         ui->btn_Enviar->setEnabled(false);
 
-        threadProcessRunning->finish = false;
         runThreads();
 
         ui->ldt_NombProgr->setEnabled(true);
@@ -448,7 +403,7 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->spnBx_CantProcesos->setEnabled(true);
         ui->btn_Enviar->setEnabled(true);
     } else {
-            QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
+        QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
                                                           "inserte procesos"));
     }
 }
