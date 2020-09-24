@@ -45,8 +45,8 @@ private:
     Ui::MainWindow *ui;
 
     QList<Batch*> batches;
-    QVector<int> ids;
     Process *process;
+    QVector<int> ids;
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadProcessRunning *threadProcessRunning;
     ThreadTImeElapsed *threadTimeElapsed;
@@ -81,6 +81,7 @@ private slots:
     void updateTimeElapsed(int value);
     void updateTimeLeft(int value);
     void updateTableFinish(Process *process);
+    void updateTableCurrentBatch(Batch *batch);
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);
     void reset();

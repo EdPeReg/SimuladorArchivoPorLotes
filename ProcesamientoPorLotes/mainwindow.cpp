@@ -6,7 +6,7 @@
 //
 // NOTES:
 //
-// I used a lot of vectors in each threads, I don't want to use only vectors to get only
+// I used a lot of lists in each threads, I don't want to use only vectors to get only
 // one element, find a better wa.
 //
 // Maybe I can create a thread only for update tables and another thread for counters.o
@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTableFinish, this, &MainWindow::updateTableFinish);
+    connect(threadProcessRunning, &ThreadProcessRunning::updateTableCurrentBatch, this, &MainWindow::updateTableCurrentBatch);
     connect(threadProcessRunning, &ThreadProcessRunning::reset, this, &MainWindow::reset);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
     connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
@@ -164,6 +165,7 @@ void MainWindow::runThreads()
         qDebug() << "baaaaaaaaaaaaaaaaaaaaaaaaaatch: ";
         batch->showProccesses();
         threadBatchCounter->setBatch(batch);
+        threadProcessRunning->setBatch(batch);
         if(!batch->isAnalized()) {
             for(Process *process : batch->getProcesses()) {
                 threadProcessRunning->setProcess(process);
@@ -270,7 +272,6 @@ void MainWindow::updateTimeLeft(int value) {
 }
 
 void MainWindow::updateTableFinish(Process *process) {
-
     ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
     int fila = ui->tblWdt_Terminados->rowCount() - 1;
 
@@ -288,6 +289,19 @@ void MainWindow::updateTableFinish(Process *process) {
     ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
 }
 
+void MainWindow::updateTableCurrentBatch(Batch *batch)
+{
+    ui->tblWdt_LoteActual->setRowCount(batch->getSize());
+
+    int row = 0;
+    for(const auto& process : batch->getProcesses()) {
+        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
+        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+        ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+        ui->tblWdt_LoteActual->setItem(row++, TME, itemTME);
+    }
+}
+
 void MainWindow::insertDataTableCurrentBatch()
 {
     ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
@@ -300,7 +314,6 @@ void MainWindow::insertDataTableCurrentBatch()
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
-    qDebug() << "insertando en la tabla de procesos que se estan corriendoooooooooooo";
     QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
     QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
     QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
@@ -394,6 +407,7 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->spnBx_CantProcesos->setEnabled(false);
         ui->btn_Enviar->setEnabled(false);
 
+        ui->tblWdt_LoteActual->setRowCount(0);
         runThreads();
 
         ui->ldt_NombProgr->setEnabled(true);
