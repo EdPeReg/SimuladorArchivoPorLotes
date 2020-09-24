@@ -18,9 +18,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     ThreadBatchCounter.cpp \
     ThreadGlobalCounter.cpp \
-    ThreadProcessRunning.cpp \
     ThreadTImeElapsed.cpp \
     ThreadTImeLeft.cpp \
+    ThreadTables.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -29,9 +29,9 @@ HEADERS += \
     Process.h \
     ThreadBatchCounter.h \
     ThreadGlobalCounter.h \
-    ThreadProcessRunning.h \
     ThreadTImeElapsed.h \
     ThreadTImeLeft.h \
+    ThreadTables.h \
     mainwindow.h
 
 FORMS += \

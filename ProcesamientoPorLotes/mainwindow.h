@@ -12,7 +12,7 @@
 #include "Batch.h"
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
-#include "ThreadProcessRunning.h"
+#include "ThreadTables.h"
 #include "ThreadTImeElapsed.h"
 #include "ThreadTImeLeft.h"
 #include "ThreadBatchCounter.h"
@@ -67,7 +67,7 @@ private:
 
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
-    void runThreads(); // new;
+    void runThreads();
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);

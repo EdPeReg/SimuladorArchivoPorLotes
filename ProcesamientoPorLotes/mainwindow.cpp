@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
     connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
-    connect(threadProcessRunning, &ThreadProcessRunning::updateTable, this, &MainWindow::insertDataTableRunningProcess);
+    connect(threadProcessRunning, &ThreadProcessRunning::updateTableProcessRunning, this, &MainWindow::insertDataTableRunningProcess);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTableFinish, this, &MainWindow::updateTableFinish);
     connect(threadProcessRunning, &ThreadProcessRunning::updateTableCurrentBatch, this, &MainWindow::updateTableCurrentBatch);
     connect(threadProcessRunning, &ThreadProcessRunning::reset, this, &MainWindow::reset);
@@ -162,13 +162,11 @@ void MainWindow::runThreads()
 
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
-        qDebug() << "baaaaaaaaaaaaaaaaaaaaaaaaaatch: ";
         batch->showProccesses();
         threadBatchCounter->setBatch(batch);
         threadProcessRunning->setBatch(batch);
         if(!batch->isAnalized()) {
             for(Process *process : batch->getProcesses()) {
-                threadProcessRunning->setProcess(process);
                 threadTimeElapsed->setTME(process->getTiempoMaximoEst());
                 threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
                 threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
