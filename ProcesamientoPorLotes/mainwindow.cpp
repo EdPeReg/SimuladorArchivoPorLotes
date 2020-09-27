@@ -227,7 +227,12 @@ void MainWindow::insertProcessRandomly(int &index)
         batches.at(index)->insertProcess(process);
         ui->lcd_LotesRestantes->display(batchNum);
 
+        qDebug() << "cantidad de procesoooooooooooooos: " << batches.at(indexBatch)->getSize();
         if(++processInserted == LIMITE_PROCESO) {
+            Batch *batch = new Batch;
+            batches.push_back(batch);
+            ++indexBatch;
+
             process->setNumBatch(batchNum);
             ui->lcd_LotesRestantes->display(batchNum++);
             processInserted = 0;
