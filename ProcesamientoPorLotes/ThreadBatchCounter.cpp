@@ -18,5 +18,4 @@ void ThreadBatchCounter::run()
         sleep(totalTME);
     }
     batches.clear();
-
 }

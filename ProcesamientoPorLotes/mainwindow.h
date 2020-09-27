@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QTableWidget>
+#include <QKeyEvent>
 
 #include <random>
 
@@ -69,7 +70,7 @@ private:
     int aux;
 
     void removeSpace(std::string& operation);
-    void insertProcess(int& index);
+//    void insertProcess(int& index); // DELETE
     void runThreads();
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
@@ -77,8 +78,14 @@ private:
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
-    size_t doOperation(std::string& operation); // changed
+    int computeBatches(int numProcesses); // new
+    long doOperation(std::string& operation); // changed
     bool validID(int id);
+
+protected:
+//    bool eventFilter(QObject *obj, QEvent *e) override;
+    void keyPressEvent(QKeyEvent* event) override; // new
+//    bool event(QEvent* e) override;
 
 private slots:
     void sendData();

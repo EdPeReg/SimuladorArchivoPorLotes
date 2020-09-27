@@ -44,7 +44,7 @@ class Batch {
         void showProccesses() const {
             int i = 1;
             for(auto it = processes.begin(); it != processes.end(); ++it) {
-                qDebug() << "Proceso: " << i;
+                qDebug() << "\nProceso: " << i;
                 qDebug() << "BATCH: " << (*it)->getNumBatch();
                 qDebug() << "Name: " << (*it)->getProgrammerName();
                 qDebug() << "Operation: " << (*it)->getOperation();
