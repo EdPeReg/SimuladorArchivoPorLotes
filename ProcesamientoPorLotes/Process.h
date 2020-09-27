@@ -10,7 +10,7 @@ class Process {
         int tiempoMaximoEst;
         int id;
         int numBatch;
-        int result;
+        size_t result; // changed
 
     public:
         Process() : programmerName(""), operation(""), tiempoMaximoEst(0), id(0), numBatch(0) { };
@@ -35,7 +35,7 @@ class Process {
             this->numBatch = numBatch;
         }
 
-        void setResult(int result) {
+        void setResult(size_t result) {
             this->result = result;
         }
 
@@ -59,7 +59,7 @@ class Process {
             return numBatch;
         }
 
-        int getResult() const {
+        size_t getResult() const {
             return result;
         }
 };

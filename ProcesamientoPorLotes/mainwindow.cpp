@@ -8,8 +8,6 @@
 //
 // I used a lot of lists in each threads, I don't want to use only vectors to get only
 // one element, find a better wa.
-//
-// Maybe I can create a thread only for update tables and another thread for counters.o
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -23,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , errorID(false)
     , firstTime(false)
     , onlyOnce(false)
+    , randomData(false)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -103,6 +102,43 @@ void MainWindow::removeSpace(std::string& operation) {
 
 void MainWindow::insertProcess(int& index)
 {
+//    process = new Process;
+
+//    if(!randomData) {
+//        insertProcessByUser(process, index);
+//    } else {
+//        randomData = false;
+//        insertProcessRandomly(process, index);
+//    }
+}
+
+void MainWindow::runThreads()
+{
+    threadBatchCounter->currentBatchCounter = batchNum;
+
+    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
+    for(const auto& batch : batches) {
+        batch->showProccesses();
+        threadBatchCounter->setBatch(batch);
+        threadProcessRunning->setBatch(batch);
+        if(!batch->isAnalized()) {
+            for(Process *process : batch->getProcesses()) {
+                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
+                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
+                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
+            }
+        }
+        batch->setIsAnalized(true);
+    }
+    threadProcessRunning->start();
+    threadTimeElapsed->start();
+    threadTimeLeft->start();
+    threadGlobalCounter->start();
+    threadBatchCounter->start();
+}
+
+void MainWindow::insertProcessByUser(int& index)
+{
     process = new Process;
     int rightOperand = 0;
     QString programmerName = ui->ldt_NombProgr->text();
@@ -156,29 +192,105 @@ void MainWindow::insertProcess(int& index)
     }
 }
 
-void MainWindow::runThreads()
+// VALIDAR ID NO REPETIDAS.
+// VALIDAR OPERACION.
+void MainWindow::insertProcessRandomly(int &index)
 {
-    threadBatchCounter->currentBatchCounter = batchNum;
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> randomTME(7,16);
+    std::uniform_int_distribution<int> randomID(1,255);
+    std::uniform_int_distribution<int> randomOperand(0, 500);
 
-    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
-    for(const auto& batch : batches) {
-        batch->showProccesses();
-        threadBatchCounter->setBatch(batch);
-        threadProcessRunning->setBatch(batch);
-        if(!batch->isAnalized()) {
-            for(Process *process : batch->getProcesses()) {
-                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
-                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
-                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-            }
+    QString names[10] = {"jose", "morales", "jimnez", "lupita", "Lucia",
+                         "alberto", "pewdipew", "auron", "juana la loca", "andrea"};
+    QString operators[6] = {"+", "-", "*", "/", "m", "p"};
+
+    int id = 1;
+    for(int i = 0; i < ui->spnBx_CantProcesos->value(); ++i) {
+        process = new Process;
+
+        QString operation;
+        QString programmerName = names[rand() % 10]; // Get a random name.
+        QString operand1 = QString::number(randomOperand(mt));
+        QString operand2 = QString::number(randomOperand(mt));
+        QString _operator = operators[rand() % 6];
+
+        operation.append(operand1);
+        operation.append(_operator);
+        operation.append(operand2);
+
+        process->setProgrammerName(programmerName);
+        process->setOperation(operation);
+        process->setTiempoMaximoEst(randomTME(mt));
+        process->setId(id++);
+        batches.at(index)->insertProcess(process);
+        ui->lcd_LotesRestantes->display(batchNum);
+
+        if(++processInserted == LIMITE_PROCESO) {
+            process->setNumBatch(batchNum);
+            ui->lcd_LotesRestantes->display(batchNum++);
+            processInserted = 0;
+        } else {
+            process->setNumBatch(batchNum);
         }
-        batch->setIsAnalized(true);
     }
-    threadProcessRunning->start();
-    threadTimeElapsed->start();
-    threadTimeLeft->start();
-    threadGlobalCounter->start();
-    threadBatchCounter->start();
+
+//    for(const auto& batch : batches) {
+//        batch->showProccesses();
+//    }
+
+
+//    int rightOperand = 0;
+//    QString programmerName = ui->ldt_NombProgr->text();
+//    process->setProgrammerName(programmerName);
+
+//    QString aux = ui->ldt_Operacion->text();
+//    std::string operation = aux.toStdString();
+//    removeSpace(operation);
+
+//    int operatorPos = getOperatorPos(operation);
+//    if(operation.at(operatorPos) == '/' or operation.at(operatorPos) == 'm') {
+//        rightOperand = getRightOperand(operation);
+//        if(rightOperand == 0) {
+//            QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
+//            errorOperation = true;
+//            ui->ldt_Operacion->clear();
+//        } else {
+//            errorOperation = false;
+//        }
+//    } else {
+//        errorOperation = false;
+//    }
+
+//    if(!errorOperation) {
+//        process->setOperation(aux);
+//        process->setResult(doOperation(operation));
+
+//        int tiempoMaximoEst = ui->spnBx_TME->value();
+//        process->setTiempoMaximoEst(tiempoMaximoEst);
+
+//        int id = ui->spnBx_ID->value();
+
+//        if(validID(id)) {
+//            ids.push_back(id);
+//            process->setId(id);
+//            batches.at(index)->insertProcess(process);
+//            ui->lcd_LotesRestantes->display(batchNum);
+
+//            if(++processInserted == LIMITE_PROCESO) {
+//                process->setNumBatch(batchNum);
+//                ui->lcd_LotesRestantes->display(batchNum++);
+//                processInserted = 0;
+//            } else {
+//                process->setNumBatch(batchNum);
+//            }
+//            insertDataTableCurrentBatch();
+//            qDebug() << " ";
+//            qDebug() << "Indice antes de insertar: " << index;
+//            qDebug() << "LOtes totales antes de insertar: " << batches.size();
+//        }
+//    }
 }
 
 int MainWindow::getOperatorPos(const std::string& operation) {
@@ -208,7 +320,7 @@ int MainWindow::getRightOperand(const std::string& operation) {
     return stoi(operation.substr(operandPos + 1));
 }
 
-int MainWindow::doOperation(std::string& operation) {
+size_t MainWindow::doOperation(std::string& operation) {
     int operandPos = getOperandPos(operation);
     int leftOperand = getLeftOperand(operation);
     int rightOperand = getRightOperand(operation);
@@ -335,6 +447,7 @@ void MainWindow::reset()
     errorID = false;
     firstTime = false;
     onlyOnce = false;
+    randomData = false;
     processInserted = 0;
     processRemaining = 0;
     batchNum = 1;
@@ -370,24 +483,33 @@ void MainWindow::sendData()
         batches.push_back(batch);
         ++indexBatch;
     }
-    ui->spnBx_CantProcesos->setEnabled(false);
 
-    insertProcess(indexBatch);
+    if(!randomData) {
+        ui->spnBx_CantProcesos->setEnabled(false);
+        insertProcessByUser(indexBatch);
 
-    if(!errorOperation and !errorID) {
-        ui->lcd_ProcRestante->display(--processRemaining);
+        if(!errorOperation and !errorID) {
+            qDebug() << "dentro del ifffffffffffffff";
+            ui->lcd_ProcRestante->display(--processRemaining);
+        }
+
+        if(ui->lcd_ProcRestante->value() == 0) {
+            ui->spnBx_CantProcesos->setValue(0);
+            ui->spnBx_CantProcesos->setEnabled(true);
+            firstTime = false;
+        }
+
+        ui->ldt_NombProgr->clear();
+        ui->ldt_Operacion->clear();
+        ui->spnBx_TME->setValue(0);
+        ui->spnBx_ID->setValue(0);
+    } else {
+        randomData = false;
+        insertProcessRandomly(indexBatch);
     }
 
-    if(ui->lcd_ProcRestante->value() == 0) {
-        ui->spnBx_CantProcesos->setValue(0);
-        ui->spnBx_CantProcesos->setEnabled(true);
-        firstTime = false;
-    }
+//    insertProcess(indexBatch);
 
-    ui->ldt_NombProgr->clear();
-    ui->ldt_Operacion->clear();
-    ui->spnBx_TME->setValue(0);
-    ui->spnBx_ID->setValue(0);
     for(auto it = batches.begin(); it != batches.end(); ++it) {
         (*it)->showProccesses();
     }
@@ -417,5 +539,15 @@ void MainWindow::on_action_Procesar_Lote_triggered()
     } else {
         QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
                                                           "inserte procesos"));
+    }
+}
+
+void MainWindow::on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered()
+{
+    if(ui->spnBx_CantProcesos->value() > 0) {
+        randomData = true;
+        sendData();
+    } else {
+        QMessageBox::information(this, tr("Inserte Procesos"), tr("Inserte el numero de procesos para continuar"));
     }
 }

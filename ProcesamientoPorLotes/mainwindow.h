@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QTableWidget>
 
+#include <random>
+
 #include "Batch.h"
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
@@ -59,6 +61,7 @@ private:
     bool errorID;
     bool firstTime;
     bool onlyOnce;
+    bool randomData; // new
     int processInserted;
     int processRemaining;
     int batchNum;
@@ -68,11 +71,13 @@ private:
     void removeSpace(std::string& operation);
     void insertProcess(int& index);
     void runThreads();
+    void insertProcessByUser(int& index); // new
+    void insertProcessRandomly(int& index); // new
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
-    int doOperation(std::string& operation);
+    size_t doOperation(std::string& operation); // changed
     bool validID(int id);
 
 private slots:
@@ -87,5 +92,6 @@ private slots:
     void reset();
     void updateBatchCounter(int value);
     void on_action_Procesar_Lote_triggered();
+    void on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered();
 };
 #endif // MAINWINDOW_H

@@ -207,13 +207,19 @@
      <string>&amp;Lote opciones</string>
     </property>
     <addaction name="action_Procesar_Lote"/>
+    <addaction name="action_Procesar_Lote_con_Informacion_Aleatoria"/>
    </widget>
    <addaction name="menu_Procesaro_Lote"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Procesar_Lote">
    <property name="text">
-    <string>&amp;Procesar Lote</string>
+    <string>&amp;Procesar Lote con Informacion del Usuario</string>
+   </property>
+  </action>
+  <action name="action_Procesar_Lote_con_Informacion_Aleatoria">
+   <property name="text">
+    <string>&amp;Procesar Lote con Informacion Aleatoria</string>
    </property>
   </action>
  </widget>
