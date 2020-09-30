@@ -3,21 +3,29 @@
 
 #include <QThread>
 #include <QList>
-#include <QDebug>
 
 #include "Batch.h"
 
-class ThreadProcessRunning : public QThread
+class ThreadTables : public QThread
 {
     Q_OBJECT
 private:
+    bool stop;
     QList<Batch*> batches;
 
 public:
-    explicit ThreadProcessRunning(QThread *parent = nullptr);
+    explicit ThreadTables(QThread *parent = nullptr);
 
     void setBatch(Batch *batch) {
         batches.push_back(batch);
+    }
+
+    void setStop(bool stop) { // new
+        this->stop = stop;
+    }
+
+    bool getStop() const { // new
+        return stop;
     }
 
 protected:

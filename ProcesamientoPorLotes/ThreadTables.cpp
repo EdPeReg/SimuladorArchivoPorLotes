@@ -1,22 +1,26 @@
 #include "ThreadTables.h"
 
-ThreadProcessRunning::ThreadProcessRunning(QThread *parent) :
+ThreadTables::ThreadTables(QThread *parent) :
     QThread(parent)
+    , stop(false)
 {
 
 }
 
-void ThreadProcessRunning::run() {
+void ThreadTables::run() {
+    stop = false;
     for(const auto& batch : batches) {
-        updateTableCurrentBatch(batch);
+//        qDebug() << "stoppppp: " << stop;
 
+        emit updateTableCurrentBatch(batch);
         for(const auto& process : batch->getProcesses()) {
+//            qDebug() << "dentroooooooooooo";
             emit updateTableProcessRunning(process);
             sleep(process->getTiempoMaximoEst());
             emit updateTableFinish(process);
         }
     }
 
-    batches.clear();
     emit reset();
+    batches.clear();
 }

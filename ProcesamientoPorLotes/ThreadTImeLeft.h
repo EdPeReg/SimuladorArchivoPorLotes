@@ -9,6 +9,7 @@ class ThreadTImeLeft : public QThread
     Q_OBJECT
 
 private:
+    bool stop;
     QList<int> tiemposRestantes;
 
 public:
@@ -18,6 +19,9 @@ public:
         tiemposRestantes.push_back(tiempoRestante);
     }
 
+    void setStop(bool stop) {
+        this->stop = stop;
+    }
 protected:
     void run() override;
 

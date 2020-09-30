@@ -51,7 +51,7 @@ private:
     Process *process;
     QVector<int> ids;
     ThreadGlobalCounter *threadGlobalCounter;
-    ThreadProcessRunning *threadProcessRunning;
+    ThreadTables *threadTables;
     ThreadTImeElapsed *threadTimeElapsed;
     ThreadTImeLeft *threadTimeLeft;
     ThreadBatchCounter *threadBatchCounter;
