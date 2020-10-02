@@ -14,6 +14,7 @@ ThreadGlobalCounter::ThreadGlobalCounter(QThread *parent) :
 void ThreadGlobalCounter::run()
 {
     stop = false;
+    qDebug() << "thread global counter";
     for(int i = currentIndex; i < tiemposEstimados.size(); ++i) {
         qDebug() << "i: " << i;
         for(int j = 0; j < tiemposEstimados.at(i); ++j) {
@@ -31,6 +32,7 @@ void ThreadGlobalCounter::run()
     }
 
     if(!stop) {
+        qDebug() << "cleaning";
         tiemposEstimados.clear();
     } else {
         qDebug() << "indice de parada: " << currentIndex;

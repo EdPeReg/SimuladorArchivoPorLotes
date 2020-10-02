@@ -17,10 +17,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     ThreadBatchCounter.cpp \
+    ThreadCurrentTableBatch.cpp \
     ThreadGlobalCounter.cpp \
     ThreadTImeElapsed.cpp \
     ThreadTImeLeft.cpp \
-    ThreadTables.cpp \
+    ThreadTableFinish.cpp \
+    ThreadTableRunning.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -28,10 +30,12 @@ HEADERS += \
     Batch.h \
     Process.h \
     ThreadBatchCounter.h \
+    ThreadCurrentTableBatch.h \
     ThreadGlobalCounter.h \
     ThreadTImeElapsed.h \
     ThreadTImeLeft.h \
-    ThreadTables.h \
+    ThreadTableFinish.h \
+    ThreadTableRunning.h \
     mainwindow.h
 
 FORMS += \

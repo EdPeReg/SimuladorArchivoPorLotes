@@ -21,9 +21,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , process(nullptr)
     , threadGlobalCounter(nullptr)
-    , threadTables(nullptr)
     , threadTimeElapsed(nullptr)
     , threadBatchCounter(nullptr)
+    , threadCurrentTableBatch(nullptr)
+    , threadTableRunning(nullptr)
+    , threadTableFinish(nullptr)
     , errorOperation(false)
     , errorID(false)
     , firstTime(false)
@@ -34,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     , batchNum(1)
     , indexBatch(0)
     , aux(0)
+    , id(1)
 {
     ui->setupUi(this);
 
@@ -42,18 +45,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     threadGlobalCounter = new ThreadGlobalCounter;
     threadBatchCounter = new ThreadBatchCounter;
-    threadTables = new ThreadTables;
     threadTimeElapsed = new ThreadTImeElapsed;
     threadTimeLeft = new ThreadTImeLeft;
 
+    threadCurrentTableBatch = new ThreadCurrentTableBatch;
+    threadTableRunning = new ThreadTableRunning;
+    threadTableFinish = new ThreadTableFinish;
+
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
     connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
-    connect(threadTables, &ThreadTables::updateTableProcessRunning, this, &MainWindow::insertDataTableRunningProcess);
-    connect(threadTables, &ThreadTables::updateTableFinish, this, &MainWindow::updateTableFinish);
-    connect(threadTables, &ThreadTables::updateTableCurrentBatch, this, &MainWindow::updateTableCurrentBatch);
-    connect(threadTables, &ThreadTables::reset, this, &MainWindow::reset);
     connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
     connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
+    connect(threadCurrentTableBatch, &ThreadCurrentTableBatch::updateTableCurrentBatch, this, &MainWindow::updateTableCurrentBatch);
+    connect(threadTableRunning, &ThreadTableRunning::updateTableProcessRunning, this, &MainWindow::insertDataTableRunningProcess);
+    connect(threadTableFinish, &ThreadTableFinish::updateTableFinish, this, &MainWindow::updateTableFinish);
+    connect(threadTableFinish, &ThreadTableFinish::reset, this, &MainWindow::reset);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -95,9 +101,12 @@ MainWindow::~MainWindow()
 
     delete threadGlobalCounter;
     delete threadBatchCounter;
-    delete threadTables;
     delete threadTimeElapsed;
     delete threadTimeLeft;
+
+    delete threadCurrentTableBatch;
+    delete threadTableRunning;
+    delete threadTableFinish;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -105,11 +114,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key()) {
         case Qt::Key_P:
             qDebug() << "PAUSE";
-            threadGlobalCounter->setStop(true);
-            threadBatchCounter->setStop(true);
-            threadTimeElapsed->setStop(true);
-            threadTimeLeft->setStop(true);
-            threadTables->terminate();
+//            threadGlobalCounter->setStop(true);
+//            threadBatchCounter->setStop(true);
+//            threadTimeElapsed->setStop(true);
+//            threadTimeLeft->setStop(true);
+//            threadTables->terminate();
 //            threadTables->setStop(true);
 //            threadGlobalCounter->setStop(true);
 //            threadGlobalCounter->setStop(true);
@@ -123,12 +132,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         case Qt::Key_C:
             qDebug() << "CONTINUE";
-            threadGlobalCounter->start();
-            threadBatchCounter->start();
-            threadGlobalCounter->start();
-            threadTimeLeft->start();
-            threadTimeElapsed->start();
-            threadTables->start();
+//            threadGlobalCounter->start();
+//            threadBatchCounter->start();
+//            threadGlobalCounter->start();
+//            threadTimeLeft->start();
+//            threadTimeElapsed->start();
+//            threadTables->start();
         break;
     }
 }
@@ -150,18 +159,22 @@ void MainWindow::runThreads()
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
         batch->showProccesses();
+        threadCurrentTableBatch->setBatch(batch);
+        threadTableRunning->setBatch(batch);
+        threadTableFinish->setBatch(batch);
+
         threadBatchCounter->setBatch(batch);
-        threadTables->setBatch(batch);
-//        if(!batch->isAnalized()) {
-            for(Process *process : batch->getProcesses()) {
-                threadTimeElapsed->setTME(process->getTiempoMaximoEst());
-                threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
-                threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-            }
-//        }
-//        batch->setIsAnalized(true);
+
+        for(Process *process : batch->getProcesses()) {
+            threadTimeElapsed->setTME(process->getTiempoMaximoEst());
+            threadTimeLeft->setTiemposRestantes(process->getTiempoMaximoEst());
+            threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
+        }
     }
-    threadTables->start();
+
+    threadCurrentTableBatch->start();
+    threadTableRunning->start();
+    threadTableFinish->start();
     threadTimeElapsed->start();
     threadTimeLeft->start();
     threadGlobalCounter->start();
@@ -242,7 +255,6 @@ void MainWindow::insertProcessRandomly(int &index)
         batches.push_back(batch);
     }
 
-    int id = 1;
     for(int i = 0; i < ui->spnBx_CantProcesos->value(); ++i) {
         process = new Process;
 
@@ -404,7 +416,7 @@ void MainWindow::updateTimeLeft(int value) {
 }
 
 void MainWindow::updateTableFinish(Process *process) {
-    if(!threadTables->getStop()) {
+//    if(!threadTables->getStop()) {
         ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
         int fila = ui->tblWdt_Terminados->rowCount() - 1;
 
@@ -420,7 +432,7 @@ void MainWindow::updateTableFinish(Process *process) {
         ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
         ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
         ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
-    }
+//    }
 }
 
 void MainWindow::updateTableCurrentBatch(Batch *batch)
@@ -448,7 +460,7 @@ void MainWindow::insertDataTableCurrentBatch()
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
-    if(!threadTables->getStop()) {
+//    if(!threadTables->getStop()) {
         QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
         QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
         QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
@@ -457,12 +469,12 @@ void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
         ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
         ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
         ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
-    }
+//    }
 }
 
 void MainWindow::reset()
 {
-    if(!threadTables->getStop()) {
+//    if(!threadTables->getStop()) {
         qDebug() << "reseteando";
         qDebug() << batches.size();
 
@@ -485,13 +497,12 @@ void MainWindow::reset()
         threadBatchCounter->setStop(false);
         threadTimeElapsed->setStop(false);
         threadTimeLeft->setStop(false);
-        threadTables->setStop(false);
 
         QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
 
         ui->tblWdt_ProcesoEjec->clearContents();
         ui->tblWdt_LoteActual->setRowCount(0);
-    }
+//    }
 }
 
 void MainWindow::updateBatchCounter(int value)

@@ -11,7 +11,6 @@ ThreadBatchCounter::ThreadBatchCounter(QThread *parent) :
 void ThreadBatchCounter::run()
 {
     stop = false;
-    qDebug() << "current batch counter; " << currentBatchCounter;
     for(const auto& batch : batches) {
         if(!stop) {
             int totalTME = 0;

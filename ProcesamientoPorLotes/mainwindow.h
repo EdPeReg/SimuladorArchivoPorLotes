@@ -15,10 +15,12 @@
 #include "Batch.h"
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
-#include "ThreadTables.h"
 #include "ThreadTImeElapsed.h"
 #include "ThreadTImeLeft.h"
 #include "ThreadBatchCounter.h"
+#include "ThreadCurrentTableBatch.h"
+#include "ThreadTableRunning.h"
+#include "ThreadTableFinish.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,10 +53,12 @@ private:
     Process *process;
     QVector<int> ids;
     ThreadGlobalCounter *threadGlobalCounter;
-    ThreadTables *threadTables;
     ThreadTImeElapsed *threadTimeElapsed;
     ThreadTImeLeft *threadTimeLeft;
     ThreadBatchCounter *threadBatchCounter;
+    ThreadCurrentTableBatch *threadCurrentTableBatch;
+    ThreadTableRunning *threadTableRunning;
+    ThreadTableFinish *threadTableFinish;
 
     const int LIMITE_PROCESO = 4;
 
@@ -68,9 +72,9 @@ private:
     int batchNum;
     int indexBatch;
     int aux;
+    int id; // new
 
     void removeSpace(std::string& operation);
-//    void insertProcess(int& index); // DELETE
     void runThreads();
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
