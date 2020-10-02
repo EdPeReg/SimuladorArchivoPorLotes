@@ -11,21 +11,16 @@ class ThreadBatchCounter : public QThread
     Q_OBJECT
 
 private:
-    bool stop;
+    bool pauseRequired;
     QList<Batch *> batches;
-
 public:
     explicit ThreadBatchCounter(QThread *parent = nullptr);
 
     int currentBatchCounter;
 
-    void setBatch(Batch *batch) {
-        batches.push_back(batch);
-    }
-
-    void setStop(bool stop) { // new;
-        this->stop = stop;
-    }
+    void setBatch(Batch *batch);
+    void pause();
+    void resume();
 
 protected:
     void run() override;

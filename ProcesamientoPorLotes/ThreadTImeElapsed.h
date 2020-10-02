@@ -9,19 +9,16 @@ class ThreadTImeElapsed : public QThread
     Q_OBJECT
 
 private:
-    bool stop;
+    bool pauseRequired;
     QList<int> tiemposEstimados;
 
 public:
     explicit ThreadTImeElapsed(QThread *parent = nullptr);
 
-    void setTME(int TME) {
-        tiemposEstimados.push_back(TME);
-    }
+    void setTME(int TME);
 
-    void setStop(bool stop) { // new
-        this->stop = stop;
-    }
+    void pause();
+    void resume();
 protected:
     void run() override;
 

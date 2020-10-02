@@ -2,24 +2,39 @@
 
 ThreadTImeLeft::ThreadTImeLeft(QThread *parent) :
     QThread(parent)
-  , stop(false)
+  , pauseRequired(false)
 {
 
 }
 
+void ThreadTImeLeft::setTiemposRestantes(int tiempoRestante) {
+    tiemposRestantes.push_back(tiempoRestante);
+}
+
+void ThreadTImeLeft::pause() {
+    pauseRequired = true;
+}
+
+void ThreadTImeLeft::resume() {
+    pauseRequired = false;
+}
+
 void ThreadTImeLeft::run()
 {
-    stop = false;
     for(const auto& tiempoRestante : tiemposRestantes) {
         int counter = tiempoRestante;
         for(int i = 0; i < tiempoRestante; ++i) {
-            if(!stop) {
+            if(!pauseRequired) {
                 emit updateCounter(counter--);
                 sleep(1);
             } else {
                 break;
             }
         }
+        if(pauseRequired) break;
     }
-    tiemposRestantes.clear();
+
+    if(!pauseRequired) {
+        tiemposRestantes.clear();
+    }
 }

@@ -2,26 +2,42 @@
 
 ThreadBatchCounter::ThreadBatchCounter(QThread *parent) :
     QThread(parent)
-  , stop(false)
+  , pauseRequired(false)
   , currentBatchCounter(0)
 {
 
 }
 
+void ThreadBatchCounter::setBatch(Batch *batch) {
+    batches.push_back(batch);
+}
+
+void ThreadBatchCounter::pause() {
+    pauseRequired = true;
+}
+
+void ThreadBatchCounter::resume()
+{
+    pauseRequired = false;
+}
+
 void ThreadBatchCounter::run()
 {
-    stop = false;
     for(const auto& batch : batches) {
-        if(!stop) {
-            int totalTME = 0;
+        int totalTME = 0;
+        if(!pauseRequired) {
             for(const auto& process : batch->getProcesses()) {
                 totalTME += process->getTiempoMaximoEst();
             }
+
             emit updateBatchCounter(--currentBatchCounter);
             sleep(totalTME);
         } else {
             break;
         }
     }
-    batches.clear();
+
+    if(!pauseRequired) {
+        batches.clear();
+    }
 }

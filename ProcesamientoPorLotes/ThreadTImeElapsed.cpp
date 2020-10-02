@@ -2,23 +2,39 @@
 
 ThreadTImeElapsed::ThreadTImeElapsed(QThread *parent) :
     QThread(parent)
-  , stop(false)
+  , pauseRequired(false)
 {
 
 }
 
+void ThreadTImeElapsed::setTME(int TME) {
+    tiemposEstimados.push_back(TME);
+}
+
+void ThreadTImeElapsed::pause() { // new
+    pauseRequired = true;
+}
+
+void ThreadTImeElapsed::resume() {
+    pauseRequired = false;
+}
+
 void ThreadTImeElapsed::run() {
-    stop = false;
     for(const auto& TME : tiemposEstimados) {
         int counter = 0;
-            for(int i = 0; i < TME; ++i) {
-                if(!stop) {
-                    emit updateCounter(++counter);
-                    sleep(1);
-                } else {
-                    break;
+
+        for(int i = 0; i < TME; ++i) {
+            if(!pauseRequired) {
+                emit updateCounter(++counter);
+                sleep(1);
+            } else {
+                break;
             }
         }
+        if(pauseRequired) break;
     }
-    tiemposEstimados.clear();
+
+    if(!pauseRequired) {
+        tiemposEstimados.clear();
+    }
 }

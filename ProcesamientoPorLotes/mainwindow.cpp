@@ -114,6 +114,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     switch(event->key()) {
         case Qt::Key_P:
             qDebug() << "PAUSE";
+            threadBatchCounter->pause();
+            threadGlobalCounter->pause();
+            threadTimeElapsed->pause();
+            threadTimeLeft->pause();
+
+//            threadGlobalCounter->pause();
+//            threadGlobalCounter->wait();
+//            threadGlobalCounter->requestInterruption();
 //            threadGlobalCounter->setStop(true);
 //            threadBatchCounter->setStop(true);
 //            threadTimeElapsed->setStop(true);
@@ -375,30 +383,6 @@ bool MainWindow::validID(int id)
     return true;
 }
 
-//bool MainWindow::eventFilter(QObject *obj, QEvent *e)
-//{
-//    if(focusWidget() == this) {
-//        qDebug() << "iiiiiiiiiiiiiiiiii";
-//    }
-//    if(obj == this) {
-//        qDebug() << "yeeeeeeeeeeeeeeeee";
-//    }
-//    qDebug() << "event filteeeeeeeeeeeeeeeeeeeeeeeeeeeeeer";
-//    if(e->type() == QEvent::KeyPress) {
-//        QKeyEvent* keyEven = static_cast<QKeyEvent*>(e);
-//                //QKeyEvent *e = new QKeyEvent ( QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier);
-//                if (keyEven->key() == Qt::Key_W)
-//                {
-//                      qDebug()<<"here";
-//                      return true;
-//                    }
-//        qDebug() << "dentrooooooooooooooooooooo";
-//    }
-
-//    return false;
-
-//}
-
 void MainWindow::updateGlobalCounter(int value)
 {
     ui->lcd_ContGlobal->display(value);
@@ -493,10 +477,11 @@ void MainWindow::reset()
         batchNum = 1;
         indexBatch = 0;
         ui->lcd_LotesRestantes->display(0);
-        threadGlobalCounter->setStop(false);
-        threadBatchCounter->setStop(false);
-        threadTimeElapsed->setStop(false);
-        threadTimeLeft->setStop(false);
+
+////        threadGlobalCounter->setStop(false);
+////        threadBatchCounter->setStop(false);
+//        threadTimeElapsed->setStop(false);
+//        threadTimeLeft->setStop(false);
 
         QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
 
