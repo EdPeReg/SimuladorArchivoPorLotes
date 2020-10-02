@@ -11,14 +11,15 @@ class ThreadTableFinish : public QThread
     Q_OBJECT
 
 private:
+    bool pauseRequired;
     QList<Batch*> batches;
 
 public:
     explicit ThreadTableFinish(QThread *parent = nullptr);
 
-    void setBatch(Batch* b) {
-        batches.push_back(b);
-    }
+    void setBatch(Batch* b);
+    void pause();
+    void resume();
 
 signals:
     void updateTableFinish(Process* process);

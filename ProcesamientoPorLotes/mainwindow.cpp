@@ -118,6 +118,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             threadGlobalCounter->pause();
             threadTimeElapsed->pause();
             threadTimeLeft->pause();
+            threadCurrentTableBatch->pause();
+            threadTableRunning->pause();
+            threadTableFinish->pause();
 
 //            threadGlobalCounter->pause();
 //            threadGlobalCounter->wait();

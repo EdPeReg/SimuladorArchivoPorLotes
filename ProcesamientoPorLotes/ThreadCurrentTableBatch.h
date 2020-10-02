@@ -11,14 +11,15 @@ class ThreadCurrentTableBatch : public QThread
     Q_OBJECT
 
 private:
+    bool pauseRequired;
     QList<Batch*> batches;
 
 public:
     explicit ThreadCurrentTableBatch(QThread *parent = nullptr);
 
-    void setBatch(Batch *batch) {
-        batches.push_back(batch);
-    }
+    void setBatch(Batch *batch);
+    void pause();
+    void resume();
 
 signals:
     void updateTableCurrentBatch(Batch *batch);

@@ -1,8 +1,22 @@
 #include "ThreadTableFinish.h"
 
-ThreadTableFinish::ThreadTableFinish(QThread *parent) : QThread(parent)
+ThreadTableFinish::ThreadTableFinish(QThread *parent) :
+    QThread(parent)
+  , pauseRequired(false)
 {
 
+}
+
+void ThreadTableFinish::setBatch(Batch *b) {
+    batches.push_back(b);
+}
+
+void ThreadTableFinish::pause() {
+    pauseRequired = true;
+}
+
+void ThreadTableFinish::resume() {
+    pauseRequired = false;
 }
 
 void ThreadTableFinish::run()
@@ -10,9 +24,18 @@ void ThreadTableFinish::run()
     for(const auto& batch : batches) {
         for(const auto& process : batch->getProcesses()) {
             sleep(process->getTiempoMaximoEst());
-            emit updateTableFinish(process);
+
+            if(!pauseRequired) {
+                emit updateTableFinish(process);
+            } else {
+                break;
+            }
         }
+        if(pauseRequired) break;
     }
-    emit reset();
-    batches.clear();
+
+    if(!pauseRequired) {
+        emit reset();
+        batches.clear();
+    }
 }

@@ -11,23 +11,21 @@ class ThreadTableRunning : public QThread
     Q_OBJECT
 
 private:
+    bool pauseRequired;
     QList<Batch*> batches;
 
 public:
     explicit ThreadTableRunning(QThread *parent = nullptr);
 
-    void setBatch(Batch *batch) {
-        batches.push_back(batch);
-    }
+    void setBatch(Batch *batch);
+    void pause();
+    void resume();
 
 signals:
     void updateTableProcessRunning(Process* process);
 
 protected:
     void run() override;
-
-
-
 };
 
 #endif // THREADTABLERUNNING_H
