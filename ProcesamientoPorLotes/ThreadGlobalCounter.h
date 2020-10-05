@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <QList>
+#include <QMutex>
+#include <QWaitCondition>
 
 class ThreadGlobalCounter : public QThread
 {
@@ -13,6 +15,8 @@ private:
     int globalCounter;
     int currentIndex;
     QList<int> tiemposEstimados;
+    QMutex sync;
+    QWaitCondition pauseCond;
 public:
     explicit ThreadGlobalCounter(QThread *parent = nullptr);
 
