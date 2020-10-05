@@ -12,7 +12,6 @@ ThreadGlobalCounter::ThreadGlobalCounter(QThread *parent) :
 }
 
 void ThreadGlobalCounter::pause() { // new
-    qDebug() << "dentroo";
     sync.lock();
     pauseRequired = true;
     sync.unlock();
@@ -36,31 +35,17 @@ void ThreadGlobalCounter::run()
         for(int j = 0; j < tiemposEstimados.at(i); ++j) {
             sync.lock();
             if(pauseRequired) {
-                qDebug() << "A pausarse se ha dichooo";
                 pauseCond.wait(&sync); // Will stop to execute until shome calls resume.
             }
             sync.unlock();
 
             emit updateCounter(++globalCounter);
             sleep(1);
-//            if(!pauseRequired) {
-//                emit updateCounter(++globalCounter);
-//                sleep(1);
-//            } else {
-//                // Update at what position will start after pausing.
-//                currentIndex = i;
-//                tiemposEstimados[i] = tiemposEstimados.at(i) - j; // Update TME
-//                break;
-//            }
         }
-//        if(pauseRequired) break;
     }
-
 
     if(!pauseRequired) {
         qDebug() << "cleaning";
         tiemposEstimados.clear();
-    } else {
-        qDebug() << "holaaaaaaaaaaaaaaaaaaaaaa";
     }
 }

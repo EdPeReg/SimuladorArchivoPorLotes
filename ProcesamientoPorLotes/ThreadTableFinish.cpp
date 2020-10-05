@@ -35,7 +35,7 @@ void ThreadTableFinish::run()
     }
 
     if(!pauseRequired) {
-        emit reset();
+//        emit reset();
         batches.clear();
     }
 }

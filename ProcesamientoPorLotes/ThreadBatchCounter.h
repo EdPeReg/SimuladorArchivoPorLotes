@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <QList>
+#include <QMutex>
+#include <QWaitCondition>
 
 #include "Batch.h"
 
@@ -15,6 +17,8 @@ private:
     int indexBatch;
     int indexProcess;
     QList<Batch *> batches;
+    QMutex sync;
+    QWaitCondition pauseCond;
 public:
     explicit ThreadBatchCounter(QThread *parent = nullptr);
 
