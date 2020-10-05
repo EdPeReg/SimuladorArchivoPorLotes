@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <QList>
+#include <QMutex>
+#include <QWaitCondition>
 
 #include "Batch.h"
 
@@ -13,6 +15,8 @@ class ThreadCurrentTableBatch : public QThread
 private:
     bool pauseRequired;
     QList<Batch*> batches;
+    QMutex sync;
+    QWaitCondition pauseCond;
 
 public:
     explicit ThreadCurrentTableBatch(QThread *parent = nullptr);
