@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <QList>
+#include <QMutex>
+#include <QWaitCondition>
 
 class ThreadTImeLeft : public QThread
 {
@@ -11,6 +13,8 @@ class ThreadTImeLeft : public QThread
 private:
     bool pauseRequired;
     QList<int> tiemposRestantes;
+    QMutex sync;
+    QWaitCondition pauseCond;
 
 public:
     explicit ThreadTImeLeft(QThread *parent = nullptr);

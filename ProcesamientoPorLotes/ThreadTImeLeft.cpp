@@ -12,11 +12,16 @@ void ThreadTImeLeft::setTiemposRestantes(int tiempoRestante) {
 }
 
 void ThreadTImeLeft::pause() {
+    sync.lock();
     pauseRequired = true;
+    sync.unlock();
 }
 
 void ThreadTImeLeft::resume() {
+    sync.lock();
     pauseRequired = false;
+    sync.unlock();
+    pauseCond.wakeAll();
 }
 
 void ThreadTImeLeft::run()
@@ -24,14 +29,12 @@ void ThreadTImeLeft::run()
     for(const auto& tiempoRestante : tiemposRestantes) {
         int counter = tiempoRestante;
         for(int i = 0; i < tiempoRestante; ++i) {
-            if(!pauseRequired) {
-                emit updateCounter(counter--);
-                sleep(1);
-            } else {
-                break;
-            }
+            if(pauseRequired)
+                pauseCond.wait(&sync);
+
+            emit updateCounter(counter--);
+            sleep(1);
         }
-        if(pauseRequired) break;
     }
 
     if(!pauseRequired) {
