@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <QList>
+#include <QMutex>
+#include <QWaitCondition>
 
 class ThreadTImeElapsed : public QThread
 {
@@ -11,6 +13,8 @@ class ThreadTImeElapsed : public QThread
 private:
     bool pauseRequired;
     QList<int> tiemposEstimados;
+    QMutex sync;
+    QWaitCondition pauseCond;
 
 public:
     explicit ThreadTImeElapsed(QThread *parent = nullptr);

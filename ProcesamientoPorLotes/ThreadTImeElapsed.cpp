@@ -12,11 +12,16 @@ void ThreadTImeElapsed::setTME(int TME) {
 }
 
 void ThreadTImeElapsed::pause() { // new
+    sync.lock();
     pauseRequired = true;
+    sync.unlock();
 }
 
 void ThreadTImeElapsed::resume() {
+    sync.lock();
     pauseRequired = false;
+    sync.unlock();
+    pauseCond.wakeAll();
 }
 
 void ThreadTImeElapsed::run() {
@@ -24,14 +29,14 @@ void ThreadTImeElapsed::run() {
         int counter = 0;
 
         for(int i = 0; i < TME; ++i) {
-            if(!pauseRequired) {
-                emit updateCounter(++counter);
-                sleep(1);
-            } else {
-                break;
-            }
+            sync.lock();
+            if(pauseRequired)
+                pauseCond.wait(&sync);
+            sync.unlock();
+
+            emit updateCounter(++counter);
+            sleep(1);
         }
-        if(pauseRequired) break;
     }
 
     if(!pauseRequired) {

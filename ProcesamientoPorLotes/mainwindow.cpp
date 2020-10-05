@@ -115,6 +115,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             qDebug() << "PAUSE";
             threadGlobalCounter->pause();
             threadBatchCounter->pause();
+            threadTimeElapsed->pause();
 //            threadGlobalCounter->pause();
 //            threadTimeElapsed->pause();
 //            threadTimeLeft->pause();
@@ -145,6 +146,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             qDebug() << "CONTINUE";
             threadGlobalCounter->resume();
             threadBatchCounter->resume();
+            threadTimeElapsed->resume();
 //            threadGlobalCounter->start();
 //            threadBatchCounter->resume();
 //            threadBatchCounter->start();
