@@ -9,8 +9,13 @@
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QKeyEvent>
+#include <QFuture>
+#include <QtConcurrent>
+#include <QThread>
+#include <QFutureWatcher>
 
 #include <random>
+#include <unistd.h> // sleep (unix)
 
 #include "Batch.h"
 #include "Process.h"
@@ -52,6 +57,17 @@ private:
     QList<Batch*> batches;
     Process *process;
     QVector<int> ids;
+
+    void test();
+
+    QFuture<void> futureTableCurrentBatch;
+    QFuture<void> futureTableProcessRunning;
+    QFuture<void> futureTableProcessFinished;
+    QFuture<void> futureGlobalCounter;
+    QFuture<void> futureBatchCounter;
+    QFuture<void> futureTimeElapsed;
+    QFuture<void> futureTimeLeft;
+
     ThreadGlobalCounter *threadGlobalCounter;
     ThreadTImeElapsed *threadTimeElapsed;
     ThreadTImeLeft *threadTimeLeft;
@@ -73,11 +89,20 @@ private:
     int indexBatch;
     int aux;
     int id; // new
+    int globalCounter; // NEW
 
     void removeSpace(std::string& operation);
-    void runThreads();
+//    void runThreads();
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
+    void updateTableCurrentBatch(QList<Batch*>);
+    void insertDataTableRunningProcess(QList<Batch*>);
+    void updateTableFinish(QList<Batch*>);
+    void reset();
+    void updateGlobalCounter(QList<Batch*>);
+    void updateBatchCounter(QList<Batch*>);
+    void updateTimeElapsed(QList<Batch*>);
+    void updateTimeLeft(QList<Batch*>);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
@@ -86,22 +111,21 @@ private:
     long doOperation(std::string& operation); // changed
     bool validID(int id);
 
+
 protected:
-//    bool eventFilter(QObject *obj, QEvent *e) override;
     void keyPressEvent(QKeyEvent* event) override; // new
-//    bool event(QEvent* e) override;
 
 private slots:
     void sendData();
-    void updateGlobalCounter(int value);
-    void updateTimeElapsed(int value);
-    void updateTimeLeft(int value);
-    void updateTableFinish(Process *process);
-    void updateTableCurrentBatch(Batch *batch);
+//    void updateGlobalCounter(int value);
+//    void updateTimeElapsed(int value);
+//    void updateTimeLeft(int value);
+//    void updateTableFinish(Process *process);
+//    void updateTableCurrentBatch(Batch *batch);
     void insertDataTableCurrentBatch();
-    void insertDataTableRunningProcess(Process* runningProcess);
-    void reset();
-    void updateBatchCounter(int value);
+//    void insertDataTableRunningProcess(Process* runningProcess);
+//    void reset();
+//    void updateBatchCounter(int value);
     void on_action_Procesar_Lote_triggered();
     void on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered();
 };

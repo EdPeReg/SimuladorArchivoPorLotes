@@ -26,36 +26,19 @@ void ThreadGlobalCounter::setTiemposEstimados(int tiempoEstimado) {
 
 void ThreadGlobalCounter::run()
 {
-    qDebug() << "thread global counter";
-
-        for(int i = currentIndex; i < tiemposEstimados.size(); ++i) {
-            for(int j = 0; j < tiemposEstimados.at(i); ++j) {
-                if(!pauseRequired) {
-                    emit updateCounter(++globalCounter);
-                    sleep(1);
-                } else {
-                    break;
-                }
-
-
-
-    //            if(!pauseRequired) {
-//                    emit updateCounter(++globalCounter);
-//                    sleep(1);
-    //            } //else {
-    //                currentIndex = i;
-    //                tiemposEstimados[i] = tiemposEstimados.at(i) - j; // Update TME
-    //                qDebug() << "j: " << j;
-    //                break;
-    //            }
+    for(int i = currentIndex; i < tiemposEstimados.size(); ++i) {
+        for(int j = 0; j < tiemposEstimados.at(i); ++j) {
+            if(!pauseRequired) {
+                emit updateCounter(++globalCounter);
+                sleep(1);
+            } else {
+                // Update at what position will start after pausing.
+                currentIndex = i;
+                tiemposEstimados[i] = tiemposEstimados.at(i) - j; // Update TME
+                break;
             }
-            if(pauseRequired) break;
-
-    //    if(!pauseRequired) {
-    //    } else {
-    //        qDebug() << "indice de parada: " << currentIndex;
-    //        qDebug() << tiemposEstimados;
-    //    }
+        }
+        if(pauseRequired) break;
     }
 
     if(!pauseRequired) {

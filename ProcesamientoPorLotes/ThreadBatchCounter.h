@@ -12,6 +12,8 @@ class ThreadBatchCounter : public QThread
 
 private:
     bool pauseRequired;
+    int indexBatch;
+    int indexProcess;
     QList<Batch *> batches;
 public:
     explicit ThreadBatchCounter(QThread *parent = nullptr);

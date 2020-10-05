@@ -9,12 +9,10 @@
 // I used a lot of lists in each threads, I don't want to use only vectors to get only
 // one element, find a better wa.
 //
-// VALIDAR ID NO REPETIDAS.
 // VALIDAR OPERACION.
-// REVISAR BATCH COUNTER DECREASES CORRECTLY, it seems that doesn't work well
-// when you only put 4 processes.
 //
 // Find a way to obtain a random number for names and operations, don't use rand.
+// How to show a qmessagebox in a thread, this happens in reset function.
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -37,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     , indexBatch(0)
     , aux(0)
     , id(1)
+    , globalCounter(0)
 {
     ui->setupUi(this);
 
@@ -52,14 +51,14 @@ MainWindow::MainWindow(QWidget *parent)
     threadTableRunning = new ThreadTableRunning;
     threadTableFinish = new ThreadTableFinish;
 
-    connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
-    connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
-    connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
-    connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
-    connect(threadCurrentTableBatch, &ThreadCurrentTableBatch::updateTableCurrentBatch, this, &MainWindow::updateTableCurrentBatch);
-    connect(threadTableRunning, &ThreadTableRunning::updateTableProcessRunning, this, &MainWindow::insertDataTableRunningProcess);
-    connect(threadTableFinish, &ThreadTableFinish::updateTableFinish, this, &MainWindow::updateTableFinish);
-    connect(threadTableFinish, &ThreadTableFinish::reset, this, &MainWindow::reset);
+//    connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
+//    connect(threadBatchCounter, &ThreadBatchCounter::updateBatchCounter, this, &MainWindow::updateBatchCounter);
+//    connect(threadTimeElapsed, &ThreadTImeElapsed::updateCounter, this, &MainWindow::updateTimeElapsed);
+//    connect(threadTimeLeft, &ThreadTImeLeft::updateCounter, this, &MainWindow::updateTimeLeft);
+//    connect(threadCurrentTableBatch, &ThreadCurrentTableBatch::updateTableCurrentBatch, this, &MainWindow::updateTableCurrentBatch);
+//    connect(threadTableRunning, &ThreadTableRunning::updateTableProcessRunning, this, &MainWindow::insertDataTableRunningProcess);
+//    connect(threadTableFinish, &ThreadTableFinish::updateTableFinish, this, &MainWindow::updateTableFinish);
+//    connect(threadTableFinish, &ThreadTableFinish::reset, this, &MainWindow::reset);
 
     ui->tblWdt_LoteActual->setColumnCount(2);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -109,18 +108,23 @@ MainWindow::~MainWindow()
     delete threadTableFinish;
 }
 
+void MainWindow::test()
+{
+   qDebug() << "holi";
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key()) {
         case Qt::Key_P:
             qDebug() << "PAUSE";
-            threadBatchCounter->pause();
-            threadGlobalCounter->pause();
-            threadTimeElapsed->pause();
-            threadTimeLeft->pause();
-            threadCurrentTableBatch->pause();
-            threadTableRunning->pause();
-            threadTableFinish->pause();
+//            threadBatchCounter->pause();
+//            threadGlobalCounter->pause();
+//            threadTimeElapsed->pause();
+//            threadTimeLeft->pause();
+//            threadCurrentTableBatch->pause();
+//            threadTableRunning->pause();
+//            threadTableFinish->pause();
 
 //            threadGlobalCounter->pause();
 //            threadGlobalCounter->wait();
@@ -143,7 +147,13 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         case Qt::Key_C:
             qDebug() << "CONTINUE";
+//            threadGlobalCounter->resume();
 //            threadGlobalCounter->start();
+//            threadBatchCounter->resume();
+//            threadBatchCounter->start();
+//            threadTableFinish->resume();
+//            threadTableFinish->start();
+
 //            threadBatchCounter->start();
 //            threadGlobalCounter->start();
 //            threadTimeLeft->start();
@@ -163,9 +173,9 @@ void MainWindow::removeSpace(std::string& operation) {
     }
 }
 
-void MainWindow::runThreads()
-{
-    threadBatchCounter->currentBatchCounter = batches.size();
+//void MainWindow::runThreads(QL)
+//{
+/*    threadBatchCounter->currentBatchCounter = batches.size();
 
     // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
     for(const auto& batch : batches) {
@@ -189,8 +199,8 @@ void MainWindow::runThreads()
     threadTimeElapsed->start();
     threadTimeLeft->start();
     threadGlobalCounter->start();
-    threadBatchCounter->start();
-}
+    threadBatchCounter->start()*/;
+//}
 
 void MainWindow::insertProcessByUser(int& index)
 {
@@ -386,52 +396,84 @@ bool MainWindow::validID(int id)
     return true;
 }
 
-void MainWindow::updateGlobalCounter(int value)
+void MainWindow::updateGlobalCounter(QList<Batch*> batches)
 {
-    ui->lcd_ContGlobal->display(value);
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+                ui->lcd_ContGlobal->display(++globalCounter);
+                sleep(1);
+            }
+        }
+    }
 }
 
-void MainWindow::updateTimeElapsed(int value)
+void MainWindow::updateTimeElapsed(QList<Batch*> batches)
 {
-    QTableWidgetItem *TT = new QTableWidgetItem(QString::number(value));
-    ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            int counter = 0;
+            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+                QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counter));
+                ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+                sleep(1);
+            }
+        }
+    }
 }
 
-void MainWindow::updateTimeLeft(int value) {
-    QTableWidgetItem *TR = new QTableWidgetItem(QString::number(value));
-    ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
+void MainWindow::updateTimeLeft(QList<Batch*> batches) {
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            int counter = process->getTiempoMaximoEst();
+            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+                QTableWidgetItem *TR = new QTableWidgetItem(QString::number(counter--));
+                ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
+                sleep(1);
+            }
+        }
+    }
 }
 
-void MainWindow::updateTableFinish(Process *process) {
-//    if(!threadTables->getStop()) {
-        ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
-        int fila = ui->tblWdt_Terminados->rowCount() - 1;
-
-        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
-        QTableWidgetItem *itemName = new QTableWidgetItem(process->getProgrammerName());
-        QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
-        QTableWidgetItem *itemResult = new QTableWidgetItem(QString::number(process->getResult()));
-        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-        QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
-        ui->tblWdt_Terminados->setItem(fila, ID_FP, itemID);
-        ui->tblWdt_Terminados->setItem(fila, NOMBRE_FP, itemName);
-        ui->tblWdt_Terminados->setItem(fila, OPERACION_FP, itemOperation);
-        ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
-        ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
-        ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
-//    }
+void MainWindow::updateTableFinish(QList<Batch*> batches) {
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            sleep(process->getTiempoMaximoEst());
+            ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
+            int fila = ui->tblWdt_Terminados->rowCount() - 1;
+            QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
+            QTableWidgetItem *itemName = new QTableWidgetItem(process->getProgrammerName());
+            QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
+            QTableWidgetItem *itemResult = new QTableWidgetItem(QString::number(process->getResult()));
+            QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+            QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
+            ui->tblWdt_Terminados->setItem(fila, ID_FP, itemID);
+            ui->tblWdt_Terminados->setItem(fila, NOMBRE_FP, itemName);
+            ui->tblWdt_Terminados->setItem(fila, OPERACION_FP, itemOperation);
+            ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
+            ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
+            ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
+        }
+    }
+//    sleep(totalTME);
+//    reset();
 }
 
-void MainWindow::updateTableCurrentBatch(Batch *batch)
+void MainWindow::updateTableCurrentBatch(QList<Batch*> batches)
 {
-    ui->tblWdt_LoteActual->setRowCount(batch->getSize());
+    for(const auto& batch : batches) {
+        int totalTME = 0;
+        ui->tblWdt_LoteActual->setRowCount(batch->getSize());
 
-    int row = 0;
-    for(const auto& process : batch->getProcesses()) {
-        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
-        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-        ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-        ui->tblWdt_LoteActual->setItem(row++, TME, itemTME);
+        int row = 0;
+        for(const auto& process : batch->getProcesses()) {
+            QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
+            QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+            ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+            ui->tblWdt_LoteActual->setItem(row++, TME, itemTME);
+            totalTME += process->getTiempoMaximoEst();
+        }
+        sleep(totalTME);
     }
 }
 
@@ -446,56 +488,65 @@ void MainWindow::insertDataTableCurrentBatch()
     ui->tblWdt_LoteActual->setItem(fila, TME, itemTME);
 }
 
-void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
-//    if(!threadTables->getStop()) {
-        QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
-        QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
-        QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
-        QTableWidgetItem *TME = new QTableWidgetItem(QString::number(runningProcess->getTiempoMaximoEst()));
-        ui->tblWdt_ProcesoEjec->setItem(0, ID_RP, ID);
-        ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
-        ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
-        ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
-//    }
+void MainWindow::insertDataTableRunningProcess(QList<Batch*> batches) {
+    for(const auto& batch : batches) {
+        for(const auto& process : batch->getProcesses()) {
+            QTableWidgetItem *ID = new QTableWidgetItem(QString::number(process->getId()));
+            QTableWidgetItem *name = new QTableWidgetItem(process->getProgrammerName());
+            QTableWidgetItem *operation = new QTableWidgetItem(process->getOperation());
+            QTableWidgetItem *TME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+            ui->tblWdt_ProcesoEjec->setItem(0, ID_RP, ID);
+            ui->tblWdt_ProcesoEjec->setItem(0, NOMBRE_RP, name);
+            ui->tblWdt_ProcesoEjec->setItem(0, OPERACION_RP, operation);
+            ui->tblWdt_ProcesoEjec->setItem(0, TME_RP, TME);
+            sleep(process->getTiempoMaximoEst());
+        }
+    }
 }
 
 void MainWindow::reset()
 {
-//    if(!threadTables->getStop()) {
-        qDebug() << "reseteando";
-        qDebug() << batches.size();
+    qDebug() << "reseteando";
+    qDebug() << batches.size();
 
-        for(auto& batch : batches) {
-            delete batch;
-        }
-        batches.clear();
+    for(auto& batch : batches) {
+        delete batch;
+    }
+    batches.clear();
 
-        errorOperation = false;
-        errorID = false;
-        firstTime = false;
-        onlyOnce = false;
-        randomData = false;
-        processInserted = 0;
-        processRemaining = 0;
-        batchNum = 1;
-        indexBatch = 0;
-        ui->lcd_LotesRestantes->display(0);
+    errorOperation = false;
+    errorID = false;
+    firstTime = false;
+    onlyOnce = false;
+    randomData = false;
+    processInserted = 0;
+    processRemaining = 0;
+    batchNum = 1;
+    indexBatch = 0;
+    ui->lcd_LotesRestantes->display(0);
 
 ////        threadGlobalCounter->setStop(false);
 ////        threadBatchCounter->setStop(false);
 //        threadTimeElapsed->setStop(false);
 //        threadTimeLeft->setStop(false);
 
-        QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
+    QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
 
-        ui->tblWdt_ProcesoEjec->clearContents();
-        ui->tblWdt_LoteActual->setRowCount(0);
-//    }
+    ui->tblWdt_ProcesoEjec->clearContents();
+    ui->tblWdt_LoteActual->setRowCount(0);
 }
 
-void MainWindow::updateBatchCounter(int value)
+void MainWindow::updateBatchCounter(QList<Batch*> batches)
 {
-    ui->lcd_LotesRestantes->display(value);
+    int totalBatches = batches.size();
+    for(const auto& batch : batches) {
+        int totalTME = 0;
+        for(const auto& process : batch->getProcesses()) {
+            totalTME += process->getTiempoMaximoEst();
+        }
+        ui->lcd_LotesRestantes->display(--totalBatches);
+        sleep(totalTME);
+    }
 }
 
 void MainWindow::sendData()
@@ -541,14 +592,10 @@ void MainWindow::sendData()
         insertProcessRandomly(indexBatch);
     }
 
-//    insertProcess(indexBatch);
-
     qDebug() << "";
     for(auto it = batches.begin(); it != batches.end(); ++it) {
         (*it)->showProccesses();
     }
-//    qDebug() << "indice del lote: " << indexBatch;
-//    qDebug() << "Cantidad de procesos en el lote: " << batches.at(indexBatch)->getSize();
 }
 
 void MainWindow::on_action_Procesar_Lote_triggered()
@@ -562,7 +609,7 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->btn_Enviar->setEnabled(false);
 
         ui->tblWdt_LoteActual->setRowCount(0);
-        runThreads();
+//        runThreads();
 
         ui->ldt_NombProgr->setEnabled(true);
         ui->ldt_Operacion->setEnabled(true);
@@ -581,7 +628,31 @@ void MainWindow::on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered()
     if(ui->spnBx_CantProcesos->value() > 0) {
         randomData = true;
         sendData();
-        runThreads();
+
+        futureTableCurrentBatch = QtConcurrent::run(this, &MainWindow::updateTableCurrentBatch, batches);
+        futureTableProcessRunning = QtConcurrent::run(this, &MainWindow::insertDataTableRunningProcess, batches);
+        futureTableProcessFinished = QtConcurrent::run(this, &MainWindow::updateTableFinish, batches);
+        futureGlobalCounter = QtConcurrent::run(this, &MainWindow::updateGlobalCounter, batches);
+        futureBatchCounter = QtConcurrent::run(this, &MainWindow::updateBatchCounter, batches);
+        futureTimeElapsed = QtConcurrent::run(this, &MainWindow::updateTimeElapsed, batches);
+        futureTimeLeft = QtConcurrent::run(this, &MainWindow::updateTimeLeft, batches);
+
+        // Once my thread process finished finish, reset everything safely. ?? REALLY are over?
+        QFutureWatcher<void> *watcher = new QFutureWatcher<void>(this);
+        connect(watcher, &QFutureWatcher<void>::finished, this, &MainWindow::reset);
+        connect(watcher, &QFutureWatcher<void>::finished, watcher, &QFutureWatcher<void>::deleteLater);
+        watcher->setFuture(futureTableProcessFinished);
+
+//        QFutureWatcher<void> watcher;
+//        watcher.setFuture(futureTableProcessFinished);
+//        connect(&watcher, &QFutureWatcher<int>::finished, this, &MainWindow::test);
+
+//        qDebug() << futureTableProcessFinished.isFinished();
+//        QFuture<void> f = QtConcurrent::run(&MainWindow::updateTableCurrentBatch);
+
+//        QFuture<void> f = QtConcurrent::run(&updateTableCurrentBatch);
+//        updateTableCurrentBatch();
+//        runThreads();
     } else {
         QMessageBox::information(this, tr("Inserte Procesos"), tr("Inserte el numero de procesos para continuar"));
     }
