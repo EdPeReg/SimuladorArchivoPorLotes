@@ -1,5 +1,7 @@
 #include "ThreadTImeLeft.h"
 
+#include <QDebug>
+
 ThreadTImeLeft::ThreadTImeLeft(QThread *parent) :
     QThread(parent)
   , pauseRequired(false)
@@ -29,8 +31,11 @@ void ThreadTImeLeft::run()
     for(const auto& tiempoRestante : tiemposRestantes) {
         int counter = tiempoRestante;
         for(int i = 0; i < tiempoRestante; ++i) {
-            if(pauseRequired)
+            sync.lock();
+            if(pauseRequired) {
                 pauseCond.wait(&sync);
+            }
+            sync.unlock();
 
             emit updateCounter(counter--);
             sleep(1);

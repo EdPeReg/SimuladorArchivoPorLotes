@@ -27,8 +27,10 @@ void ThreadCurrentTableBatch::resume() {
 void ThreadCurrentTableBatch::run()
 {
     for(const auto& batch : batches) {
+        sync.lock();
         if(pauseRequired)
             pauseCond.wait(&sync);
+        sync.unlock();
 
         emit updateTableCurrentBatch(batch);
         for(const auto& process : batch->getProcesses()) {

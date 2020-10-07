@@ -12,7 +12,11 @@
 // VALIDAR OPERACION.
 //
 // Find a way to obtain a random number for names and operations, don't use rand.
-// How to show a qmessagebox in a thread, this happens in reset function.
+//
+// When you want to pause, and continue multiple times, the program crash.
+//
+// When you resume, the table current batch pass to the next batch, it doesn't stay
+// in the current batch.
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -118,30 +122,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             threadTimeElapsed->pause();
             threadTimeLeft->pause();
             threadCurrentTableBatch->pause();
-//            threadGlobalCounter->pause();
-//            threadTimeElapsed->pause();
-//            threadTimeLeft->pause();
-//            threadCurrentTableBatch->pause();
-//            threadTableRunning->pause();
-//            threadTableFinish->pause();
-
-//            threadGlobalCounter->pause();
-//            threadGlobalCounter->wait();
-//            threadGlobalCounter->requestInterruption();
-//            threadGlobalCounter->setStop(true);
-//            threadBatchCounter->setStop(true);
-//            threadTimeElapsed->setStop(true);
-//            threadTimeLeft->setStop(true);
-//            threadTables->terminate();
-//            threadTables->setStop(true);
-//            threadGlobalCounter->setStop(true);
-//            threadGlobalCounter->setStop(true);
-//            threadTables->stop = true;
-//            threadTables->terminate();
-//            threadTimeLeft->requestInterruption();
-//            threadTimeElapsed->requestInterruption();
-//            threadBatchCounter->requestInterruption();
-//            threadGlobalCounter->requestInterruption();
+            threadTableRunning->pause();
+            threadTableFinish->pause();
         break;
 
         case Qt::Key_C:
@@ -149,19 +131,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             threadGlobalCounter->resume();
             threadBatchCounter->resume();
             threadTimeElapsed->resume();
-            threadTimeLeft->resume();
-            threadCurrentTableBatch->resume();
-//            threadGlobalCounter->start();
-//            threadBatchCounter->resume();
-//            threadBatchCounter->start();
+//            threadTimeLeft->resume();
+//            threadCurrentTableBatch->resume();
+//            threadTableRunning->resume();
 //            threadTableFinish->resume();
-//            threadTableFinish->start();
-
-//            threadBatchCounter->start();
-//            threadGlobalCounter->start();
-//            threadTimeLeft->start();
-//            threadTimeElapsed->start();
-//            threadTables->start();
         break;
     }
 }
@@ -404,6 +377,7 @@ void MainWindow::updateGlobalCounter(int value)
 
 void MainWindow::updateTimeElapsed(int value)
 {
+    threadBatchCounter->setTT(value);
     QTableWidgetItem *TT = new QTableWidgetItem(QString::number(value));
     ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
 }

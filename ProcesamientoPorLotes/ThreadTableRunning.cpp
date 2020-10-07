@@ -12,25 +12,30 @@ void ThreadTableRunning::setBatch(Batch *batch) {
 }
 
 void ThreadTableRunning::pause() {
+    sync.lock();
     pauseRequired = true;
+    sync.unlock();
 }
 
 void ThreadTableRunning::resume() {
+    sync.lock();
     pauseRequired = false;;
+    sync.unlock();
+    pauseCond.wakeAll();
 }
 
 void ThreadTableRunning::run()
 {
     for(const auto& batch : batches) {
         for(const auto& process : batch->getProcesses()) {
-            if(!pauseRequired) {
-                emit updateTableProcessRunning(process);
-                sleep(process->getTiempoMaximoEst());
-            } else {
-                break;
-            }
+            sync.lock();
+            if(pauseRequired)
+                pauseCond.wait(&sync);
+            sync.unlock();
+
+            emit updateTableProcessRunning(process);
+            sleep(process->getTiempoMaximoEst());
         }
-        if(pauseRequired) break;
     }
 
     if(!pauseRequired) {

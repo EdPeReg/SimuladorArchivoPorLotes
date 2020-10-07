@@ -12,11 +12,16 @@ void ThreadTableFinish::setBatch(Batch *b) {
 }
 
 void ThreadTableFinish::pause() {
+    sync.lock();
     pauseRequired = true;
+    sync.unlock();
 }
 
 void ThreadTableFinish::resume() {
+    sync.lock();
     pauseRequired = false;
+    sync.unlock();
+    pauseCond.wakeAll();
 }
 
 void ThreadTableFinish::run()
@@ -25,17 +30,17 @@ void ThreadTableFinish::run()
         for(const auto& process : batch->getProcesses()) {
             sleep(process->getTiempoMaximoEst());
 
-            if(!pauseRequired) {
-                emit updateTableFinish(process);
-            } else {
-                break;
-            }
+            sync.lock();
+            if(pauseRequired)
+                pauseCond.wait(&sync);
+            sync.unlock();
+
+            emit updateTableFinish(process);
         }
-        if(pauseRequired) break;
     }
 
     if(!pauseRequired) {
-//        emit reset();
+        emit reset();
         batches.clear();
     }
 }

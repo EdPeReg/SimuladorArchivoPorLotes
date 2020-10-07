@@ -44,8 +44,6 @@ void ThreadGlobalCounter::run()
         }
     }
 
-    if(!pauseRequired) {
-        qDebug() << "cleaning";
-        tiemposEstimados.clear();
-    }
+    qDebug() << "cleaning";
+    tiemposEstimados.clear();
 }
