@@ -14,10 +14,7 @@ class ThreadBatchCounter : public QThread
 
 private:
     bool pauseRequired;
-    bool pauseHit;
-    int indexBatch;
-    int indexProcess;
-    int TT; 			// We need to know our current Tiempo transcurrido to compute our new TME
+    int TT; 			// We need to know our current Tiempo transcurrido to compute our new TME if we pause.
     QList<Batch *> batches;
     QMutex sync;
     QWaitCondition pauseCond;
@@ -27,7 +24,7 @@ public:
     int currentBatchCounter;
 
     void setBatch(Batch *batch);
-    void setTT(int TME);
+    void setTT(int TT);
     void pause();
     void resume();
 

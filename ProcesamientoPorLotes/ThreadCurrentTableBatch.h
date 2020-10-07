@@ -14,6 +14,7 @@ class ThreadCurrentTableBatch : public QThread
 
 private:
     bool pauseRequired;
+    int TT; 			// We need to know our current Tiempo transcurrido to compute our new TME if we pause.
     QList<Batch*> batches;
     QMutex sync;
     QWaitCondition pauseCond;
@@ -22,6 +23,7 @@ public:
     explicit ThreadCurrentTableBatch(QThread *parent = nullptr);
 
     void setBatch(Batch *batch);
+    void setTT(int TME);
     void pause();
     void resume();
 

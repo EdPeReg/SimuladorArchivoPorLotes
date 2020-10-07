@@ -131,8 +131,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             threadGlobalCounter->resume();
             threadBatchCounter->resume();
             threadTimeElapsed->resume();
-//            threadTimeLeft->resume();
-//            threadCurrentTableBatch->resume();
+            threadTimeLeft->resume();
+            threadCurrentTableBatch->resume();
 //            threadTableRunning->resume();
 //            threadTableFinish->resume();
         break;
@@ -378,6 +378,7 @@ void MainWindow::updateGlobalCounter(int value)
 void MainWindow::updateTimeElapsed(int value)
 {
     threadBatchCounter->setTT(value);
+    threadCurrentTableBatch->setTT(value);
     QTableWidgetItem *TT = new QTableWidgetItem(QString::number(value));
     ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
 }

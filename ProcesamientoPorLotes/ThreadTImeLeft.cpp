@@ -42,7 +42,5 @@ void ThreadTImeLeft::run()
         }
     }
 
-    if(!pauseRequired) {
-        tiemposRestantes.clear();
-    }
+    tiemposRestantes.clear();
 }
