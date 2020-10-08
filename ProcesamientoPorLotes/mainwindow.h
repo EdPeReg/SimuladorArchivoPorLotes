@@ -9,26 +9,19 @@
 #include <QMessageBox>
 #include <QTableWidget>
 #include <QKeyEvent>
-#include <QFuture>
-#include <QtConcurrent>
-#include <QThread>
-#include <QFutureWatcher>
+#include <QEventLoop>
+#include <QTimer>
 
 #include <random>
 
 #include "Batch.h"
 #include "Process.h"
 #include "ThreadGlobalCounter.h"
-#include "ThreadTImeElapsed.h"
-#include "ThreadTImeLeft.h"
-#include "ThreadBatchCounter.h"
-#include "ThreadCurrentTableBatch.h"
-#include "ThreadTableRunning.h"
-#include "ThreadTableFinish.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
 
 enum CURRENT_BATCH {
     ID, TME
@@ -58,12 +51,6 @@ private:
     QVector<int> ids;
 
     ThreadGlobalCounter *threadGlobalCounter;
-    ThreadTImeElapsed *threadTimeElapsed;
-    ThreadTImeLeft *threadTimeLeft;
-    ThreadBatchCounter *threadBatchCounter;
-    ThreadCurrentTableBatch *threadCurrentTableBatch;
-    ThreadTableRunning *threadTableRunning;
-    ThreadTableFinish *threadTableFinish;
 
     const int LIMITE_PROCESO = 4;
 
@@ -78,12 +65,12 @@ private:
     int indexBatch;
     int aux;
     int id; // new
-    int globalCounter; // NEW
 
     void removeSpace(std::string& operation);
-    void runThreads();
+    void runGlobalCounterThread();
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
+    inline void delay(int millisecondsWait); // new
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
@@ -91,18 +78,15 @@ private:
     int computeBatches(int numProcesses); // new
     long doOperation(std::string& operation); // changed
     bool validID(int id);
-
-
 protected:
     void keyPressEvent(QKeyEvent* event) override; // new
 
 private slots:
     void sendData();
     void updateGlobalCounter(int value);
-    void updateTimeElapsed(int value);
-    void updateTimeLeft(int value);
+    void updateTimeCounters(Batch* batch);
     void updateTableFinish(Process *process);
-    void updateTableCurrentBatch(Batch *batch);
+    void updateTableCurrentBatch();
     void insertDataTableCurrentBatch();
     void insertDataTableRunningProcess(Process* runningProcess);
     void reset();

@@ -1,4 +1,4 @@
-QT       += core gui concurrent
+QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,26 +16,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    ThreadBatchCounter.cpp \
-    ThreadCurrentTableBatch.cpp \
     ThreadGlobalCounter.cpp \
-    ThreadTImeElapsed.cpp \
-    ThreadTImeLeft.cpp \
-    ThreadTableFinish.cpp \
-    ThreadTableRunning.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     Batch.h \
     Process.h \
-    ThreadBatchCounter.h \
-    ThreadCurrentTableBatch.h \
     ThreadGlobalCounter.h \
-    ThreadTImeElapsed.h \
-    ThreadTImeLeft.h \
-    ThreadTableFinish.h \
-    ThreadTableRunning.h \
     mainwindow.h
 
 FORMS += \
