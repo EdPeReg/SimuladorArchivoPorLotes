@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     , onlyOnce(false)
     , randomData(false)
     , pauseRequired(false)
-    , w_keyPressed(false)
+    , keyError(false)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -62,14 +62,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(4, new QTableWidgetItem(("TT")));
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(5, new QTableWidgetItem(("TR")));
 
-    ui->tblWdt_Terminados->setColumnCount(7);
+    ui->tblWdt_Terminados->setColumnCount(6);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("RESULTADO")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("TME")));
-    ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("ESTADO")));
-    ui->tblWdt_Terminados->setHorizontalHeaderItem(6, new QTableWidgetItem(tr("LOTE")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
@@ -106,7 +105,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         // Error.
         case Qt::Key_W:
             qDebug() << "ERROR";
-            w_keyPressed = true;
+            keyError = true;
         break;
     }
 }
@@ -371,10 +370,10 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 delay(1000);
 
                 // There is an error, go to the next process and update the table with that process.
-                if(w_keyPressed) {
-                    w_keyPressed = false;
+                if(keyError) {
                     process->setEstado("ERROR");
                     updateTableFinish(process);
+                    keyError = false;
                     break;
                 }
 
@@ -438,10 +437,10 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 delay(1000);
 
                 // There is an error, go to the next process and update the table with that process.
-                if(w_keyPressed) {
-                    w_keyPressed = false;
+                if(keyError) {
                     processes.at(indexProcess)->setEstado("ERROR");
                     updateTableFinish(processes.at(indexProcess));
+                    keyError = false;
                     break;
                 }
 
@@ -485,16 +484,22 @@ void MainWindow::updateTableFinish(Process *process) {
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
     QTableWidgetItem *itemName = new QTableWidgetItem(process->getProgrammerName());
     QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
-    QTableWidgetItem *itemResult = new QTableWidgetItem(QString::number(process->getResult()));
+    QTableWidgetItem *itemResult = new QTableWidgetItem();
+
+    if(keyError) {
+        itemResult->setText(process->getEstado());
+        itemResult->setBackground(Qt::red);
+    } else {
+        itemResult->setText(QString::number(process->getResult()));
+    }
+
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
-    QTableWidgetItem *itemEstado= new QTableWidgetItem(process->getEstado());
     QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
     ui->tblWdt_Terminados->setItem(fila, ID_FP, itemID);
     ui->tblWdt_Terminados->setItem(fila, NOMBRE_FP, itemName);
     ui->tblWdt_Terminados->setItem(fila, OPERACION_FP, itemOperation);
     ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
     ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
-    ui->tblWdt_Terminados->setItem(fila, ESTADO_FP, itemEstado);
     ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
 }
 
@@ -614,7 +619,7 @@ void MainWindow::reset()
     firstTime = false;
     onlyOnce = false;
     randomData = false;
-    w_keyPressed = false;
+    keyError = false;
     processInserted = 0;
     processRemaining = 0;
     batchNum = 1;
