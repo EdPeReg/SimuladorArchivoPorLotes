@@ -35,7 +35,7 @@ struct SaveState {
 
 
 enum CURRENT_BATCH {
-    ID, TME
+    ID, TME, TT
 };;
 
 enum RUNNING_PROCESS {
@@ -43,7 +43,7 @@ enum RUNNING_PROCESS {
 };
 
 enum FINISH_PROCESS{
-    ID_FP, NOMBRE_FP, OPERACION_FP, RESULT_FP, TME_FP, LOTE_FP
+    ID_FP, NOMBRE_FP, OPERACION_FP, RESULT_FP, TME_FP, ESTADO_FP, LOTE_FP
 };
 
 class MainWindow : public QMainWindow
@@ -72,6 +72,7 @@ private:
     bool onlyOnce;
     bool randomData; // new
     bool pauseRequired;
+    bool w_keyPressed;
     int processInserted;
     int processRemaining;
     int batchNum;

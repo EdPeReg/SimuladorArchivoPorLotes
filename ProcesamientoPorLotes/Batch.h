@@ -40,6 +40,7 @@ class Batch {
                 qDebug() << "Name: " << (*it)->getProgrammerName();
                 qDebug() << "Operation: " << (*it)->getOperation();
                 qDebug() << "TME: " << (*it)->getTiempoMaximoEst();
+                qDebug() << "ESTADO: " << (*it)->getEstado();
                 qDebug() << "ID: " << (*it)->getId();
                 ++i;
             }

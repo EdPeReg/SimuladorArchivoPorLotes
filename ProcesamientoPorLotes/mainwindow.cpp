@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// TODO
+/*// TODO
 // BUSCAR MANERA DE EVITAR MEMORY LEAKS
 //
 // NOTES:
@@ -10,10 +10,11 @@
 //
 // Find a way to obtain a random number for names and operations, don't use rand.
 //
-// TT and TR does;t work well when you pause and then continue, somehow it doesn't
-// work in the current batch, but in the next batch it works well.
-//
 // WHen i click pause, continue and then pause, doesn't work.
+
+- When the program is paused, the other keys shouldn't respond.
+
+*/
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -25,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     , onlyOnce(false)
     , randomData(false)
     , pauseRequired(false)
+    , w_keyPressed(false)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -42,9 +44,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
 
-    ui->tblWdt_LoteActual->setColumnCount(2);
+    ui->tblWdt_LoteActual->setColumnCount(3);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
+    ui->tblWdt_LoteActual->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
     ui->tblWdt_LoteActual->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     ui->tblWdt_ProcesoEjec->setColumnCount(1);
@@ -59,13 +62,14 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(4, new QTableWidgetItem(("TT")));
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(5, new QTableWidgetItem(("TR")));
 
-    ui->tblWdt_Terminados->setColumnCount(6);
+    ui->tblWdt_Terminados->setColumnCount(7);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("RESULTADO")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("TME")));
-    ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("ESTADO")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(6, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
@@ -79,23 +83,30 @@ MainWindow::~MainWindow()
         delete batch;
         batch = nullptr;
     }
-
     delete threadGlobalCounter;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     switch(event->key()) {
+        // Pause.
         case Qt::Key_P:
             qDebug() << "PAUSE";
             threadGlobalCounter->pause();
             pause();
         break;
 
+        // Continue.
         case Qt::Key_C:
             qDebug() << "CONTINUE";
             threadGlobalCounter->resume();
             resume();
+        break;
+
+        // Error.
+        case Qt::Key_W:
+            qDebug() << "ERROR";
+            w_keyPressed = true;
         break;
     }
 }
@@ -347,7 +358,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
     int indexProcess = 0;
 
     if(!pauseRequired) {
-        for(const auto& process : batch->getProcesses()) {
+        for(auto& process : batch->getProcesses()) {
             int counterTimeElapsed = 0;
             int counterTimeLeft = process->getTiempoMaximoEst();
             for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
@@ -358,6 +369,15 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
                 insertDataTableRunningProcess(process);
                 delay(1000);
+
+                // There is an error, go to the next process and update the table with that process.
+                if(w_keyPressed) {
+                    w_keyPressed = false;
+                    process->setEstado("ERROR");
+                    updateTableFinish(process);
+                    break;
+                }
+
                 if(pauseRequired) {
                     int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
 
@@ -377,7 +397,11 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 qDebug() << "We stoped at this index process: " << saveState.indexProcess;
                 break;
             }
-            updateTableFinish(process);
+
+            // Just update the table if the process doesn't have any error.
+            if(process->getEstado() != "ERROR") {
+                updateTableFinish(process);
+            }
             ++indexProcess;
         }
     } else {
@@ -413,6 +437,14 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 ui->lcd_LotesRestantes->display(saveState.batchCounter);
                 delay(1000);
 
+                // There is an error, go to the next process and update the table with that process.
+                if(w_keyPressed) {
+                    w_keyPressed = false;
+                    processes.at(indexProcess)->setEstado("ERROR");
+                    updateTableFinish(processes.at(indexProcess));
+                    break;
+                }
+
                 if(pauseRequired) {
                     // CHECK THIS.
                     int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
@@ -426,7 +458,11 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 ++timeElapsed;
             }
 
-            updateTableFinish(processes.at(indexProcess));
+            // Just update the table if the process doesn't have any error.
+            if(processes.at(indexProcess)->getEstado() != "ERROR") {
+                updateTableFinish(processes.at(indexProcess));
+            }
+
             // To avoid out of range after incrementing i.
             if(++indexProcess == processes.size()) {
                 break;
@@ -451,12 +487,14 @@ void MainWindow::updateTableFinish(Process *process) {
     QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
     QTableWidgetItem *itemResult = new QTableWidgetItem(QString::number(process->getResult()));
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+    QTableWidgetItem *itemEstado= new QTableWidgetItem(process->getEstado());
     QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
     ui->tblWdt_Terminados->setItem(fila, ID_FP, itemID);
     ui->tblWdt_Terminados->setItem(fila, NOMBRE_FP, itemName);
     ui->tblWdt_Terminados->setItem(fila, OPERACION_FP, itemOperation);
     ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
     ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
+    ui->tblWdt_Terminados->setItem(fila, ESTADO_FP, itemEstado);
     ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
 }
 
@@ -474,8 +512,10 @@ void MainWindow::updateTableCurrentBatch()
             for(const auto& process : batch->getProcesses()) {
                 QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process->getId()));
                 QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
+                QTableWidgetItem *itemTT= new QTableWidgetItem("0");
                 ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-                ui->tblWdt_LoteActual->setItem(row++, TME, itemTME);
+                ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
+                ui->tblWdt_LoteActual->setItem(row++, TT, itemTT);
             }
 
             updateTimeCounters(batch);
@@ -500,6 +540,7 @@ void MainWindow::updateTableCurrentBatch()
         // Update our batches remaining, because at this point, our batches remaining
         // arent updated. because break.
         batchesRemaining = saveState.batchCounter;
+
         for(int i = saveState.batchIndex; i < batches.size(); ++i) {
             int row = 0;
             ui->tblWdt_LoteActual->setRowCount(batches.at(i)->getSize());
@@ -573,7 +614,7 @@ void MainWindow::reset()
     firstTime = false;
     onlyOnce = false;
     randomData = false;
-    once = true;
+    w_keyPressed = false;
     processInserted = 0;
     processRemaining = 0;
     batchNum = 1;
