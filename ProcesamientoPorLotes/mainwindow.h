@@ -71,10 +71,11 @@ private:
     bool firstTime;
     bool onlyOnce;
     bool randomData; // new
-    bool pauseRequired = false;
+    bool pauseRequired;
     int processInserted;
     int processRemaining;
     int batchNum;
+    int batchesRemaining;
     int indexBatch;
     int aux;
     int id; // new

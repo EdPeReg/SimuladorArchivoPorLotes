@@ -24,9 +24,11 @@ MainWindow::MainWindow(QWidget *parent)
     , firstTime(false)
     , onlyOnce(false)
     , randomData(false)
+    , pauseRequired(false)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
+    , batchesRemaining(0)
     , indexBatch(0)
     , aux(0)
     , id(1)
@@ -358,6 +360,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 delay(1000);
                 if(pauseRequired) {
                     int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
+
                     saveState.counterTimeLeft = ++aux;
                     saveState.counterTimeElapsed = counterTimeElapsed;
 
@@ -378,7 +381,6 @@ void MainWindow::updateTimeCounters(Batch *batch)
             ++indexProcess;
         }
     } else {
-        qDebug() << "dentro del else de update time counters";
         pauseRequired = false;
         QList<Process *> processes = batch->getProcesses();
         int timeElapsed = saveState.counterTimeElapsed;
@@ -405,6 +407,10 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
                 qDebug() << "i valu before insert data table running process: " << indexProcess;
                 insertDataTableRunningProcess(processes.at(indexProcess));
+
+                // Somehow, after the previous line, our lcd batch counter shows our initial
+                // batches couter, why? only god knos, so let's display its correct value.
+                ui->lcd_LotesRestantes->display(saveState.batchCounter);
                 delay(1000);
 
                 if(pauseRequired) {
@@ -457,8 +463,8 @@ void MainWindow::updateTableFinish(Process *process) {
 // REPEATED CODE: BAD! >:v
 void MainWindow::updateTableCurrentBatch()
 {
-    int batchesCounter = batches.size();
-    ui->lcd_LotesRestantes->display(--batchesCounter);
+    batchesRemaining = batches.size();
+    ui->lcd_LotesRestantes->display(--batchesRemaining);
 
     int batchIndex = 0;
     if(!pauseRequired) {
@@ -474,7 +480,7 @@ void MainWindow::updateTableCurrentBatch()
 
             updateTimeCounters(batch);
             if(pauseRequired) {
-                saveState.batchCounter = batchesCounter;
+                saveState.batchCounter = batchesRemaining;
                 saveState.batchIndex = batchIndex;
                 saveState.batchCurrentBatch = batch;
 
@@ -485,11 +491,15 @@ void MainWindow::updateTableCurrentBatch()
             }
             // If we don't do this, our batch counter will be a negative number.
             if(batchIndex != batches.size() - 1) {
-                updateBatchCounter(--batchesCounter);
+                updateBatchCounter(--batchesRemaining);
+                saveState.batchCounter = batchesRemaining;
             }
             ++batchIndex;
         }
     } else {
+        // Update our batches remaining, because at this point, our batches remaining
+        // arent updated. because break.
+        batchesRemaining = saveState.batchCounter;
         for(int i = saveState.batchIndex; i < batches.size(); ++i) {
             int row = 0;
             ui->tblWdt_LoteActual->setRowCount(batches.at(i)->getSize());
@@ -505,7 +515,7 @@ void MainWindow::updateTableCurrentBatch()
             updateTimeCounters(batches.at(i));
 
             if(pauseRequired) {
-                saveState.batchCounter = batchesCounter;
+                saveState.batchCounter = batchesRemaining;
                 saveState.batchCurrentBatch = batches.at(i);
 
                 qDebug() << "paused at batch counter: " << saveState.batchCounter;
@@ -515,7 +525,9 @@ void MainWindow::updateTableCurrentBatch()
             // If we don't do this, our batch counter will be a negative number.
             qDebug() << "bach index: " << batchIndex;
             if(batchIndex != batches.size() - 1) {
-                updateBatchCounter(--batchesCounter);
+                qDebug() << "dentro del batchindex !- batches.size";
+                updateBatchCounter(--batchesRemaining);
+                saveState.batchCounter = batchesRemaining;
             }
             ++batchIndex;
         }
@@ -536,8 +548,6 @@ void MainWindow::insertDataTableCurrentBatch()
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
-    qDebug() << "ID inside table running process: " << runningProcess->getId();
-
     QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
     QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
     QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
@@ -563,6 +573,7 @@ void MainWindow::reset()
     firstTime = false;
     onlyOnce = false;
     randomData = false;
+    once = true;
     processInserted = 0;
     processRemaining = 0;
     batchNum = 1;
