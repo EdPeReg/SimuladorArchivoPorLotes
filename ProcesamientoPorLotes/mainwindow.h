@@ -12,6 +12,7 @@
 #include <QEventLoop>
 #include <QTimer>
 
+#include <chrono>
 #include <random>
 
 #include "Batch.h"
@@ -21,6 +22,16 @@
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+struct SaveState {
+    Batch *batchCurrentBatch;
+    Process *processTableFinish;
+    int batchIndex = 0;
+    int batchCounter = 0;
+    int indexProcess = 0;
+    int counterTimeElapsed = 0;
+    int counterTimeLeft = 0;
+};
 
 
 enum CURRENT_BATCH {
@@ -47,8 +58,9 @@ private:
     Ui::MainWindow *ui;
 
     QList<Batch*> batches;
-    Process *process;
     QVector<int> ids;
+    Process *process;
+    SaveState saveState;
 
     ThreadGlobalCounter *threadGlobalCounter;
 
@@ -59,6 +71,7 @@ private:
     bool firstTime;
     bool onlyOnce;
     bool randomData; // new
+    bool pauseRequired = false;
     int processInserted;
     int processRemaining;
     int batchNum;
@@ -71,6 +84,8 @@ private:
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
     inline void delay(int millisecondsWait); // new
+    void pause(); // new
+    void resume(); // new
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
@@ -78,6 +93,8 @@ private:
     int computeBatches(int numProcesses); // new
     long doOperation(std::string& operation); // changed
     bool validID(int id);
+
+    void test();
 protected:
     void keyPressEvent(QKeyEvent* event) override; // new
 
