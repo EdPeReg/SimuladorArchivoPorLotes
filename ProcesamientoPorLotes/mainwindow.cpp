@@ -398,7 +398,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
             // We start from the Time elapsed, because that was the last value that we had.
             // before the pause.
             while(j < processes.at(i)->getTiempoMaximoEst()) {
-               qDebug() << "j inside the for: " << j;
+                qDebug() << "j inside the for: " << j;
                 qDebug() << "process at(i) TME: " << processes.at(i)->getTiempoMaximoEst();
                 qDebug() << "counter time elapse: " << counterTimeElapsed;
                 qDebug() << "counter time left: " << counterTimeLeft;
@@ -408,6 +408,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
                 ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 
+                qDebug() << "i valu before insert data table running process: " << i;
                 insertDataTableRunningProcess(processes.at(i));
                 delay(1000);
 
@@ -422,12 +423,22 @@ void MainWindow::updateTimeCounters(Batch *batch)
                     break;
                 }
                 ++j;
+
             }
+
+            // To avoid out of range after incrementing i.
+            if(++i < processes.size()) {
+                break;
+            }
+
+            // Reset our values, to not have the previous values.
+            saveState.counterTimeElapsed = 0;
+            saveState.counterTimeLeft = processes.at(i)->getTiempoMaximoEst() + 1;
             updateTableFinish(processes.at(i));
-            ++i;
+//            ++indexProcess;
+
             // We want to start from the beggining in our index process and our time elapsed.
             j = 0;
-            ++indexProcess;
         }
     }
 }
@@ -515,25 +526,6 @@ void MainWindow::updateTableCurrentBatch()
             }
             ++batchIndex;
         }
-//        for(const auto& batch : batches) {
-//            for(const auto& process : batch->getProcesses()) {
-//            }
-
-//            updateTimeCounters(batch);
-//            if(pauseRequired) {
-//                saveState.batchCounter = batchesCounter;
-//                saveState.batchCurrentBatch = batch;
-
-//                qDebug() << "paused at batch counter: " << saveState.batchCounter;
-//                saveState.batchCurrentBatch->showProccesses();
-//                break;
-//            }
-//            // If we don't do this, our batch counter will be a negative number.
-//            if(batchIndex != batches.size() - 1) {
-//                updateBatchCounter(--batchesCounter);
-//            }
-//            ++batchIndex;
-//        }
     }
 
     if(!pauseRequired) reset();
@@ -551,6 +543,8 @@ void MainWindow::insertDataTableCurrentBatch()
 }
 
 void MainWindow::insertDataTableRunningProcess(Process* runningProcess) {
+    qDebug() << "ID inside table running process: " << runningProcess->getId();
+
     QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess->getId()));
     QTableWidgetItem *name = new QTableWidgetItem(runningProcess->getProgrammerName());
     QTableWidgetItem *operation = new QTableWidgetItem(runningProcess->getOperation());
