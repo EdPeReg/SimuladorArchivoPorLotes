@@ -93,8 +93,6 @@ private:
     int computeBatches(int numProcesses); // new
     long doOperation(std::string& operation); // changed
     bool validID(int id);
-
-    void test();
 protected:
     void keyPressEvent(QKeyEvent* event) override; // new
 

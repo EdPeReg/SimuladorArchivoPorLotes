@@ -92,8 +92,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         case Qt::Key_C:
             qDebug() << "CONTINUE";
-            resume();
             threadGlobalCounter->resume();
+            resume();
         break;
     }
 }
@@ -313,11 +313,6 @@ bool MainWindow::validID(int id)
     return true;
 }
 
-void MainWindow::test()
-{
-   qDebug() << "dentrooooooooooooooooooooo bitch" ;
-}
-
 // THX dvntehn00bz,
 // https://stackoverflow.com/questions/3752742/how-do-i-create-a-pause-wait-function-using-qt
 void MainWindow::delay(int millisecondsWait)
@@ -344,6 +339,7 @@ void MainWindow::updateGlobalCounter(int value)
     ui->lcd_ContGlobal->display(value);
 }
 
+// REPEATED  CODE, BAD!! >:V
 void MainWindow::updateTimeCounters(Batch *batch)
 {
     int indexProcess = 0;
@@ -393,7 +389,6 @@ void MainWindow::updateTimeCounters(Batch *batch)
             qDebug() << "processes.size: " << processes.size();
             int counterTimeElapsed = saveState.counterTimeElapsed;
             int counterTimeLeft = saveState.counterTimeLeft;
-            //--counterTimeLeft;
 
             // We start from the Time elapsed, because that was the last value that we had.
             // before the pause.
@@ -425,6 +420,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 ++timeElapsed;
             }
 
+            updateTableFinish(processes.at(indexProcess));
             // To avoid out of range after incrementing i.
             if(++indexProcess == processes.size()) {
                 break;
@@ -433,8 +429,6 @@ void MainWindow::updateTimeCounters(Batch *batch)
             // Reset our values, to not have the previous values.
             saveState.counterTimeElapsed = 0;
             saveState.counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst() + 1;
-            updateTableFinish(processes.at(indexProcess));
-//            ++indexProcess;
 
             // We want to start from the beggining in our index process and our time elapsed.
             timeElapsed = 0;
@@ -460,6 +454,7 @@ void MainWindow::updateTableFinish(Process *process) {
     ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote);
 }
 
+// REPEATED CODE: BAD! >:v
 void MainWindow::updateTableCurrentBatch()
 {
     int batchesCounter = batches.size();
@@ -495,7 +490,6 @@ void MainWindow::updateTableCurrentBatch()
             ++batchIndex;
         }
     } else {
-//        pauseRequired = false;
         for(int i = saveState.batchIndex; i < batches.size(); ++i) {
             int row = 0;
             ui->tblWdt_LoteActual->setRowCount(batches.at(i)->getSize());
