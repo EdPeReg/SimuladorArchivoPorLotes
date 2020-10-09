@@ -8,11 +8,10 @@
 
 class Batch {
     private:
-        bool analized;
         int size;
         QList<Process*> processes;
     public:
-        Batch() : analized(false), size(0) {  };
+        Batch() : size(0) {  };
 
         ~Batch() {
             for(auto it = processes.begin(); it != processes.end(); ++it) {
@@ -20,16 +19,8 @@ class Batch {
             }
         }
 
-        bool isAnalized() const {
-            return analized;
-        }
-
         int getSize() const {
             return size;
-        }
-
-        void setIsAnalized(bool analized) {
-            this->analized = analized;
         }
 
         QList<Process*> getProcesses() const {

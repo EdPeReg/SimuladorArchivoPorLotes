@@ -385,11 +385,11 @@ void MainWindow::updateTimeCounters(Batch *batch)
         qDebug() << "dentro del else de update time counters";
         pauseRequired = false;
         QList<Process *> processes = batch->getProcesses();
-        int j = saveState.counterTimeElapsed;
-        int i = saveState.indexProcess;
+        int timeElapsed = saveState.counterTimeElapsed;
+        int indexProcess = saveState.indexProcess;
 
-        while(i < processes.size()) {
-            qDebug() << "i inside the else: " << i;
+        while(indexProcess < processes.size()) {
+            qDebug() << "i inside the else: " << indexProcess;
             qDebug() << "processes.size: " << processes.size();
             int counterTimeElapsed = saveState.counterTimeElapsed;
             int counterTimeLeft = saveState.counterTimeLeft;
@@ -397,9 +397,9 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
             // We start from the Time elapsed, because that was the last value that we had.
             // before the pause.
-            while(j < processes.at(i)->getTiempoMaximoEst()) {
-                qDebug() << "j inside the for: " << j;
-                qDebug() << "process at(i) TME: " << processes.at(i)->getTiempoMaximoEst();
+            while(timeElapsed < processes.at(indexProcess)->getTiempoMaximoEst()) {
+                qDebug() << "time elapsed inside the for: " << timeElapsed;
+                qDebug() << "process at(i) TME: " << processes.at(indexProcess)->getTiempoMaximoEst();
                 qDebug() << "counter time elapse: " << counterTimeElapsed;
                 qDebug() << "counter time left: " << counterTimeLeft;
 
@@ -408,8 +408,8 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
                 ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 
-                qDebug() << "i valu before insert data table running process: " << i;
-                insertDataTableRunningProcess(processes.at(i));
+                qDebug() << "i valu before insert data table running process: " << indexProcess;
+                insertDataTableRunningProcess(processes.at(indexProcess));
                 delay(1000);
 
                 if(pauseRequired) {
@@ -422,23 +422,22 @@ void MainWindow::updateTimeCounters(Batch *batch)
                     qDebug() << "counter time left: " << saveState.counterTimeLeft;
                     break;
                 }
-                ++j;
-
+                ++timeElapsed;
             }
 
             // To avoid out of range after incrementing i.
-            if(++i < processes.size()) {
+            if(++indexProcess == processes.size()) {
                 break;
             }
 
             // Reset our values, to not have the previous values.
             saveState.counterTimeElapsed = 0;
-            saveState.counterTimeLeft = processes.at(i)->getTiempoMaximoEst() + 1;
-            updateTableFinish(processes.at(i));
+            saveState.counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst() + 1;
+            updateTableFinish(processes.at(indexProcess));
 //            ++indexProcess;
 
             // We want to start from the beggining in our index process and our time elapsed.
-            j = 0;
+            timeElapsed = 0;
         }
     }
 }
