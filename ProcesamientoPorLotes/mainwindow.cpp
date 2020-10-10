@@ -35,15 +35,12 @@ MainWindow::MainWindow(QWidget *parent)
     , aux(0)
     , id(1)
     , globalCounter(0)
+    , first(true)
 {
     ui->setupUi(this);
 
     // We do this to our mainwindow to get the keys pressed.
     this->setFocusPolicy(Qt::StrongFocus);
-
-    threadGlobalCounter = new ThreadGlobalCounter;
-
-//    connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
 
     ui->tblWdt_LoteActual->setColumnCount(3);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -83,7 +80,6 @@ MainWindow::~MainWindow()
         delete batch;
         batch = nullptr;
     }
-    delete threadGlobalCounter;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -92,14 +88,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         // Pause.
         case Qt::Key_P:
             qDebug() << "PAUSE";
-//            threadGlobalCounter->pause();
             pause();
         break;
 
         // Continue.
         case Qt::Key_C:
             qDebug() << "CONTINUE";
-//            threadGlobalCounter->resume();
             resume();
         break;
 
@@ -119,19 +113,6 @@ void MainWindow::removeSpace(std::string& operation) {
     while((pos = operation.find(toErase)) != std::string::npos) {
         operation.erase(pos, toErase.size());
     }
-}
-
-void MainWindow::runGlobalCounterThread()
-{
-//    // NOT EFFICIENT, IT CHECKS EVERYTHING SINCE THE BEGGINING.
-    for(const auto& batch : batches) {
-        batch->showProccesses();
-        for(Process *process : batch->getProcesses()) {
-            threadGlobalCounter->setTiemposEstimados(process->getTiempoMaximoEst());
-        }
-    }
-
-//    threadGlobalCounter->start();
 }
 
 void MainWindow::insertProcessByUser(int& index)
@@ -344,6 +325,7 @@ void MainWindow::pause()
 
 void MainWindow::resume()
 {
+    pauseRequired = false;
     updateTableCurrentBatch();
 }
 
@@ -357,17 +339,32 @@ void MainWindow::updateTimeCounters(Batch *batch)
 {
     QList<Process *> processes = batch->getProcesses();
 
-    int indexProcess = 0;
+    int indexProcess = saveState.indexProcess;
+    if(first) {
+        indexProcess = 0;
+    }
     // Iterate in my process list.
     while(indexProcess < processes.size()) {
-        int counterTimeElapsed = 0;
-        int counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst();
+        int counterTimeElapsed = saveState.counterTimeElapsed;
+        int counterTimeLeft = saveState.counterTimeLeft;
+        int i = saveState.counterTimeElapsed;
 
-        int i = 0;
+        if(first) {
+            counterTimeElapsed = 0;
+            counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst();
+            i = 0;
+        }
+
         // Iterate in our TME.
         while(i < processes.at(indexProcess)->getTiempoMaximoEst()) {
             QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
-            QTableWidgetItem *TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
+            QTableWidgetItem *TR = new QTableWidgetItem();
+
+            if(first) {
+                TR->setText(QString::number(counterTimeLeft--));
+            } else {
+                TR->setText(QString::number(--counterTimeLeft));
+            }
             ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
             ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 
@@ -387,18 +384,19 @@ void MainWindow::updateTimeCounters(Batch *batch)
 //                break;
 //            }
 
-//			if(pauseRequired) {
-//				int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
-//				saveState.counterTimeLeft = ++aux;
-//				saveState.counterTimeElapsed = counterTimeElapsed;
-
-//				qDebug() << "counter time elapsed: " << saveState.counterTimeElapsed;
-//				qDebug() << "counter time left: " << saveState.counterTimeLeft;
-//				break;
-//			}
+            // We save our index process, TT and TR.
+            if(pauseRequired) {
+                saveState.indexProcess = indexProcess;
+                int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
+                saveState.counterTimeLeft = ++aux;
+                saveState.counterTimeElapsed = counterTimeElapsed;
+                first = false;
+                break;
+            }
 
             ++i;
         }
+        if(pauseRequired) break;
 
 //		if(pauseRequired) {
 //			saveState.processTableFinish = processes.at(indexProcess);
@@ -413,6 +411,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
             updateTableFinish(processes.at(indexProcess));
         }
         ++indexProcess;
+        first = true;
     }
 
 
@@ -570,12 +569,19 @@ void MainWindow::updateTableFinish(Process *process) {
 }
 
 // REPEATED CODE: BAD! >:v
+// Change function name.
 void MainWindow::updateTableCurrentBatch()
 {
-    batchesRemaining = batches.size();
-    ui->lcd_LotesRestantes->display(--batchesRemaining);
+    batchesRemaining = saveState.batchCounter;
+    if(first) {
+        batchesRemaining = batches.size(); // YES when you resume?
+    }
 
-    int batchIndex = 0;
+    if(first) {
+        ui->lcd_LotesRestantes->display(--batchesRemaining);
+    }
+
+    int batchIndex = saveState.batchIndex;
     // Iterate in our batches.
     while(batchIndex < batches.size()) {
         int row = 0;
@@ -594,16 +600,16 @@ void MainWindow::updateTableCurrentBatch()
         }
 
         updateTimeCounters(batches.at(batchIndex));
-//        if(pauseRequired) {
-//            saveState.batchCounter = batchesRemaining;
-//            saveState.batchIndex = batchIndex;
+        if(pauseRequired) {
+            saveState.batchCounter = batchesRemaining;
+            saveState.batchIndex = batchIndex;
 //            saveState.batchCurrentBatch = batches.at(batchIndex);
 
-//            qDebug() << "paused at this index batch: " << saveState.batchIndex;
-//            qDebug() << "paused at batch counter: " << saveState.batchCounter;
+            qDebug() << "paused at this index batch: " << saveState.batchIndex;
+            qDebug() << "paused at batch counter: " << saveState.batchCounter;
 //            saveState.batchCurrentBatch->showProccesses();
-//            break;
-//        }
+            break;
+        }
 
         // If we don't do this, our batch counter will be a negative number.
         if(batchIndex != batches.size() - 1) {
@@ -731,11 +737,18 @@ void MainWindow::reset()
     onlyOnce = false;
     randomData = false;
     keyError = false;
+    first = true;
     processInserted = 0;
     processRemaining = 0;
     batchNum = 1;
     indexBatch = 0;
     ui->lcd_LotesRestantes->display(0);
+
+    saveState.batchIndex = 0;
+    saveState.batchCounter = 0;
+    saveState.indexProcess = 0;
+    saveState.counterTimeElapsed = 0;
+    saveState.counterTimeLeft = 0;
 
     QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
 
@@ -808,7 +821,6 @@ void MainWindow::on_action_Procesar_Lote_triggered()
         ui->btn_Enviar->setEnabled(false);
 
         ui->tblWdt_LoteActual->setRowCount(0);
-        runGlobalCounterThread();
 
         ui->ldt_NombProgr->setEnabled(true);
         ui->ldt_Operacion->setEnabled(true);
@@ -827,7 +839,7 @@ void MainWindow::on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered()
     if(ui->spnBx_CantProcesos->value() > 0) {
         randomData = true;
         sendData();
-        runGlobalCounterThread();
+        saveState.batchCounter = batches.size();
         updateTableCurrentBatch();
     } else {
         QMessageBox::information(this, tr("Inserte Procesos"), tr("Inserte el numero de procesos para continuar"));

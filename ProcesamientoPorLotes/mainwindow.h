@@ -16,7 +16,6 @@
 
 #include "Batch.h"
 #include "Process.h"
-#include "ThreadGlobalCounter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -62,8 +61,6 @@ private:
     Process *process;
     SaveState saveState;
 
-    ThreadGlobalCounter *threadGlobalCounter;
-
     const int LIMITE_PROCESO = 4;
 
     bool errorOperation;
@@ -81,14 +78,22 @@ private:
     int aux;
     int id; // new
     int globalCounter;
+    int first;
 
     void removeSpace(std::string& operation);
-    void runGlobalCounterThread(); // delete?
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
     inline void delay(int millisecondsWait); // new
     void pause(); // new
     void resume(); // new
+    void updateGlobalCounter(int value);
+    void updateTimeCounters(Batch* batch);
+    void updateTableFinish(Process *process);
+    void updateTableCurrentBatch();
+    void insertDataTableCurrentBatch();
+    void insertDataTableRunningProcess(Process* runningProcess);
+    void reset();
+    void updateBatchCounter(int value);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
@@ -101,14 +106,6 @@ protected:
 
 private slots:
     void sendData();
-    void updateGlobalCounter(int value);
-    void updateTimeCounters(Batch* batch);
-    void updateTableFinish(Process *process);
-    void updateTableCurrentBatch();
-    void insertDataTableCurrentBatch();
-    void insertDataTableRunningProcess(Process* runningProcess);
-    void reset();
-    void updateBatchCounter(int value);
     void on_action_Procesar_Lote_triggered();
     void on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered();
 };
