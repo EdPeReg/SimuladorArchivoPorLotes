@@ -80,9 +80,10 @@ private:
     int indexBatch;
     int aux;
     int id; // new
+    int globalCounter;
 
     void removeSpace(std::string& operation);
-    void runGlobalCounterThread();
+    void runGlobalCounterThread(); // delete?
     void insertProcessByUser(int& index); // new
     void insertProcessRandomly(int& index); // new
     inline void delay(int millisecondsWait); // new

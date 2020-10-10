@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     , indexBatch(0)
     , aux(0)
     , id(1)
+    , globalCounter(0)
 {
     ui->setupUi(this);
 
@@ -42,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     threadGlobalCounter = new ThreadGlobalCounter;
 
-    connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
+//    connect(threadGlobalCounter, &ThreadGlobalCounter::updateCounter, this, &MainWindow::updateGlobalCounter);
 
     ui->tblWdt_LoteActual->setColumnCount(3);
     ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -91,14 +92,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         // Pause.
         case Qt::Key_P:
             qDebug() << "PAUSE";
-            threadGlobalCounter->pause();
+//            threadGlobalCounter->pause();
             pause();
         break;
 
         // Continue.
         case Qt::Key_C:
             qDebug() << "CONTINUE";
-            threadGlobalCounter->resume();
+//            threadGlobalCounter->resume();
             resume();
         break;
 
@@ -130,7 +131,7 @@ void MainWindow::runGlobalCounterThread()
         }
     }
 
-    threadGlobalCounter->start();
+//    threadGlobalCounter->start();
 }
 
 void MainWindow::insertProcessByUser(int& index)
@@ -354,131 +355,192 @@ void MainWindow::updateGlobalCounter(int value)
 // REPEATED  CODE, BAD!! >:V
 void MainWindow::updateTimeCounters(Batch *batch)
 {
+    QList<Process *> processes = batch->getProcesses();
+
     int indexProcess = 0;
+    // Iterate in my process list.
+    while(indexProcess < processes.size()) {
+        int counterTimeElapsed = 0;
+        int counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst();
 
-    if(!pauseRequired) {
-        for(auto& process : batch->getProcesses()) {
-            int counterTimeElapsed = 0;
-            int counterTimeLeft = process->getTiempoMaximoEst();
-            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
-                QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
-                QTableWidgetItem *TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
-                ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
-                ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
+        int i = 0;
+        // Iterate in our TME.
+        while(i < processes.at(indexProcess)->getTiempoMaximoEst()) {
+            QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
+            QTableWidgetItem *TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
+            ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+            ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 
-                insertDataTableRunningProcess(process);
-                delay(1000);
+            insertDataTableRunningProcess(processes.at(indexProcess));
+            updateGlobalCounter(++globalCounter);
+            delay(1000);
 
-                // There is an error, go to the next process and update the table with that process.
-                if(keyError) {
-                    saveState.TME = process->getTiempoMaximoEst();
-                    threadGlobalCounter->setTT(counterTimeElapsed);
-                    threadGlobalCounter->setKeyError(keyError);
+            // There is an error, go to the next process and update the table with that process.
+//            if(keyError) { // CHECK
+//                saveState.TME = processes.at(indexProcess)->getTiempoMaximoEst();
+//                threadGlobalCounter->setTT(counterTimeElapsed); // ?
+//                threadGlobalCounter->setKeyError(keyError); // ?
 
-                    process->setEstado("ERROR");
-                    updateTableFinish(process);
-                    keyError = false;
-//                    threadGlobalCounter->setKeyError(keyError);
-                    break;
-                }
+//                processes.at(indexProcess)->setEstado("ERROR");
+//                updateTableFinish(processes.at(indexProcess));
+//                keyError = false;
+//                break;
+//            }
 
-                if(pauseRequired) {
-                    int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
-                    saveState.counterTimeLeft = ++aux;
-                    saveState.counterTimeElapsed = counterTimeElapsed;
+//			if(pauseRequired) {
+//				int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
+//				saveState.counterTimeLeft = ++aux;
+//				saveState.counterTimeElapsed = counterTimeElapsed;
 
-                    qDebug() << "counter time elapsed: " << saveState.counterTimeElapsed;
-                    qDebug() << "counter time left: " << saveState.counterTimeLeft;
-                    break;
-                }
-            }
+//				qDebug() << "counter time elapsed: " << saveState.counterTimeElapsed;
+//				qDebug() << "counter time left: " << saveState.counterTimeLeft;
+//				break;
+//			}
 
-            if(pauseRequired) {
-                saveState.processTableFinish = process;
-                saveState.indexProcess = indexProcess;
-                qDebug() << "Process use for table finish saved id: " << saveState.processTableFinish->getId();
-                qDebug() << "We stoped at this index process: " << saveState.indexProcess;
-                break;
-            }
-
-            // Just update the table if the process doesn't have any error.
-            if(process->getEstado() != "ERROR") {
-                updateTableFinish(process);
-            }
-            ++indexProcess;
+            ++i;
         }
-    } else {
-        pauseRequired = false;
-        QList<Process *> processes = batch->getProcesses();
-        int timeElapsed = saveState.counterTimeElapsed;
-        int indexProcess = saveState.indexProcess;
 
-        while(indexProcess < processes.size()) {
-            qDebug() << "i inside the else: " << indexProcess;
-            qDebug() << "processes.size: " << processes.size();
-            int counterTimeElapsed = saveState.counterTimeElapsed;
-            int counterTimeLeft = saveState.counterTimeLeft;
+//		if(pauseRequired) {
+//			saveState.processTableFinish = processes.at(indexProcess);
+//			saveState.indexProcess = indexProcess;
+//			qDebug() << "Process use for table finish saved id: " << saveState.processTableFinish->getId();
+//			qDebug() << "We stoped at this index process: " << saveState.indexProcess;
+//			break;
+//		}
 
-            // We start from the Time elapsed, because that was the last value that we had.
-            // before the pause.
-            while(timeElapsed < processes.at(indexProcess)->getTiempoMaximoEst()) {
-                qDebug() << "time elapsed inside the for: " << timeElapsed;
-                qDebug() << "process at(i) TME: " << processes.at(indexProcess)->getTiempoMaximoEst();
-                qDebug() << "counter time elapse: " << counterTimeElapsed;
-                qDebug() << "counter time left: " << counterTimeLeft;
-
-                QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
-                QTableWidgetItem *TR = new QTableWidgetItem(QString::number(--counterTimeLeft));
-                ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
-                ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
-
-                qDebug() << "i valu before insert data table running process: " << indexProcess;
-                insertDataTableRunningProcess(processes.at(indexProcess));
-
-                // Somehow, after the previous line, our lcd batch counter shows our initial
-                // batches couter, why? only god knos, so let's display its correct value.
-                ui->lcd_LotesRestantes->display(saveState.batchCounter);
-                delay(1000);
-
-                // There is an error, go to the next process and update the table with that process.
-                if(keyError) {
-                    processes.at(indexProcess)->setEstado("ERROR");
-                    updateTableFinish(processes.at(indexProcess));
-                    keyError = false;
-                    break;
-                }
-
-                if(pauseRequired) {
-                    // CHECK THIS.
-                    int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
-                    saveState.counterTimeLeft = ++aux;
-                    saveState.counterTimeElapsed = counterTimeElapsed;
-
-                    qDebug() << "counter time elapsed: " << saveState.counterTimeElapsed;
-                    qDebug() << "counter time left: " << saveState.counterTimeLeft;
-                    break;
-                }
-                ++timeElapsed;
-            }
-
-            // Just update the table if the process doesn't have any error.
-            if(processes.at(indexProcess)->getEstado() != "ERROR") {
-                updateTableFinish(processes.at(indexProcess));
-            }
-
-            // To avoid out of range after incrementing i.
-            if(++indexProcess == processes.size()) {
-                break;
-            }
-
-            // Reset our values, to not have the previous values.
-            saveState.counterTimeElapsed = 0;
-            saveState.counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst() + 1;
-
-            // We want to start from the beggining in our index process and our time elapsed.
-            timeElapsed = 0;
+        // Just update the table if the process doesn't have any error.
+        if(processes.at(indexProcess)->getEstado() != "ERROR") {
+            updateTableFinish(processes.at(indexProcess));
         }
+        ++indexProcess;
     }
+
+
+//    int indexProcess = 0;
+
+//    if(!pauseRequired) {
+//        for(auto& process : batch->getProcesses()) {
+//            int counterTimeElapsed = 0;
+//            int counterTimeLeft = process->getTiempoMaximoEst();
+//            for(int i = 0; i < process->getTiempoMaximoEst(); ++i) {
+//                QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
+//                QTableWidgetItem *TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
+//                ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+//                ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
+
+//                insertDataTableRunningProcess(process);
+//                delay(1000);
+
+//                // There is an error, go to the next process and update the table with that process.
+//                if(keyError) {
+//                    saveState.TME = process->getTiempoMaximoEst();
+//                    threadGlobalCounter->setTT(counterTimeElapsed);
+//                    threadGlobalCounter->setKeyError(keyError);
+
+//                    process->setEstado("ERROR");
+//                    updateTableFinish(process);
+//                    keyError = false;
+////                    threadGlobalCounter->setKeyError(keyError);
+//                    break;
+//                }
+
+//                if(pauseRequired) {
+//                    int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
+//                    saveState.counterTimeLeft = ++aux;
+//                    saveState.counterTimeElapsed = counterTimeElapsed;
+
+//                    qDebug() << "counter time elapsed: " << saveState.counterTimeElapsed;
+//                    qDebug() << "counter time left: " << saveState.counterTimeLeft;
+//                    break;
+//                }
+//            }
+
+//            if(pauseRequired) {
+//                saveState.processTableFinish = process;
+//                saveState.indexProcess = indexProcess;
+//                qDebug() << "Process use for table finish saved id: " << saveState.processTableFinish->getId();
+//                qDebug() << "We stoped at this index process: " << saveState.indexProcess;
+//                break;
+//            }
+
+//            // Just update the table if the process doesn't have any error.
+//            if(process->getEstado() != "ERROR") {
+//                updateTableFinish(process);
+//            }
+//            ++indexProcess;
+//        }
+//    } else {
+//        pauseRequired = false;
+//        QList<Process *> processes = batch->getProcesses();
+//        int timeElapsed = saveState.counterTimeElapsed;
+//        int indexProcess = saveState.indexProcess;
+
+//        while(indexProcess < processes.size()) {
+//            qDebug() << "i inside the else: " << indexProcess;
+//            qDebug() << "processes.size: " << processes.size();
+//            int counterTimeElapsed = saveState.counterTimeElapsed;
+//            int counterTimeLeft = saveState.counterTimeLeft;
+
+//            // We start from the Time elapsed, because that was the last value that we had.
+//            // before the pause.
+//            while(timeElapsed < processes.at(indexProcess)->getTiempoMaximoEst()) {
+//                qDebug() << "time elapsed inside the for: " << timeElapsed;
+//                qDebug() << "process at(i) TME: " << processes.at(indexProcess)->getTiempoMaximoEst();
+//                qDebug() << "counter time elapse: " << counterTimeElapsed;
+//                qDebug() << "counter time left: " << counterTimeLeft;
+
+//                QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
+//                QTableWidgetItem *TR = new QTableWidgetItem(QString::number(--counterTimeLeft));
+//                ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
+//                ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
+
+//                qDebug() << "i valu before insert data table running process: " << indexProcess;
+//                insertDataTableRunningProcess(processes.at(indexProcess));
+
+//                // Somehow, after the previous line, our lcd batch counter shows our initial
+//                // batches couter, why? only god knos, so let's display its correct value.
+//                ui->lcd_LotesRestantes->display(saveState.batchCounter);
+//                delay(1000);
+
+//                // There is an error, go to the next process and update the table with that process.
+//                if(keyError) {
+//                    processes.at(indexProcess)->setEstado("ERROR");
+//                    updateTableFinish(processes.at(indexProcess));
+//                    keyError = false;
+//                    break;
+//                }
+
+//                if(pauseRequired) {
+//                    // CHECK THIS.
+//                    int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
+//                    saveState.counterTimeLeft = ++aux;
+//                    saveState.counterTimeElapsed = counterTimeElapsed;
+
+//                    qDebug() << "counter time elapsed: " << saveState.counterTimeElapsed;
+//                    qDebug() << "counter time left: " << saveState.counterTimeLeft;
+//                    break;
+//                }
+//                ++timeElapsed;
+//            }
+
+//            // Just update the table if the process doesn't have any error.
+//            if(processes.at(indexProcess)->getEstado() != "ERROR") {
+//                updateTableFinish(processes.at(indexProcess));
+//            }
+
+//            // To avoid out of range after incrementing i.
+//            if(++indexProcess == processes.size()) {
+//                break;
+//            }
+
+//            // Reset our values, to not have the previous values.
+//            saveState.counterTimeElapsed = 0;
+//            saveState.counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst() + 1;
+
+//            // We want to start from the beggining in our index process and our time elapsed.
+//            timeElapsed = 0;
+//        }
+//    }
 }
 
 void MainWindow::updateTableFinish(Process *process) {
@@ -490,12 +552,12 @@ void MainWindow::updateTableFinish(Process *process) {
     QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
     QTableWidgetItem *itemResult = new QTableWidgetItem();
 
-    if(keyError) {
-        itemResult->setText(process->getEstado());
-        itemResult->setBackground(Qt::red);
-    } else {
+//    if(keyError) {
+//        itemResult->setText(process->getEstado());
+//        itemResult->setBackground(Qt::red);
+//    } else {
         itemResult->setText(QString::number(process->getResult()));
-    }
+//    }
 
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process->getTiempoMaximoEst()));
     QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process->getNumBatch()));
@@ -511,6 +573,51 @@ void MainWindow::updateTableFinish(Process *process) {
 void MainWindow::updateTableCurrentBatch()
 {
     batchesRemaining = batches.size();
+    ui->lcd_LotesRestantes->display(--batchesRemaining);
+
+    int batchIndex = 0;
+    // Iterate in our batches.
+    while(batchIndex < batches.size()) {
+        int row = 0;
+        ui->tblWdt_LoteActual->setRowCount(batches.at(batchIndex)->getSize());
+
+        QList<Process *> processes = batches.at(batchIndex)->getProcesses();
+        int processIndex = 0;
+        while(processIndex < processes.size()) {
+            QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(processes.at(processIndex)->getId()));
+            QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(processes.at(processIndex)->getTiempoMaximoEst()));
+            QTableWidgetItem *itemTT= new QTableWidgetItem("0");
+            ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+            ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
+            ui->tblWdt_LoteActual->setItem(row++, TT, itemTT);
+            ++processIndex;
+        }
+
+        updateTimeCounters(batches.at(batchIndex));
+//        if(pauseRequired) {
+//            saveState.batchCounter = batchesRemaining;
+//            saveState.batchIndex = batchIndex;
+//            saveState.batchCurrentBatch = batches.at(batchIndex);
+
+//            qDebug() << "paused at this index batch: " << saveState.batchIndex;
+//            qDebug() << "paused at batch counter: " << saveState.batchCounter;
+//            saveState.batchCurrentBatch->showProccesses();
+//            break;
+//        }
+
+        // If we don't do this, our batch counter will be a negative number.
+        if(batchIndex != batches.size() - 1) {
+            updateBatchCounter(--batchesRemaining);
+            saveState.batchCounter = batchesRemaining;
+        }
+
+        ++batchIndex;
+    }
+
+    if(!pauseRequired) reset();
+
+
+/*    batchesRemaining = batches.size();
     ui->lcd_LotesRestantes->display(--batchesRemaining);
 
     int batchIndex = 0;
@@ -583,7 +690,7 @@ void MainWindow::updateTableCurrentBatch()
         }
     }
 
-    if(!pauseRequired) reset();
+    if(!pauseRequired) reset()*/;
 }
 
 void MainWindow::insertDataTableCurrentBatch()
