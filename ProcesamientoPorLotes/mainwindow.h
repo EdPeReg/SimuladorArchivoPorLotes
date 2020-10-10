@@ -22,16 +22,15 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 struct SaveState {
-    Batch *batchCurrentBatch;
-    Process *processTableFinish;
     int batchIndex = 0;
     int batchCounter = 0;
     int indexProcess = 0;
     int counterTimeElapsed = 0;
     int counterTimeLeft = 0;
+    int counter = 0;
+    int TT = 0;
     int TME = 0;
 };
-
 
 enum CURRENT_BATCH {
     ID, TME, TT
@@ -70,6 +69,8 @@ private:
     bool randomData; // new
     bool pauseRequired;
     bool keyError;
+    bool IO_interruptionKey;
+    bool first;
     int processInserted;
     int processRemaining;
     int batchNum;
@@ -78,7 +79,6 @@ private:
     int aux;
     int id; // new
     int globalCounter;
-    int first;
 
     void removeSpace(std::string& operation);
     void insertProcessByUser(int& index); // new
@@ -94,6 +94,7 @@ private:
     void insertDataTableRunningProcess(Process* runningProcess);
     void reset();
     void updateBatchCounter(int value);
+    void deleteRow();
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);

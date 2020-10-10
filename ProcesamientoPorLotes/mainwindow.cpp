@@ -9,6 +9,11 @@
 // VALIDAR OPERACION.
 //
 // Find a way to obtain a random number for names and operations, don't use rand.
+
+- Check update table batch, when you pause and resume again, sometimes in the current batch
+    table, sometimes yes sometimes no puts a blank row.
+
+- Write next to error, the TT.
 */
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
     , randomData(false)
     , pauseRequired(false)
     , keyError(false)
+    , IO_interruptionKey(false)
+    , first(true)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -30,7 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     , aux(0)
     , id(1)
     , globalCounter(0)
-    , first(true)
 {
     ui->setupUi(this);
 
@@ -96,6 +102,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         case Qt::Key_W:
             qDebug() << "ERROR";
             keyError = true;
+        break;
+
+       // Interrupcion entrada salida.
+       case Qt::Key_E:
+            qDebug() << "INTERRUPCION ENTRADA SALIDA";
+            IO_interruptionKey = true;
         break;
     }
 }
@@ -169,9 +181,9 @@ void MainWindow::insertProcessRandomly(int &index)
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(1,4);
+    std::uniform_int_distribution<int> randomTME(7,16);
     std::uniform_int_distribution<int> randomID(1,255);
-    std::uniform_int_distribution<int> randomOperand(0, 500);
+    std::uniform_int_distribution<int> randomOperand(1, 500);
 
     QString names[10] = {"jose", "morales", "jimnez", "lupita", "Lucia",
                          "alberto", "pewdipew", "auron", "juana la loca", "andrea"};
@@ -334,6 +346,8 @@ void MainWindow::updateTimeCounters(Batch *batch)
     QList<Process *> processes = batch->getProcesses();
 
     int indexProcess = saveState.indexProcess;
+    int counter = 1;
+
     if(first) {
         indexProcess = 0;
     }
@@ -368,16 +382,41 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
             // There is an error, go to the next process and update the table with that process.
             if(keyError) { // CHECK
-                saveState.TME = processes.at(indexProcess)->getTiempoMaximoEst(); // ??
+                qDebug() << "Tiempo transcurrido del proceso con con error ID: " << processes.at(indexProcess)->getId()
+                         << " es: " << counterTimeElapsed;
+
                 processes.at(indexProcess)->setEstado("ERROR");
                 updateTableFinish(processes.at(indexProcess));
+                ui->tblWdt_LoteActual->removeRow(0);
                 keyError = false;
                 break;
+            }
+
+            if(IO_interruptionKey) {
+                // Insert until reach four processes.
+                if(ui->tblWdt_LoteActual->rowCount() < LIMITE_PROCESO) {
+                    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
+                    Process *currentProcess = processes.at(indexProcess);
+                    int row = ui->tblWdt_LoteActual->rowCount() - 1;
+
+                    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(currentProcess->getId()));
+                    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(currentProcess->getTiempoMaximoEst()));
+                    QTableWidgetItem *itemTT= new QTableWidgetItem("0"); // CHANGE THIS
+                    ui->tblWdt_LoteActual->setItem(row, ID, itemID);
+                    ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
+                    ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
+
+                    // Delete the first row of our current table batch.
+                    ui->tblWdt_LoteActual->removeRow(0);
+                    break;
+                }
+//                IO_interruptionKey = false;
             }
 
             // We save our index process, TT and TR.
             if(pauseRequired) {
                 saveState.indexProcess = indexProcess;
+                saveState.counter = counter;
                 int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
                 saveState.counterTimeLeft = ++aux;
                 saveState.counterTimeElapsed = counterTimeElapsed;
@@ -387,22 +426,27 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
             ++i;
         }
+
         if(pauseRequired) break;
 
-//		if(pauseRequired) {
-//			saveState.processTableFinish = processes.at(indexProcess);
-//			saveState.indexProcess = indexProcess;
-//			qDebug() << "Process use for table finish saved id: " << saveState.processTableFinish->getId();
-//			qDebug() << "We stoped at this index process: " << saveState.indexProcess;
-//			break;
-//		}
-
-        // Just update the table if the process doesn't have any error.
-        if(processes.at(indexProcess)->getEstado() != "ERROR") {
-            updateTableFinish(processes.at(indexProcess));
+        if(!IO_interruptionKey) {
+            ++counter;
+            first = true;
+            // Just update the table finish if the process doesn't have any error.
+            if(processes.at(indexProcess)->getEstado() != "ERROR") {
+                // Each time a process is finished, we delete the first row.
+                ui->tblWdt_LoteActual->removeRow(0);
+                updateTableFinish(processes.at(indexProcess));
+                deleteRow();
+            }
         }
-        ++indexProcess;
-        first = true;
+
+        // Continue analazing the process.
+//        if(IO_interruptionKey) {
+            ++indexProcess;
+//        }
+
+        IO_interruptionKey = false;
     }
 }
 
@@ -415,6 +459,7 @@ void MainWindow::updateTableFinish(Process *process) {
     QTableWidgetItem *itemOperation = new QTableWidgetItem(process->getOperation());
     QTableWidgetItem *itemResult = new QTableWidgetItem();
 
+    // Insert an error state with red color. (this could be a function?).
     if(keyError) {
         itemResult->setText(process->getEstado());
         itemResult->setBackground(Qt::red);
@@ -444,10 +489,25 @@ void MainWindow::updateTableCurrentBatch()
     // Iterate in our batches.
     while(batchIndex < batches.size()) {
         int row = 0;
-        ui->tblWdt_LoteActual->setRowCount(batches.at(batchIndex)->getSize());
-
         QList<Process *> processes = batches.at(batchIndex)->getProcesses();
-        int processIndex = 0;
+
+
+        // If we had a pause, we need to start from the process where we were
+        // +1 to avoid to insert again the same process to the table.
+        int processIndex = saveState.indexProcess + 1;
+
+        // Counts how many processes are in the counter, helps to avoid blank rows, partially.
+        // CHECK.
+        int aux = saveState.counter;
+        if(first) {
+            aux = 1;
+            processIndex = 1; // We want to start from our second process.
+        }
+
+        // - aux because we want to insert only the necessary processes in the table,
+        // It won't print a blank row, sometomes does, sometimes doesn't, CHECK.
+        ui->tblWdt_LoteActual->setRowCount(batches.at(batchIndex)->getSize() - aux);
+
         while(processIndex < processes.size()) {
             QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(processes.at(processIndex)->getId()));
             QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(processes.at(processIndex)->getTiempoMaximoEst()));
@@ -462,11 +522,9 @@ void MainWindow::updateTableCurrentBatch()
         if(pauseRequired) {
             saveState.batchCounter = batchesRemaining;
             saveState.batchIndex = batchIndex;
-//            saveState.batchCurrentBatch = batches.at(batchIndex);
 
             qDebug() << "paused at this index batch: " << saveState.batchIndex;
             qDebug() << "paused at batch counter: " << saveState.batchCounter;
-//            saveState.batchCurrentBatch->showProccesses();
             break;
         }
 
@@ -475,7 +533,7 @@ void MainWindow::updateTableCurrentBatch()
             updateBatchCounter(--batchesRemaining);
             saveState.batchCounter = batchesRemaining;
         }
-
+        ++aux;
         ++batchIndex;
     }
 
@@ -542,6 +600,11 @@ void MainWindow::reset()
 void MainWindow::updateBatchCounter(int value)
 {
     ui->lcd_LotesRestantes->display(value);
+}
+
+void MainWindow::deleteRow()
+{
+
 }
 
 void MainWindow::sendData()
