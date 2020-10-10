@@ -66,7 +66,7 @@ void ThreadGlobalCounter::run()
 
             if(keyErrorPressed) {
                 tiemposEstimados[indexTime] = TT;
-                --globalCounter;
+//                --globalCounter;
                 break;
                 //int newTME = tiemposEstimados.at(indexTime) - TT;
             }

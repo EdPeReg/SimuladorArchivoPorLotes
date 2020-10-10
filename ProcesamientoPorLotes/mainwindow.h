@@ -12,7 +12,6 @@
 #include <QEventLoop>
 #include <QTimer>
 
-#include <chrono>
 #include <random>
 
 #include "Batch.h"
@@ -31,6 +30,7 @@ struct SaveState {
     int indexProcess = 0;
     int counterTimeElapsed = 0;
     int counterTimeLeft = 0;
+    int TME = 0;
 };
 
 

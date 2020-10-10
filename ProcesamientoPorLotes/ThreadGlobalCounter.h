@@ -12,8 +12,10 @@ class ThreadGlobalCounter : public QThread
 
 private:
     bool pauseRequired; // new
+    bool keyErrorPressed;
     int globalCounter;
-    int currentIndex;
+    int TT;
+    int indexTiempo;
     QList<int> tiemposEstimados;
     QMutex sync;
     QWaitCondition pauseCond;
@@ -23,6 +25,9 @@ public:
     void pause();
     void resume();
     void setTiemposEstimados(int tiempoEstimado);
+    void setTT(int TT);
+    void setKeyError(bool keyErrorPressed);
+    int getTT();
 
 protected:
     void run() override;

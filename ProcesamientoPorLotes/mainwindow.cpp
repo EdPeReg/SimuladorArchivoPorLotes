@@ -371,15 +371,19 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
                 // There is an error, go to the next process and update the table with that process.
                 if(keyError) {
+                    saveState.TME = process->getTiempoMaximoEst();
+                    threadGlobalCounter->setTT(counterTimeElapsed);
+                    threadGlobalCounter->setKeyError(keyError);
+
                     process->setEstado("ERROR");
                     updateTableFinish(process);
                     keyError = false;
+//                    threadGlobalCounter->setKeyError(keyError);
                     break;
                 }
 
                 if(pauseRequired) {
                     int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
-
                     saveState.counterTimeLeft = ++aux;
                     saveState.counterTimeElapsed = counterTimeElapsed;
 
