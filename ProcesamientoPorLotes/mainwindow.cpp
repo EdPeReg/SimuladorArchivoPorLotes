@@ -9,11 +9,6 @@
 // VALIDAR OPERACION.
 //
 // Find a way to obtain a random number for names and operations, don't use rand.
-//
-// WHen i click pause, continue and then pause, doesn't work.
-
-- When the program is paused, the other keys shouldn't respond.
-
 */
 
 MainWindow::MainWindow(QWidget *parent)
