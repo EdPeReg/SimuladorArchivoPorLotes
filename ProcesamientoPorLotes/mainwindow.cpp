@@ -13,7 +13,12 @@
 - Check update table batch, when you pause and resume again, sometimes in the current batch
     table, sometimes yes sometimes no puts a blank row.
 
+- It seems I need to do an infinite loop, but just cycling with the processes that I have
+in my current batch. Maybe creating a method where it has an infinite loop
+where I can alternate between processes.
+
 - Write next to error, the TT.
+
 */
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,13 +27,13 @@ MainWindow::MainWindow(QWidget *parent)
     , process(nullptr)
     , errorOperation(false)
     , errorID(false)
-    , firstTime(false)
+    , notFirstPauseTime(false)
     , onlyOnce(false)
     , randomData(false)
     , pauseRequired(false)
     , keyError(false)
     , IO_interruptionKey(false)
-    , first(true)
+    , notFirstPause(true)
     , processInserted(0)
     , processRemaining(0)
     , batchNum(1)
@@ -170,9 +175,6 @@ void MainWindow::insertProcessByUser(int& index)
                 process->setNumBatch(batchNum);
             }
             insertDataTableCurrentBatch();
-            qDebug() << " ";
-            qDebug() << "Indice antes de insertar: " << index;
-            qDebug() << "LOtes totales antes de insertar: " << batches.size();
         }
     }
 }
@@ -344,11 +346,10 @@ void MainWindow::updateGlobalCounter(int value)
 void MainWindow::updateTimeCounters(Batch *batch)
 {
     QList<Process *> processes = batch->getProcesses();
-
     int indexProcess = saveState.indexProcess;
     int counter = 1;
 
-    if(first) {
+    if(notFirstPause) {
         indexProcess = 0;
     }
     // Iterate in my process list.
@@ -357,7 +358,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
         int counterTimeLeft = saveState.counterTimeLeft;
         int i = saveState.counterTimeElapsed;
 
-        if(first) {
+        if(notFirstPause) {
             counterTimeElapsed = 0;
             counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst();
             i = 0;
@@ -368,7 +369,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
             QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
             QTableWidgetItem *TR = new QTableWidgetItem();
 
-            if(first) {
+            if(notFirstPause) {
                 TR->setText(QString::number(counterTimeLeft--));
             } else {
                 TR->setText(QString::number(--counterTimeLeft));
@@ -393,12 +394,14 @@ void MainWindow::updateTimeCounters(Batch *batch)
             }
 
             if(IO_interruptionKey) {
-                // Insert until reach four processes.
+                // Insert until reach three processes.
                 if(ui->tblWdt_LoteActual->rowCount() < LIMITE_PROCESO) {
-                    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
                     Process *currentProcess = processes.at(indexProcess);
+                    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
                     int row = ui->tblWdt_LoteActual->rowCount() - 1;
 
+                    qDebug() << "process with ID to be inserted: " << currentProcess->getId();
+                    // Insert in our batch current table.
                     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(currentProcess->getId()));
                     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(currentProcess->getTiempoMaximoEst()));
                     QTableWidgetItem *itemTT= new QTableWidgetItem("0"); // CHANGE THIS
@@ -406,11 +409,18 @@ void MainWindow::updateTimeCounters(Batch *batch)
                     ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                     ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
 
-                    // Delete the first row of our current table batch.
+                    // Delete the notFirstPause row of our current table batch.
                     ui->tblWdt_LoteActual->removeRow(0);
-                    break;
+
+                    // Simulate a queue.
+                    processes.push_back(processes.takeFirst());
+                    for(auto process : processes) {
+                        qDebug() << process->getId();
+                    }
+                    qDebug() << "";
+
                 }
-//                IO_interruptionKey = false;
+                break;
             }
 
             // We save our index process, TT and TR.
@@ -420,7 +430,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
                 int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
                 saveState.counterTimeLeft = ++aux;
                 saveState.counterTimeElapsed = counterTimeElapsed;
-                first = false;
+                notFirstPause = false;
                 break;
             }
 
@@ -431,20 +441,21 @@ void MainWindow::updateTimeCounters(Batch *batch)
 
         if(!IO_interruptionKey) {
             ++counter;
-            first = true;
+            notFirstPause = true;
+
             // Just update the table finish if the process doesn't have any error.
             if(processes.at(indexProcess)->getEstado() != "ERROR") {
-                // Each time a process is finished, we delete the first row.
+                // Each time a process is finished, we delete the notFirstPause row.
                 ui->tblWdt_LoteActual->removeRow(0);
                 updateTableFinish(processes.at(indexProcess));
                 deleteRow();
             }
         }
 
-        // Continue analazing the process.
-//        if(IO_interruptionKey) {
+        // Continue analazing the process normally.
+        if(!IO_interruptionKey) {
             ++indexProcess;
-//        }
+        }
 
         IO_interruptionKey = false;
     }
@@ -480,7 +491,7 @@ void MainWindow::updateTableFinish(Process *process) {
 void MainWindow::updateTableCurrentBatch()
 {
     batchesRemaining = saveState.batchCounter;
-    if(first) {
+    if(notFirstPause) {
         batchesRemaining = batches.size();
         ui->lcd_LotesRestantes->display(--batchesRemaining);
     }
@@ -499,7 +510,7 @@ void MainWindow::updateTableCurrentBatch()
         // Counts how many processes are in the counter, helps to avoid blank rows, partially.
         // CHECK.
         int aux = saveState.counter;
-        if(first) {
+        if(notFirstPause) {
             aux = 1;
             processIndex = 1; // We want to start from our second process.
         }
@@ -574,11 +585,11 @@ void MainWindow::reset()
 
     errorOperation = false;
     errorID = false;
-    firstTime = false;
+    notFirstPauseTime = false;
     onlyOnce = false;
     randomData = false;
     keyError = false;
-    first = true;
+    notFirstPause = true;
     processInserted = 0;
     processRemaining = 0;
     batchNum = 1;
@@ -609,9 +620,9 @@ void MainWindow::deleteRow()
 
 void MainWindow::sendData()
 {
-    if(!firstTime) {
+    if(!notFirstPauseTime) {
         processRemaining = ui->spnBx_CantProcesos->value();
-        firstTime = true;
+        notFirstPauseTime = true;
     }
 
     if(!randomData) {
@@ -638,7 +649,7 @@ void MainWindow::sendData()
         if(ui->lcd_ProcRestante->value() == 0) {
             ui->spnBx_CantProcesos->setValue(0);
             ui->spnBx_CantProcesos->setEnabled(true);
-            firstTime = false;
+            notFirstPauseTime = false;
         }
 
         ui->ldt_NombProgr->clear();

@@ -64,13 +64,13 @@ private:
 
     bool errorOperation;
     bool errorID;
-    bool firstTime;
+    bool notFirstPauseTime;
     bool onlyOnce;
     bool randomData; // new
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
-    bool first;
+    bool notFirstPause;
     int processInserted;
     int processRemaining;
     int batchNum;
