@@ -11,11 +11,13 @@ class Process {
         int tiempoMaximoEst;
         int id;
         int numBatch;
+        int TT;
+        int TR;
         long result;
-
     public:
         Process() : programmerName(""), operation(""),
-                    estado("SIN ERROR"), tiempoMaximoEst(0), id(0), numBatch(0) { };
+                    estado("SIN ERROR"), tiempoMaximoEst(0), id(0), numBatch(0),
+                    TT(0), TR(0) { };
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -39,6 +41,14 @@ class Process {
 
         void setNumBatch(int numBatch) {
             this->numBatch = numBatch;
+        }
+
+        void setTT(int TT) {
+            this->TT = TT;
+        }
+
+        void setTR(int TR) {
+            this->TR = TR;
         }
 
         void setResult(long result) {
@@ -69,6 +79,14 @@ class Process {
             return numBatch;
         }
 
+        int getTT() const
+        {
+            return TT;
+        }
+
+        int getTR() const {
+            return TR;
+        }
         long getResult() const {
             return result;
         }

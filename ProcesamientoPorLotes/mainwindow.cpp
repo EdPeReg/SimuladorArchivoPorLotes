@@ -404,7 +404,7 @@ void MainWindow::updateTimeCounters(Batch *batch)
                     // Insert in our batch current table.
                     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(currentProcess->getId()));
                     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(currentProcess->getTiempoMaximoEst()));
-                    QTableWidgetItem *itemTT= new QTableWidgetItem("0"); // CHANGE THIS
+                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
                     ui->tblWdt_LoteActual->setItem(row, ID, itemID);
                     ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                     ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
