@@ -13,11 +13,14 @@ class Process {
         int numBatch;
         int TT;
         int TR;
+        int indexTime;
+        int TME;
         long result;
+        bool finish;
     public:
         Process() : programmerName(""), operation(""),
                     estado("SIN ERROR"), tiempoMaximoEst(0), id(0), numBatch(0),
-                    TT(0), TR(0) { };
+                    TT(0), TR(0), indexTime(0), TME(0), finish(false) { };
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -51,8 +54,20 @@ class Process {
             this->TR = TR;
         }
 
+        void setIndexTime(int indexTime) {
+            this->indexTime = indexTime;
+        }
+
+        void setTME(int TME) {
+            this->TME = TME;
+        }
+
         void setResult(long result) {
             this->result = result;
+        }
+
+        void setFinish(bool finish) {
+            this->finish = finish;
         }
 
         QString getProgrammerName() const {
@@ -87,8 +102,21 @@ class Process {
         int getTR() const {
             return TR;
         }
+
+        int getIndexTime() const {
+            return indexTime;
+        }
+
+        int getTME() const {
+            return TME;
+        }
+
         long getResult() const {
             return result;
+        }
+
+        bool getFinish() const {
+            return finish;
         }
 };
 

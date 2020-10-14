@@ -56,6 +56,7 @@ private:
     Ui::MainWindow *ui;
 
     QList<Batch*> batches;
+    QList<Batch *> batchesCopy;
     QVector<int> ids;
     Process *process;
     SaveState saveState;
@@ -94,7 +95,6 @@ private:
     void insertDataTableRunningProcess(Process* runningProcess);
     void reset();
     void updateBatchCounter(int value);
-    void deleteRow();
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
