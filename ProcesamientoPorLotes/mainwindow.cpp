@@ -10,13 +10,6 @@
 //
 // Find a way to obtain a random number for names and operations, don't use rand.
 
-- Check update table batch, when you pause and resume again, sometimes in the current batch
-    table, sometimes yes sometimes no puts a blank row.
-
-- It seems I need to do an infinite loop, but just cycling with the processes that I have
-in my current batch. Maybe creating a method where it has an infinite loop
-where I can alternate between processes.
-
 - Write next to error, the TT.
 
 */
@@ -183,7 +176,7 @@ void MainWindow::insertProcessRandomly(int &index)
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(4,7);
+    std::uniform_int_distribution<int> randomTME(7,16);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -519,7 +512,7 @@ void MainWindow::updateTableCurrentBatch()
             for(int i = 0; i < batchesCopy.at(batchIndex)->processes.size(); ++i) {
                 QTableWidgetItem *itemID = new QTableWidgetItem(QString::number( batchesCopy.at(batchIndex)->processes.at(i)->getId()));
                 QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number( batchesCopy.at(batchIndex)->processes.at(i)->getTiempoMaximoEst()));
-                QTableWidgetItem *itemTT= new QTableWidgetItem("0");
+                QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(batchesCopy.at(batchIndex)->processes.at(i)->getTT()));
                 ui->tblWdt_LoteActual->setItem(row, ID, itemID);
                 ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                 ui->tblWdt_LoteActual->setItem(row++, TT, itemTT);
@@ -578,6 +571,21 @@ void MainWindow::updateTableCurrentBatch()
                     break;
                 }
 
+                if(keyError) {
+                    batchesCopy.at(batchIndex)->processes.at(indexProcess)->setEstado("ERROR");
+                    // Update batch current table.
+//                    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
+//                    int row = ui->tblWdt_LoteActual->rowCount() - 1;
+
+//                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
+//                    ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
+
+
+//                    updateTableFinish( batchesCopy.at(batchIndex)->processes.at(indexProcess));
+//                    batchesCopy.at(batchIndex)->processes.removeFirst();
+                    break;
+                }
+
                 ++indexTime;
             }
 
@@ -585,11 +593,13 @@ void MainWindow::updateTableCurrentBatch()
 
             if(!IO_interruptionKey) {
                 updateTableFinish( batchesCopy.at(batchIndex)->processes.at(indexProcess));
-                indexTime = 0;
+                batchesCopy.at(batchIndex)->processes.at(indexProcess)->setTT(counterTimeElapsed);
 //                delete processes.at(indexProcess);
-                 batchesCopy.at(batchIndex)->processes.removeFirst();
+                batchesCopy.at(batchIndex)->processes.removeFirst();
+                indexTime = 0;
             }
             IO_interruptionKey = false;
+            keyError = false;
         }
 
         if(pauseRequired) break;
@@ -598,65 +608,6 @@ void MainWindow::updateTableCurrentBatch()
         updateBatchCounter(--batchesRemaining);
 
     }
-
-
-
-//    batchesRemaining = saveState.batchCounter;
-//    if(notFirstPause) {
-//        batchesRemaining = batches.size();
-//        ui->lcd_LotesRestantes->display(--batchesRemaining);
-//    }
-
-//    int batchIndex = saveState.batchIndex;
-//    // Iterate in our batches.
-//    while(batchIndex < batches.size()) {
-//        int row = 0;
-//        QList<Process *> processes = batches.at(batchIndex)->getProcesses();
-
-//        // If we had a pause, we need to start from the process where we were
-//        // +1 to avoid to insert again the same process to the table.
-//        int processIndex = saveState.indexProcess + 1;
-
-//        // Counts how many processes are in the counter, helps to avoid blank rows, partially.
-//        // CHECK.
-//        int aux = saveState.counter;
-//        if(notFirstPause) {
-//            aux = 1;
-//            processIndex = 1; // We want to start from our second process.
-//        }
-
-//        // - aux because we want to insert only the necessary processes in the table,
-//        // It won't print a blank row, sometomes does, sometimes doesn't, CHECK.
-//        ui->tblWdt_LoteActual->setRowCount(batches.at(batchIndex)->getSize() - aux);
-
-//        while(processIndex < processes.size()) {
-//            QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(processes.at(processIndex)->getId()));
-//            QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(processes.at(processIndex)->getTiempoMaximoEst()));
-//            QTableWidgetItem *itemTT= new QTableWidgetItem("0");
-//            ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-//            ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-//            ui->tblWdt_LoteActual->setItem(row++, TT, itemTT);
-//            ++processIndex;
-//        }
-
-//        updateTimeCounters(batches.at(batchIndex));
-//        if(pauseRequired) {
-//            saveState.batchCounter = batchesRemaining;
-//            saveState.batchIndex = batchIndex;
-
-//            qDebug() << "paused at this index batch: " << saveState.batchIndex;
-//            qDebug() << "paused at batch counter: " << saveState.batchCounter;
-//            break;
-//        }
-
-//        // If we don't do this, our batch counter will be a negative number.
-//        if(batchIndex != batches.size() - 1) {
-//            updateBatchCounter(--batchesRemaining);
-//            saveState.batchCounter = batchesRemaining;
-//        }
-//        ++aux;
-//        ++batchIndex;
-//    }
 
     if(!pauseRequired) reset();
 }
