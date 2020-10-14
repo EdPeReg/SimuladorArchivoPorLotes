@@ -14,7 +14,7 @@ class Batch {
 
         Batch() : size(0) {  };
 
-        ~Batch() {
+        ~Batch() { // Not sure about this.
             for(auto it = processes.begin(); it != processes.end(); ++it) {
                 delete (*it);
             }

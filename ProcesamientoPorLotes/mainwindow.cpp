@@ -83,30 +83,55 @@ MainWindow::~MainWindow()
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    switch(event->key()) {
-        // Pause.
-        case Qt::Key_P:
-            qDebug() << "PAUSE";
-            pause();
-        break;
+    if(ui->spnBx_CantProcesos->value() == 0) {
+        qDebug() << ui->spnBx_CantProcesos->value();
+        QMessageBox::information(this, tr("Error"), tr("Inserte procesos para continuar"));
+    } else {
+        switch(event->key()) {
+            // Pause.
+            case Qt::Key_P:
+                qDebug() << "PAUSE";
+                ui->lnEdt_teclaPresionada->setText(tr("P"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+                pause();
+            break;
 
-        // Continue.
-        case Qt::Key_C:
-            qDebug() << "CONTINUE";
-            resume();
-        break;
+            // Continue.
+            case Qt::Key_C:
+                qDebug() << "CONTINUE";
+                ui->lnEdt_teclaPresionada->setText(tr("C"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+                resume();
+            break;
 
-        // Error.
-        case Qt::Key_W:
-            qDebug() << "ERROR";
-            keyError = true;
-        break;
+            // Error.
+            case Qt::Key_W:
+                qDebug() << "ERROR";
+                ui->lnEdt_teclaPresionada->setText(tr("W"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
 
-       // Interrupcion entrada salida.
-       case Qt::Key_E:
-            qDebug() << "INTERRUPCION ENTRADA SALIDA";
-            IO_interruptionKey = true;
-        break;
+                if(pauseRequired) {
+                    QMessageBox::information(this, tr("Imposible continuar"), tr("Programa pausado, presiona C para continuar"));
+                } else {
+                    keyError = true;
+                }
+            break;
+
+           // Interrupcion entrada salida.
+           case Qt::Key_E:
+                qDebug() << "INTERRUPCION ENTRADA SALIDA";
+                ui->lnEdt_teclaPresionada->setText(tr("W"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+
+                if(pauseRequired) {
+                    QMessageBox::information(this, tr("Imposible continuar"), tr("Programa pausado, presiona C para continuar"));
+                } else {
+                    ui->lnEdt_teclaPresionada->setText(tr("E"));
+                    ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+                    IO_interruptionKey = true;
+                }
+            break;
+        }
     }
 }
 
@@ -336,132 +361,6 @@ void MainWindow::updateGlobalCounter(int value)
     ui->lcd_ContGlobal->display(value);
 }
 
-void MainWindow::updateTimeCounters(Batch *batch)
-{
-    QList<Process *> processes = batch->getProcesses();
-    int indexProcess = saveState.indexProcess;
-    int counter = 1;
-
-    if(notFirstPause) {
-        indexProcess = 0;
-    }
-    // Iterate in my process list.
-    while(indexProcess < processes.size()) {
-        int counterTimeElapsed = saveState.counterTimeElapsed;
-        int counterTimeLeft = saveState.counterTimeLeft;
-        int i = saveState.counterTimeElapsed;
-
-        if(notFirstPause) {
-            counterTimeElapsed = 0;
-            counterTimeLeft = processes.at(indexProcess)->getTiempoMaximoEst();
-            i = 0;
-        }
-
-        // Iterate in our TME.
-        while(i < processes.at(indexProcess)->getTiempoMaximoEst()) {
-            QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
-            QTableWidgetItem *TR = new QTableWidgetItem();
-
-            if(notFirstPause) {
-                TR->setText(QString::number(counterTimeLeft--));
-            } else {
-                TR->setText(QString::number(--counterTimeLeft));
-            }
-            ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
-            ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
-
-//            if(!processes.at(indexProcess)->getFinish()) {
-                insertDataTableRunningProcess(processes.at(indexProcess));
-//            }
-
-
-            updateGlobalCounter(++globalCounter);
-            delay(1000);
-
-            // There is an error, go to the next process and update the table with that process.
-            if(keyError) { // CHECK
-                qDebug() << "Tiempo transcurrido del proceso con con error ID: " << processes.at(indexProcess)->getId()
-                         << " es: " << counterTimeElapsed;
-
-                processes.at(indexProcess)->setEstado("ERROR");
-                updateTableFinish(processes.at(indexProcess));
-                ui->tblWdt_LoteActual->removeRow(0);
-                keyError = false;
-                break;
-            }
-
-            if(IO_interruptionKey) {
-                // Insert until reach three processes.
-                if(ui->tblWdt_LoteActual->rowCount() < LIMITE_PROCESO)
-//                if(ui->tblWdt_LoteActual->rowCount() < LIMITE_PROCESO and
-//                   !processes.at(indexProcess)->getFinish())
-                {
-                    Process *currentProcess = processes.at(indexProcess);
-                    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
-                    int row = ui->tblWdt_LoteActual->rowCount() - 1;
-
-                    qDebug() << "process with ID to be inserted: " << currentProcess->getId();
-                    // Insert in our batch current table.
-                    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(currentProcess->getId()));
-                    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(currentProcess->getTiempoMaximoEst()));
-                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
-                    ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-                    ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-                    ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
-
-                    // Delete the notFirstPause row of our current table batch.
-                    ui->tblWdt_LoteActual->removeRow(0);
-
-                    // Simulate a queue.
-                    processes.push_back(processes.takeFirst());
-                    for(auto process : processes) {
-                        qDebug() << process->getId();
-                    }
-                    qDebug() << "";
-
-                }
-                break;
-            }
-
-            // We save our index process, TT and TR.
-            if(pauseRequired) {
-                saveState.indexProcess = indexProcess;
-                saveState.counter = counter;
-                int aux = counterTimeLeft; // We have a copy because we don't want to really change the var.
-                saveState.counterTimeLeft = ++aux;
-                saveState.counterTimeElapsed = counterTimeElapsed;
-                notFirstPause = false;
-                break;
-            }
-
-            ++i;
-        }
-
-        if(pauseRequired) break;
-
-        if(!IO_interruptionKey) {
-            ++counter;
-            notFirstPause = true;
-
-            // Just update the table finish if the process doesn't have any error.
-            if(processes.at(indexProcess)->getEstado() != "ERROR") {
-                // Each time a process is finished, we delete the notFirstPause row.
-                ui->tblWdt_LoteActual->removeRow(0);
-                updateTableFinish(processes.at(indexProcess));
-                processes.at(indexProcess)->setFinish(true);
-//                processes.removeAt(indexProcess);
-            }
-        }
-
-        // Continue analazing the process normally.
-        if(!IO_interruptionKey) {
-            ++indexProcess;
-        }
-
-        IO_interruptionKey = false;
-    }
-}
-
 void MainWindow::updateTableFinish(Process *process) {
     ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
     int fila = ui->tblWdt_Terminados->rowCount() - 1;
@@ -473,7 +372,9 @@ void MainWindow::updateTableFinish(Process *process) {
 
     // Insert an error state with red color. (this could be a function?).
     if(keyError) {
-        itemResult->setText(process->getEstado());
+        int TT = process->getTT();
+        QString TTstr = QString::number(TT);
+        itemResult->setText(process->getEstado() + " TT " + TTstr);
         itemResult->setBackground(Qt::red);
     } else {
         itemResult->setText(QString::number(process->getResult()));
@@ -531,7 +432,7 @@ void MainWindow::updateTableCurrentBatch()
                 ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
                 ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 
-                insertDataTableRunningProcess( batchesCopy.at(batchIndex)->processes.at(indexProcess));
+                insertDataTableRunningProcess(batchesCopy.at(batchIndex)->processes.at(indexProcess));
                 updateGlobalCounter(++globalCounter);
 
                 delay(1000);
@@ -573,16 +474,7 @@ void MainWindow::updateTableCurrentBatch()
 
                 if(keyError) {
                     batchesCopy.at(batchIndex)->processes.at(indexProcess)->setEstado("ERROR");
-                    // Update batch current table.
-//                    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
-//                    int row = ui->tblWdt_LoteActual->rowCount() - 1;
-
-//                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
-//                    ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
-
-
-//                    updateTableFinish( batchesCopy.at(batchIndex)->processes.at(indexProcess));
-//                    batchesCopy.at(batchIndex)->processes.removeFirst();
+                    batchesCopy.at(batchIndex)->processes.at(indexProcess)->setTT(counterTimeElapsed);
                     break;
                 }
 
@@ -655,7 +547,6 @@ void MainWindow::reset()
     processRemaining = 0;
     batchNum = 1;
     indexBatch = 0;
-    ui->lcd_LotesRestantes->display(0);
 
     saveState.batchIndex = 0;
     saveState.batchCounter = 0;
@@ -663,10 +554,12 @@ void MainWindow::reset()
     saveState.counterTimeElapsed = 0;
     saveState.counterTimeLeft = 0;
 
-    QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
-
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_LoteActual->setRowCount(0);
+    ui->lcd_LotesRestantes->display(0);
+    ui->lnEdt_teclaPresionada->setText("");
+
+    QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
 }
 
 void MainWindow::updateBatchCounter(int value)

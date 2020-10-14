@@ -88,7 +88,6 @@ private:
     void pause(); // new
     void resume(); // new
     void updateGlobalCounter(int value);
-    void updateTimeCounters(Batch* batch);
     void updateTableFinish(Process *process);
     void updateTableCurrentBatch();
     void insertDataTableCurrentBatch();
