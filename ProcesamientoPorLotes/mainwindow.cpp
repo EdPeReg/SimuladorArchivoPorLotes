@@ -183,7 +183,7 @@ void MainWindow::insertProcessRandomly(int &index)
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(7,16);
+    std::uniform_int_distribution<int> randomTME(4,7);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -505,22 +505,20 @@ void MainWindow::updateTableCurrentBatch()
 
     // Iterate in our batches.
     while(!batchesCopy.empty()) {
-        QList<Process *> processes = batchesCopy.at(batchIndex)->getProcesses();
         int row = 0;
 
         // Iterate in our processes.
-        while(!processes.empty()) {
-            int totalRows = processes.size();
-            int counterTimeElapsed = processes.at(indexProcess)->getTT();
-            int counterTimeLeft = processes.at(indexProcess)->getTR();
-            int indexTime = processes.at(indexProcess)->getIndexTime();
-            qDebug() << "index timeeeeeeeee; " << indexTime;
+        while(!batchesCopy.at(batchIndex)->processes.empty()) {
+            int totalRows = batchesCopy.at(batchIndex)->processes.size();
+            int counterTimeElapsed = batchesCopy.at(batchIndex)->processes.at(indexProcess)->getTT();
+            int counterTimeLeft = batchesCopy.at(batchIndex)->processes.at(indexProcess)->getTR();
+            int indexTime = batchesCopy.at(batchIndex)->processes.at(indexProcess)->getIndexTime();
 
             // Update table batch current.
             ui->tblWdt_LoteActual->setRowCount(totalRows--);
-            for(int i = 0; i < processes.size(); ++i) {
-                QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(processes.at(i)->getId()));
-                QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(processes.at(i)->getTiempoMaximoEst()));
+            for(int i = 0; i < batchesCopy.at(batchIndex)->processes.size(); ++i) {
+                QTableWidgetItem *itemID = new QTableWidgetItem(QString::number( batchesCopy.at(batchIndex)->processes.at(i)->getId()));
+                QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number( batchesCopy.at(batchIndex)->processes.at(i)->getTiempoMaximoEst()));
                 QTableWidgetItem *itemTT= new QTableWidgetItem("0");
                 ui->tblWdt_LoteActual->setItem(row, ID, itemID);
                 ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
@@ -530,27 +528,17 @@ void MainWindow::updateTableCurrentBatch()
             ui->tblWdt_LoteActual->removeRow(0);
 
             // Iterate in our TME.
-            while(indexTime < processes.at(indexProcess)->getTiempoMaximoEst()) {
+            while(indexTime < batchesCopy.at(batchIndex)->processes.at(indexProcess)->getTiempoMaximoEst()) {
                 // Update Counters.
-
                 QTableWidgetItem *TT = new QTableWidgetItem();
                 QTableWidgetItem *TR = new QTableWidgetItem();
-
-//                if(!IO_interruptionKey) {
-//                    int _TR = processes.at(indexProcess)->getTiempoMaximoEst() - counterTimeElapsed;
-//                    qDebug() << "counter time elapseeeeeeeeeeeee: " << counterTimeElapsed;
-//                    qDebug() << "TR" << _TR;
-//                    TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
-//                    TR = new QTableWidgetItem(QString::number(_TR--));
-//                } else {
-                    TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
-                    TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
-//                }
+                TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
+                TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
 
                 ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
                 ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 
-                insertDataTableRunningProcess(processes.at(indexProcess));
+                insertDataTableRunningProcess( batchesCopy.at(batchIndex)->processes.at(indexProcess));
                 updateGlobalCounter(++globalCounter);
 
                 delay(1000);
@@ -558,7 +546,7 @@ void MainWindow::updateTableCurrentBatch()
                 if(IO_interruptionKey) {
                     if(ui->tblWdt_LoteActual->rowCount() < LIMITE_PROCESO) {
                         // Update batch current table.
-                        Process *currentProcess = processes.at(indexProcess);
+                        Process *currentProcess = batchesCopy.at(batchIndex)->processes.at(indexProcess);
                         ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
                         int row = ui->tblWdt_LoteActual->rowCount() - 1;
 
@@ -569,13 +557,13 @@ void MainWindow::updateTableCurrentBatch()
                         ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                         ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
 
-                        processes.at(indexProcess)->setTT(counterTimeElapsed);
-                        processes.at(indexProcess)->setTR(counterTimeLeft);
-                        processes.at(indexProcess)->setIndexTime(counterTimeElapsed);
+                         batchesCopy.at(batchIndex)->processes.at(indexProcess)->setTT(counterTimeElapsed);
+                         batchesCopy.at(batchIndex)->processes.at(indexProcess)->setTR(counterTimeLeft);
+                         batchesCopy.at(batchIndex)->processes.at(indexProcess)->setIndexTime(counterTimeElapsed);
 
                         // Simulate a queue.
-                        processes.push_back(processes.takeFirst());
-                        for(auto process : processes) {
+                         batchesCopy.at(batchIndex)->processes.push_back( batchesCopy.at(batchIndex)->processes.takeFirst());
+                        for(auto process : batchesCopy.at(batchIndex)->processes) {
                             qDebug() << process->getId();
                         }
                             qDebug() << "";
@@ -583,17 +571,29 @@ void MainWindow::updateTableCurrentBatch()
                     break;
                 }
 
+                if(pauseRequired) {
+                     batchesCopy.at(batchIndex)->processes.at(indexProcess)->setTT(counterTimeElapsed);
+                     batchesCopy.at(batchIndex)->processes.at(indexProcess)->setTR(counterTimeLeft);
+                     batchesCopy.at(batchIndex)->processes.at(indexProcess)->setIndexTime(counterTimeElapsed);
+                    break;
+                }
+
                 ++indexTime;
             }
 
+            if(pauseRequired) break;
+
             if(!IO_interruptionKey) {
-                updateTableFinish(processes.at(indexProcess));
+                updateTableFinish( batchesCopy.at(batchIndex)->processes.at(indexProcess));
                 indexTime = 0;
-                processes.removeFirst();
+//                delete processes.at(indexProcess);
+                 batchesCopy.at(batchIndex)->processes.removeFirst();
             }
-//            indexTime = 0;
             IO_interruptionKey = false;
         }
+
+        if(pauseRequired) break;
+
         batchesCopy.removeFirst();
         updateBatchCounter(--batchesRemaining);
 

@@ -9,8 +9,9 @@
 class Batch {
     private:
         int size;
-        QList<Process*> processes;
     public:
+        QList<Process*> processes;
+
         Batch() : size(0) {  };
 
         ~Batch() {
@@ -30,6 +31,10 @@ class Batch {
         void insertProcess(Process* process) {
             processes.push_back(process);
             ++size;
+        }
+
+        void deleteProcess(int i) {
+            delete processes.at(i);
         }
 
         void showProccesses() const {
