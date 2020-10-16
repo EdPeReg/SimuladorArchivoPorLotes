@@ -11,6 +11,7 @@
 // Find a way to obtain a random number for names and operations, don't use rand.
 
 - Memory leak qtablewidgetitem
+- Use a list for batches and a deque for the processes.
 
 */
 
@@ -192,7 +193,7 @@ void MainWindow::insertProcessRandomly(int &index)
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(7,16);
+    std::uniform_int_distribution<int> randomTME(3,5);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -427,31 +428,29 @@ void MainWindow::runWithRandomData()
                         ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
                         ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
 
-//                        Process aux = batches.at(batchIndex).getProcesses().front();
-//                        aux.setTT(counterTimeElapsed);
-//                        aux.setTR(counterTimeLeft);
-//                        aux.setTT(counterTimeElapsed);
-
-                        batches[batchIndex].processes[indexProcess].setTT(counterTimeElapsed);
-                        batches[batchIndex].processes[indexProcess].setTR(counterTimeLeft);
-                        batches[batchIndex].processes[indexProcess].setIndexTime(counterTimeElapsed);
+                        process.setTT(counterTimeElapsed);
+                        process.setTR(counterTimeLeft);
+                        process.setIndexTime(counterTimeElapsed);
+                        batches[batchIndex].insertProcessFront(process);
 
                        // Simulate a queue.
-                        batches[batchIndex].processes.push_back(batches[batchIndex].processes.takeFirst());
+                        batches[batchIndex].simulateQueue();
                     }
                     break;
                 }
 
                 if(pauseRequired) {
-                    batches[batchIndex].processes[indexProcess].setTT(counterTimeElapsed);
-                    batches[batchIndex].processes[indexProcess].setTR(counterTimeLeft);
-                    batches[batchIndex].processes[indexProcess].setIndexTime(counterTimeElapsed);
+                    process.setTT(counterTimeElapsed);
+                    process.setTR(counterTimeLeft);
+                    process.setIndexTime(indexTime);
+                    batches[batchIndex].insertProcessFront(process);
                     break;
                 }
 
                 if(keyError) {
-                    batches[batchIndex].processes[indexProcess].setEstado("ERROR");
-                    batches[batchIndex].processes[indexProcess].setTT(counterTimeElapsed);
+                    process.setEstado("ERROR");
+                    process.setTT(counterTimeElapsed);
+                    batches[batchIndex].insertProcessFront(process);
                     break;
                 }
 
@@ -461,8 +460,9 @@ void MainWindow::runWithRandomData()
             if(pauseRequired) break;
 
             if(!IO_interruptionKey) {
-                updateTableFinish(batches[batchIndex].processes[indexProcess]);
-                batches[batchIndex].processes[indexProcess].setTT(counterTimeElapsed);
+                updateTableFinish(process);
+                process.setTT(counterTimeElapsed);
+//                batches[batchIndex].insertProcessFront(process);
                 batches[batchIndex].deleteProcess();
                 indexTime = 0;
             }
@@ -484,13 +484,13 @@ void MainWindow::updateTableCurrentBatch(int& row)
 {
     int batchIndex = 0;
 
-    int totalRows = batches.at(batchIndex).processes.size();
+    int totalRows = batches.at(batchIndex).getProcesses().size();
     // Update table batch current.
     ui->tblWdt_LoteActual->setRowCount(totalRows--);
-    for(int i = 0; i < batches.at(batchIndex).processes.size(); ++i) {
-        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(batches.at(batchIndex).processes.at(i).getId()));
-        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(batches.at(batchIndex).processes.at(i).getTiempoMaximoEst()));
-        QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(batches.at(batchIndex).processes.at(i).getTT()));
+    for(int i = 0; i < batches.at(batchIndex).getProcesses().size(); ++i) {
+        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(batches.at(batchIndex).getProcesses().at(i).getId()));
+        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(batches.at(batchIndex).getProcesses().at(i).getTiempoMaximoEst()));
+        QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(batches.at(batchIndex).getProcesses().at(i).getTT()));
         ui->tblWdt_LoteActual->setItem(row, ID, itemID);
         ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
         ui->tblWdt_LoteActual->setItem(row++, TT, itemTT);
@@ -647,6 +647,7 @@ void MainWindow::on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered()
         for(auto& batch : batches) {
             batch.setInitialTR();
         }
+
         batchesCopy = batches;
         runWithRandomData();
     } else {

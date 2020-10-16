@@ -9,9 +9,8 @@
 class Batch {
     private:
         int size;
-    public:
         QList<Process> processes;
-
+    public:
         Batch() : size(0) {  };
 
         int getSize() const {
@@ -22,9 +21,17 @@ class Batch {
             return processes;
         }
 
+        void insertProcessFront(const Process& p) {
+            processes.replace(0, p);
+        }
+
         void insertProcess(const Process& process) {
             processes.push_back(process);
             ++size;
+        }
+
+        void simulateQueue() {
+            processes.push_back(processes.takeFirst());
         }
 
         void deleteProcess() {
