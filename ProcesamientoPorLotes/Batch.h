@@ -10,44 +10,46 @@ class Batch {
     private:
         int size;
     public:
-        QList<Process*> processes;
+        QList<Process> processes;
 
         Batch() : size(0) {  };
-
-        ~Batch() { // Not sure about this.
-            for(auto it = processes.begin(); it != processes.end(); ++it) {
-                delete (*it);
-            }
-        }
 
         int getSize() const {
             return size;
         }
 
-        QList<Process*> getProcesses() const {
+        QList<Process> getProcesses() const {
             return processes;
         }
 
-        void insertProcess(Process* process) {
+        void insertProcess(const Process& process) {
             processes.push_back(process);
             ++size;
         }
 
-        void deleteProcess(int i) {
-            delete processes.at(i);
+        void deleteProcess() {
+            processes.pop_front();
+            --size;
         }
 
         void showProccesses() const {
             int i = 1;
-            for(auto it = processes.begin(); it != processes.end(); ++it) {
+            for(const auto& process : processes) {
                 qDebug() << "\nProceso: " << i;
-                qDebug() << "BATCH: " << (*it)->getNumBatch();
-                qDebug() << "Name: " << (*it)->getProgrammerName();
-                qDebug() << "Operation: " << (*it)->getOperation();
-                qDebug() << "TME: " << (*it)->getTiempoMaximoEst();
-                qDebug() << "ESTADO: " << (*it)->getEstado();
-                qDebug() << "ID: " << (*it)->getId();
+                qDebug() << "BATCH: " << process.getNumBatch();
+                qDebug() << "Name: " << process.getProgrammerName();
+                qDebug() << "Operation: " << process.getOperation();
+                qDebug() << "TME: " << process.getTiempoMaximoEst();
+                qDebug() << "ESTADO: " << process.getEstado();
+                qDebug() << "ID: " << process.getId();
                 ++i;
+            }
+        }
+
+        void setInitialTR() { // NEW
+            for(auto& process : processes) {
+                int aux = process.getTiempoMaximoEst();
+                process.setTR(aux);
             }
         }
 };

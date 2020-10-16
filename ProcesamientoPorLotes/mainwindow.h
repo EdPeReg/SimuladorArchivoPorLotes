@@ -21,17 +21,6 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-struct SaveState {
-    int batchIndex = 0;
-    int batchCounter = 0;
-    int indexProcess = 0;
-    int counterTimeElapsed = 0;
-    int counterTimeLeft = 0;
-    int counter = 0;
-    int TT = 0;
-    int TME = 0;
-};
-
 enum CURRENT_BATCH {
     ID, TME, TT
 };;
@@ -55,11 +44,9 @@ public:
 private:
     Ui::MainWindow *ui;
 
-    QList<Batch*> batches;
-    QList<Batch *> batchesCopy;
+    QList<Batch> batches;
+    QList<Batch> batchesCopy;
     QVector<int> ids;
-    Process *process;
-    SaveState saveState;
 
     const int LIMITE_PROCESO = 4;
 
@@ -67,31 +54,30 @@ private:
     bool errorID;
     bool notFirstPauseTime;
     bool onlyOnce;
-    bool randomData; // new
+    bool randomData;
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
-    bool notFirstPause;
     int processInserted;
     int processRemaining;
     int batchNum;
-    int batchesRemaining;
     int indexBatch;
-    int aux;
-    int id; // new
+    int id;
     int globalCounter;
 
     void removeSpace(std::string& operation);
-    void insertProcessByUser(int& index); // new
-    void insertProcessRandomly(int& index); // new
-    inline void delay(int millisecondsWait); // new
-    void pause(); // new
-    void resume(); // new
+//    void insertProcessByUser(int& index);
+    void insertProcessRandomly(int& index);
+    inline void delay(int millisecondsWait);
+    void pause();
+    void resume();
     void updateGlobalCounter(int value);
-    void updateTableFinish(Process *process);
-    void updateTableCurrentBatch();
-    void insertDataTableCurrentBatch();
-    void insertDataTableRunningProcess(Process* runningProcess);
+    void updateTableFinish(Process process);
+    void runWithRandomData();
+    void updateTableCurrentBatch(int& row);
+    void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
+//    void insertDataTableCurrentBatch();
+    void insertDataTableRunningProcess(Process runningProcess);
     void reset();
     void updateBatchCounter(int value);
     int getOperatorPos(const std::string& operation);

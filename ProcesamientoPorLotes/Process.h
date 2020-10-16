@@ -46,15 +46,15 @@ class Process {
             this->numBatch = numBatch;
         }
 
-        void setTT(int TT) {
+        void setTT(int& TT) {
             this->TT = TT;
         }
 
-        void setTR(int TR) {
+        void setTR(int& TR) {
             this->TR = TR;
         }
 
-        void setIndexTime(int indexTime) {
+        void setIndexTime(int& indexTime) {
             this->indexTime = indexTime;
         }
 
