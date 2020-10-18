@@ -43,7 +43,6 @@ class Batch {
             int i = 1;
             for(const auto& process : processes) {
                 qDebug() << "\nProceso: " << i;
-                qDebug() << "BATCH: " << process.getNumBatch();
                 qDebug() << "Name: " << process.getProgrammerName();
                 qDebug() << "Operation: " << process.getOperation();
                 qDebug() << "TME: " << process.getTiempoMaximoEst();

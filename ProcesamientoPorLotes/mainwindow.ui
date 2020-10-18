@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1427</width>
+    <width>1631</width>
     <height>681</height>
    </rect>
   </property>
@@ -32,7 +32,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLCDNumber" name="lcd_LotesRestantes"/>
+      <widget class="QLCDNumber" name="lcd_ProcRestantes"/>
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="lbl_TeclaPresionada">
@@ -79,7 +79,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1401</width>
+      <width>1601</width>
       <height>471</height>
      </rect>
     </property>
@@ -92,6 +92,18 @@
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
          <widget class="QTableWidget" name="tblWdt_ProcListo"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Bloqueados</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="QTableWidget" name="tblWgt_Bloqueados"/>
         </item>
        </layout>
       </widget>
@@ -128,7 +140,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1427</width>
+     <width>1631</width>
      <height>22</height>
     </rect>
    </property>

@@ -330,27 +330,27 @@ void MainWindow::runWithRandomData()
 
                 if(IO_interruptionKey) {
     //                // To not insert more than three processes in our queue.
-                    if(ui->tblWdt_ProcListo->rowCount() < LIMITE_PROCESO) {
-                        // Update batch current table.
-                        ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
-                        int row = ui->tblWdt_ProcListo->rowCount() - 1;
+    //                if(ui->tblWdt_ProcListo->rowCount() < LIMITE_PROCESO) {
+    //                    // Update batch current table.
+    //                    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
+    //                    int row = ui->tblWdt_ProcListo->rowCount() - 1;
 
-                        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
-                        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
-                        QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
-                        ui->tblWdt_ProcListo->setItem(row, ID, itemID);
-                        ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
-                        ui->tblWdt_ProcListo->setItem(row, 2, itemTT);
+    //                    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
+    //                    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
+    //                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
+    //                    ui->tblWdt_ProcListo->setItem(row, ID, itemID);
+    //                    ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
+    //                    ui->tblWdt_ProcListo->setItem(row, 2, itemTT);
 
-                        process.setTT(counterTimeElapsed);
-                        process.setTR(counterTimeLeft);
-                        process.setIndexTime(counterTimeElapsed);
-                        batches[batchIndex].insertProcessFront(process);
+    //                    process.setTT(counterTimeElapsed);
+    //                    process.setTR(counterTimeLeft);
+    //                    process.setIndexTime(counterTimeElapsed);
+    //                    batches[batchIndex].insertProcessFront(process);
 
-                       // Simulate a queue.
-                        batches[batchIndex].simulateQueue();
-                    }
-                    break;
+    //                   // Simulate a queue.
+    //                    batches[batchIndex].simulateQueue();
+    //                }
+    //                break;
                 }
 
     //            if(pauseRequired) {
