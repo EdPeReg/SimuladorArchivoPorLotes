@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1427</width>
-    <height>786</height>
+    <height>681</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,44 +17,27 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>10</x>
       <y>490</y>
       <width>401</width>
       <height>141</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="2" column="0">
-      <widget class="QLabel" name="lbl_ProcRestantes">
+     <item row="1" column="0">
+      <widget class="QLabel" name="lbl_NumProcPend">
        <property name="text">
-        <string>Procesos Restante</string>
+        <string>Número de procesos nuevos pendientes</string>
        </property>
       </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="lbl_NumLotPend">
-       <property name="text">
-        <string>Número de Lotes Pendientes</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLCDNumber" name="lcd_LotesRestantes"/>
      </item>
      <item row="1" column="1">
-      <widget class="QLCDNumber" name="lcd_ContGlobal"/>
+      <widget class="QLCDNumber" name="lcd_LotesRestantes"/>
      </item>
-     <item row="2" column="1">
-      <widget class="QLCDNumber" name="lcd_ProcRestante">
-       <property name="intValue" stdset="0">
-        <number>0</number>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="lbl_ContGlobal">
+     <item row="3" column="0">
+      <widget class="QLabel" name="lbl_TeclaPresionada">
        <property name="text">
-        <string>Contador Global</string>
+        <string>Tecla Presionada</string>
        </property>
       </widget>
      </item>
@@ -65,25 +48,16 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="lbl_TeclaPresionada">
+     <item row="2" column="1">
+      <widget class="QLCDNumber" name="lcd_ContGlobal"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lbl_ContGlobal">
        <property name="text">
-        <string>Tecla Presionada</string>
+        <string>Contador Global</string>
        </property>
       </widget>
      </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>490</y>
-      <width>456</width>
-      <height>185</height>
-     </rect>
-    </property>
-    <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
       <widget class="QLabel" name="lbl_CantProceso">
        <property name="text">
@@ -91,66 +65,8 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="lbl_NomProgr">
-       <property name="text">
-        <string>Nombre del Programador</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="ldt_NombProgr"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="lbl_Operacion">
-       <property name="text">
-        <string>Operación (m para módulo y p para potencia)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="ldt_Operacion"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="lbl_TME">
-       <property name="text">
-        <string>Tiempo Máximo Estimado</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="lbl_ID_Progr">
-       <property name="text">
-        <string>ID del Programa</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QPushButton" name="btn_Enviar">
-       <property name="text">
-        <string>Enviar</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="1">
       <widget class="QSpinBox" name="spnBx_CantProcesos">
-       <property name="maximum">
-        <number>255</number>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QSpinBox" name="spnBx_TME">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QSpinBox" name="spnBx_ID">
-       <property name="minimum">
-        <number>1</number>
-       </property>
        <property name="maximum">
         <number>255</number>
        </property>
@@ -169,13 +85,13 @@
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QGroupBox" name="gprBx_LoteActual">
+      <widget class="QGroupBox" name="gprBx_Listo">
        <property name="title">
-        <string>Lote Actual</string>
+        <string>Listos</string>
        </property>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <widget class="QTableWidget" name="tblWdt_LoteActual"/>
+         <widget class="QTableWidget" name="tblWdt_ProcListo"/>
         </item>
        </layout>
       </widget>
@@ -216,35 +132,23 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_Procesaro_Lote">
+   <widget class="QMenu" name="menu_Procesar_Procesos">
     <property name="title">
-     <string>&amp;Lote opciones</string>
+     <string>&amp;Proceso opciones</string>
     </property>
-    <addaction name="action_Procesar_Lote"/>
-    <addaction name="action_Procesar_Lote_con_Informacion_Aleatoria"/>
+    <addaction name="action_Procesar_Procesos"/>
    </widget>
-   <addaction name="menu_Procesaro_Lote"/>
+   <addaction name="menu_Procesar_Procesos"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="action_Procesar_Lote">
+  <action name="action_Procesar_Procesos">
    <property name="text">
-    <string>&amp;Procesar Lote con Informacion del Usuario</string>
-   </property>
-  </action>
-  <action name="action_Procesar_Lote_con_Informacion_Aleatoria">
-   <property name="text">
-    <string>&amp;Procesar Lote con Informacion Aleatoria</string>
+    <string>&amp;Analizar procesos</string>
    </property>
   </action>
  </widget>
  <tabstops>
-  <tabstop>spnBx_CantProcesos</tabstop>
-  <tabstop>ldt_NombProgr</tabstop>
-  <tabstop>ldt_Operacion</tabstop>
-  <tabstop>spnBx_TME</tabstop>
-  <tabstop>spnBx_ID</tabstop>
-  <tabstop>btn_Enviar</tabstop>
-  <tabstop>tblWdt_LoteActual</tabstop>
+  <tabstop>tblWdt_ProcListo</tabstop>
   <tabstop>tblWdt_ProcesoEjec</tabstop>
   <tabstop>tblWdt_Terminados</tabstop>
  </tabstops>

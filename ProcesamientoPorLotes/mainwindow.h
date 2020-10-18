@@ -54,7 +54,6 @@ private:
     bool errorID;
     bool notFirstPauseTime;
     bool onlyOnce;
-    bool randomData;
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
@@ -66,7 +65,6 @@ private:
     int globalCounter;
 
     void removeSpace(std::string& operation);
-//    void insertProcessByUser(int& index);
     void insertProcessRandomly(int& index);
     inline void delay(int millisecondsWait);
     void pause();
@@ -84,15 +82,13 @@ private:
     int getOperandPos(const std::string& operation);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
-    int computeBatches(int numProcesses); // new
-    long doOperation(std::string& operation); // changed
-    bool validID(int id);
+    int computeBatches(int numProcesses);
+    long doOperation(std::string& operation);
 protected:
     void keyPressEvent(QKeyEvent* event) override; // new
 
 private slots:
     void sendData();
-    void on_action_Procesar_Lote_triggered();
-    void on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered();
+    void on_action_Procesar_Procesos_triggered();
 };
 #endif // MAINWINDOW_H

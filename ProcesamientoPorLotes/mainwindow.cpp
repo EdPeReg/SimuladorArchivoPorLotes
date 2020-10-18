@@ -22,7 +22,6 @@ MainWindow::MainWindow(QWidget *parent)
     , errorID(false)
     , notFirstPauseTime(false)
     , onlyOnce(false)
-    , randomData(false)
     , pauseRequired(false)
     , keyError(false)
     , IO_interruptionKey(false)
@@ -38,11 +37,11 @@ MainWindow::MainWindow(QWidget *parent)
     // We do this to our mainwindow to get the keys pressed.
     this->setFocusPolicy(Qt::StrongFocus);
 
-    ui->tblWdt_LoteActual->setColumnCount(3);
-    ui->tblWdt_LoteActual->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
-    ui->tblWdt_LoteActual->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
-    ui->tblWdt_LoteActual->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
-    ui->tblWdt_LoteActual->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+    ui->tblWdt_ProcListo->setColumnCount(3);
+    ui->tblWdt_ProcListo->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
+    ui->tblWdt_ProcListo->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
+    ui->tblWdt_ProcListo->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
+    ui->tblWdt_ProcListo->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     ui->tblWdt_ProcesoEjec->setColumnCount(1);
     ui->tblWdt_ProcesoEjec->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("DATOS")));
@@ -64,8 +63,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_Terminados->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("TME")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
-
-    connect(ui->btn_Enviar, &QPushButton::clicked, this, &MainWindow::sendData);
 }
 
 MainWindow::~MainWindow()
@@ -136,58 +133,6 @@ void MainWindow::removeSpace(std::string& operation) {
         operation.erase(pos, toErase.size());
     }
 }
-
-//void MainWindow::insertProcessByUser(int& index)
-//{
-//    process = new Process;
-//    int rightOperand = 0;
-//    QString programmerName = ui->ldt_NombProgr->text();
-//    process->setProgrammerName(programmerName);
-
-//    QString aux = ui->ldt_Operacion->text();
-//    std::string operation = aux.toStdString();
-//    removeSpace(operation);
-
-//    int operatorPos = getOperatorPos(operation);
-//    if(operation.at(operatorPos) == '/' or operation.at(operatorPos) == 'm') {
-//        rightOperand = getRightOperand(operation);
-//        if(rightOperand == 0) {
-//            QMessageBox::warning(this, tr("errorOperation, OPERACION INVALIDA"), tr("Operacion invalida, ingrese una operacion valida"));
-//            errorOperation = true;
-//            ui->ldt_Operacion->clear();
-//        } else {
-//            errorOperation = false;
-//        }
-//    } else {
-//        errorOperation = false;
-//    }
-
-//    if(!errorOperation) {
-//        process->setOperation(aux);
-//        process->setResult(doOperation(operation));
-
-//        int tiempoMaximoEst = ui->spnBx_TME->value();
-//        process->setTiempoMaximoEst(tiempoMaximoEst);
-
-//        int id = ui->spnBx_ID->value();
-
-//        if(validID(id)) {
-//            ids.push_back(id);
-//            process->setId(id);
-//            batches.at(index)->insertProcess(process);
-//            ui->lcd_LotesRestantes->display(batchNum);
-
-//            if(++processInserted == LIMITE_PROCESO) {
-//                process->setNumBatch(batchNum);
-//                ui->lcd_LotesRestantes->display(batchNum++);
-//                processInserted = 0;
-//            } else {
-//                process->setNumBatch(batchNum);
-//            }
-//            insertDataTableCurrentBatch();
-//        }
-//    }
-//}
 
 void MainWindow::insertProcessRandomly(int &index)
 {
@@ -315,21 +260,6 @@ long MainWindow::doOperation(std::string& operation) {
     return result;
 }
 
-bool MainWindow::validID(int id)
-{
-    for(const auto ID : ids) {
-        if(id == ID) {
-            QMessageBox::warning(this, tr("errorOperation, ID YA EXISTENTE"), tr("ID ya existente, por favor ingrese otra ID distinta"));
-            ui->spnBx_ID->clear();
-            errorID = true;
-            return false;
-        }
-    }
-
-    errorID = false;
-    return true;
-}
-
 // THX dvntehn00bz,
 // https://stackoverflow.com/questions/3752742/how-do-i-create-a-pause-wait-function-using-qt
 void MainWindow::delay(int millisecondsWait)
@@ -389,7 +319,6 @@ void MainWindow::updateTableFinish(Process process) {
 void MainWindow::runWithRandomData()
 {
     int batchIndex = 0;
-    int indexProcess = 0;
     int batchesRemaining = batches.size();
     updateBatchCounter(--batchesRemaining);
 
@@ -416,17 +345,17 @@ void MainWindow::runWithRandomData()
 
                 if(IO_interruptionKey) {
                     // To not insert more than three processes in our queue.
-                    if(ui->tblWdt_LoteActual->rowCount() < LIMITE_PROCESO) {
+                    if(ui->tblWdt_ProcListo->rowCount() < LIMITE_PROCESO) {
                         // Update batch current table.
-                        ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
-                        int row = ui->tblWdt_LoteActual->rowCount() - 1;
+                        ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
+                        int row = ui->tblWdt_ProcListo->rowCount() - 1;
 
                         QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
                         QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
                         QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
-                        ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-                        ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-                        ui->tblWdt_LoteActual->setItem(row, 2, itemTT);
+                        ui->tblWdt_ProcListo->setItem(row, ID, itemID);
+                        ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
+                        ui->tblWdt_ProcListo->setItem(row, 2, itemTT);
 
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
@@ -486,16 +415,16 @@ void MainWindow::updateTableCurrentBatch(int& row)
 
     int totalRows = batches.at(batchIndex).getProcesses().size();
     // Update table batch current.
-    ui->tblWdt_LoteActual->setRowCount(totalRows--);
+    ui->tblWdt_ProcListo->setRowCount(totalRows--);
     for(int i = 0; i < batches.at(batchIndex).getProcesses().size(); ++i) {
         QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(batches.at(batchIndex).getProcesses().at(i).getId()));
         QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(batches.at(batchIndex).getProcesses().at(i).getTiempoMaximoEst()));
         QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(batches.at(batchIndex).getProcesses().at(i).getTT()));
-        ui->tblWdt_LoteActual->setItem(row, ID, itemID);
-        ui->tblWdt_LoteActual->setItem(row, TME, itemTME);
-        ui->tblWdt_LoteActual->setItem(row++, TT, itemTT);
+        ui->tblWdt_ProcListo->setItem(row, ID, itemID);
+        ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
+        ui->tblWdt_ProcListo->setItem(row++, TT, itemTT);
     }
-    ui->tblWdt_LoteActual->removeRow(0);
+    ui->tblWdt_ProcListo->removeRow(0);
 }
 
 void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft)
@@ -510,13 +439,13 @@ void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeL
 
 //void MainWindow::insertDataTableCurrentBatch()
 //{
-//    ui->tblWdt_LoteActual->insertRow(ui->tblWdt_LoteActual->rowCount());
-//    int fila = ui->tblWdt_LoteActual->rowCount() - 1;
+//    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
+//    int fila = ui->tblWdt_ProcListo->rowCount() - 1;
 
 //    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(ui->spnBx_ID->value()));
 //    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(ui->spnBx_TME->value()));
-//    ui->tblWdt_LoteActual->setItem(fila, ID, itemID);
-//    ui->tblWdt_LoteActual->setItem(fila, TME, itemTME);
+//    ui->tblWdt_ProcListo->setItem(fila, ID, itemID);
+//    ui->tblWdt_ProcListo->setItem(fila, TME, itemTME);
 //}
 
 void MainWindow::insertDataTableRunningProcess(Process runningProcess) {
@@ -541,7 +470,6 @@ void MainWindow::reset()
     errorID = false;
     notFirstPauseTime = false;
     onlyOnce = false;
-    randomData = false;
     keyError = false;
     pauseRequired = false;
     keyError = false;
@@ -552,7 +480,7 @@ void MainWindow::reset()
     indexBatch = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
-    ui->tblWdt_LoteActual->setRowCount(0);
+    ui->tblWdt_ProcListo->setRowCount(0);
     ui->lcd_LotesRestantes->display(0);
     ui->lnEdt_teclaPresionada->setText("");
     QMessageBox::information(this, tr("TERMINADO"), tr("Lotes analizados"));
@@ -570,41 +498,21 @@ void MainWindow::sendData()
         notFirstPauseTime = true;
     }
 
-    if(!randomData) {
-        if(!onlyOnce) {
-            Batch batch;
-            batches.push_back(batch);
-            onlyOnce = true;
-        }
-
-        if(batches.at(indexBatch).getSize() == LIMITE_PROCESO) {
-            qDebug() << "dentro de seddata:";
-            Batch batch;
-            batches.push_back(batch);
-            ++indexBatch;
-        }
-
-        ui->spnBx_CantProcesos->setEnabled(false);
-//        insertProcessByUser(indexBatch);
-
-        if(!errorOperation and !errorID) {
-            ui->lcd_ProcRestante->display(--processRemaining);
-        }
-
-        if(ui->lcd_ProcRestante->value() == 0) {
-            ui->spnBx_CantProcesos->setValue(0);
-            ui->spnBx_CantProcesos->setEnabled(true);
-            notFirstPauseTime = false;
-        }
-
-        ui->ldt_NombProgr->clear();
-        ui->ldt_Operacion->clear();
-        ui->spnBx_TME->setValue(0);
-        ui->spnBx_ID->setValue(0);
-    } else {
-        randomData = false;
-        insertProcessRandomly(indexBatch);
+    if(!onlyOnce) {
+        Batch batch;
+        batches.push_back(batch);
+        onlyOnce = true;
     }
+
+    if(batches.at(indexBatch).getSize() == LIMITE_PROCESO) {
+        qDebug() << "dentro de seddata:";
+        Batch batch;
+        batches.push_back(batch);
+        ++indexBatch;
+    }
+
+    ui->spnBx_CantProcesos->setEnabled(false);
+    insertProcessRandomly(indexBatch);
 
     qDebug() << "";
     for(const auto& batch : batches) {
@@ -612,34 +520,9 @@ void MainWindow::sendData()
     }
 }
 
-void MainWindow::on_action_Procesar_Lote_triggered()
-{
-    if(!batches.empty()) {
-        ui->ldt_NombProgr->setEnabled(false);
-        ui->ldt_Operacion->setEnabled(false);
-        ui->spnBx_ID->setEnabled(false);
-        ui->spnBx_TME->setEnabled(false);
-        ui->spnBx_CantProcesos->setEnabled(false);
-        ui->btn_Enviar->setEnabled(false);
-
-        ui->tblWdt_LoteActual->setRowCount(0);
-
-        ui->ldt_NombProgr->setEnabled(true);
-        ui->ldt_Operacion->setEnabled(true);
-        ui->spnBx_ID->setEnabled(true);
-        ui->spnBx_TME->setEnabled(true);
-        ui->spnBx_CantProcesos->setEnabled(true);
-        ui->btn_Enviar->setEnabled(true);
-    } else {
-        QMessageBox::information(this, tr("Lotes Vacios"), tr("No hay procesos para analizar, "
-                                                          "inserte procesos"));
-    }
-}
-
-void MainWindow::on_action_Procesar_Lote_con_Informacion_Aleatoria_triggered()
+void MainWindow::on_action_Procesar_Procesos_triggered()
 {
     if(ui->spnBx_CantProcesos->value() > 0) {
-        randomData = true;
         sendData();
 
         // At the beggining, our initial value for TR is our TME, this will change.
