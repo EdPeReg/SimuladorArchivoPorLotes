@@ -41,6 +41,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_ProcListo->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
     ui->tblWdt_ProcListo->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
+    ui->tblWgt_Bloqueados->setColumnCount(2);
+    ui->tblWgt_Bloqueados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
+    ui->tblWgt_Bloqueados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TTB")));
+    ui->tblWgt_Bloqueados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+
     ui->tblWdt_ProcesoEjec->setColumnCount(1);
     ui->tblWdt_ProcesoEjec->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("DATOS")));
     ui->tblWdt_ProcesoEjec->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
@@ -53,13 +58,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(4, new QTableWidgetItem(("TT")));
     ui->tblWdt_ProcesoEjec->setVerticalHeaderItem(5, new QTableWidgetItem(("TR")));
 
-    ui->tblWdt_Terminados->setColumnCount(6);
+    ui->tblWdt_Terminados->setColumnCount(5);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("RESULTADO")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("TME")));
-    ui->tblWdt_Terminados->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("LOTE")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 }
 
@@ -165,15 +169,6 @@ void MainWindow::insertProcessRandomly()
 
         nuevos.push_back(process);
         ui->lcd_ProcRestantes->display(batchNum);
-
-        // CHECK THE LIMIT OF 4 PROCESSES FOR EACH BATCH, NOT NECESSARY ANYMORE?
-//        if(++processInserted == LIMITE_PROCESO) {
-//            process.setNumBatch(batchNum);
-//            ui->lcd_ProcRestantes->display(batchNum++);
-//            processInserted = 0;
-//        } else {
-//            process.setNumBatch(batchNum);
-//        }
     }
 }
 
@@ -274,7 +269,7 @@ void MainWindow::updateGlobalCounter(int value)
 }
 
 void MainWindow::updateTableFinish(Process process) {
-/*    ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
+    ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
     int fila = ui->tblWdt_Terminados->rowCount() - 1;
 
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
@@ -293,32 +288,33 @@ void MainWindow::updateTableFinish(Process process) {
     }
 
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
-    QTableWidgetItem *itemLote = new QTableWidgetItem(QString::number(process.getNumBatch()));
     ui->tblWdt_Terminados->setItem(fila, ID_FP, itemID);
     ui->tblWdt_Terminados->setItem(fila, NOMBRE_FP, itemName);
     ui->tblWdt_Terminados->setItem(fila, OPERACION_FP, itemOperation);
     ui->tblWdt_Terminados->setItem(fila, RESULT_FP, itemResult);
     ui->tblWdt_Terminados->setItem(fila, TME_FP, itemTME);
-    ui->tblWdt_Terminados->setItem(fila, LOTE_FP, itemLote)*/;
 }
 
 void MainWindow::runWithRandomData()
 {
-//    int batchesRemaining = batches.size();
-//    updateBatchCounter(--batchesRemaining);
-
+    int processesRemaining = ui->spnBx_CantProcesos->value();
+    if(processesRemaining > LIMITE_PROCESO) {
+        processesRemaining -= 4;
+        ui->lcd_ProcRestantes->display(processesRemaining);
+    }
 
     // Iterate in our processes.
     while(!nuevos.empty()) {
-        std::deque<Process> subDeque = slice(nuevos);
+        std::deque<Process> listos = slice(nuevos);
+        deleteProcessesNuevo();
 
-        while(!subDeque.empty()) {
-            Process process = subDeque.front(); // Get the first process.
+        while(!listos.empty()) {
+            Process process = listos.front(); // Get the first process.
             int row = 0;
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
-            updateTableCurrentBatch(subDeque, row);
+            updateTableCurrentBatch(listos, row);
 
     //        // Iterate in our TME.
             while(indexTime < process.getTiempoMaximoEst()) {
@@ -328,30 +324,30 @@ void MainWindow::runWithRandomData()
 
                 delay(1000);
 
-                if(IO_interruptionKey) {
+//                if(IO_interruptionKey) {
     //                // To not insert more than three processes in our queue.
-                    if(ui->tblWdt_ProcListo->rowCount() < LIMITE_PROCESO) {
-                        // Update batch current table.
-                        ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
-                        int row = ui->tblWdt_ProcListo->rowCount() - 1;
+    //                if(ui->tblWdt_ProcListo->rowCount() < LIMITE_PROCESO) {
+    //                    // Update batch current table.
+    //                    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
+    //                    int row = ui->tblWdt_ProcListo->rowCount() - 1;
 
-                        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
-                        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
-                        QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
-                        ui->tblWdt_ProcListo->setItem(row, ID, itemID);
-                        ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
-                        ui->tblWdt_ProcListo->setItem(row, 2, itemTT);
+    //                    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
+    //                    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
+    //                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
+    //                    ui->tblWdt_ProcListo->setItem(row, ID, itemID);
+    //                    ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
+    //                    ui->tblWdt_ProcListo->setItem(row, 2, itemTT);
 
-                        process.setTT(counterTimeElapsed);
-                        process.setTR(counterTimeLeft);
-                        process.setIndexTime(counterTimeElapsed);
-                        batches[batchIndex].insertProcessFront(process);
+    //                    process.setTT(counterTimeElapsed);
+    //                    process.setTR(counterTimeLeft);
+    //                    process.setIndexTime(counterTimeElapsed);
+    //                    batches[batchIndex].insertProcessFront(process);
 
-                       // Simulate a queue.
-                        batches[batchIndex].simulateQueue();
-                    }
-                    break;
-                }
+    //                   // Simulate a queue.
+    //                    batches[batchIndex].simulateQueue();
+    //                }
+    //                break;
+//                }
 
     //            if(pauseRequired) {
     //                process.setTT(counterTimeElapsed);
@@ -374,9 +370,25 @@ void MainWindow::runWithRandomData()
 
             if(!IO_interruptionKey) {
                 terminados.push_back(process);
-//                updateTableFinish(process);
-    //            process.setTT(counterTimeElapsed);
-                subDeque.pop_front();
+                listos.pop_front();
+
+                if(!nuevos.empty()) {
+                    listos.push_back(nuevos.front());
+                    nuevos.pop_front();
+                }
+
+                if(!nuevos.empty()) {
+//                    nuevos.pop_front();
+                }
+//                updateTableCurrentBatch(nuevos.front(), row);
+                updateTableFinish(process);
+                process.setTT(counterTimeElapsed);
+
+                // Update process counter.
+                if(ui->lcd_ProcRestantes->value() != 0) {
+                    ui->lcd_ProcRestantes->display(--processesRemaining);
+                }
+
                 indexTime = 0;
             }
     //        IO_interruptionKey = false;
@@ -385,14 +397,8 @@ void MainWindow::runWithRandomData()
     //        if(pauseRequired) break;
 
     //        batches.removeFirst();
-    //        updateBatchCounter(--batchesRemaining);
+    //        updateProcCounter(--batchesRemaining);
         }
-        deleteProcessesNuevo();
-    }
-
-    qDebug() << "finish vector: ";
-    for(auto& process : terminados) {
-        qDebug() << process.getId();
     }
 
     if(!pauseRequired) reset();
@@ -473,7 +479,7 @@ void MainWindow::reset()
     QMessageBox::information(this, tr("TERMINADO"), tr("Procesos analizados"));
 }
 
-void MainWindow::updateBatchCounter(int value)
+void MainWindow::updateProcCounter(int value)
 {
     ui->lcd_ProcRestantes->display(value);
 }
@@ -491,16 +497,16 @@ void MainWindow::deleteProcessesNuevo()
 
 std::deque<Process> MainWindow::slice(const std::deque<Process> &deque)
 {
-    std::deque<Process> subDeque;
+    std::deque<Process> listos;
     if(deque.size() <= 4) {
         for(auto& process : deque) {
-            subDeque.push_back(process);
+            listos.push_back(process);
         }
     } else {
+        // Just push the first four processes.
         for(size_t i = 0; i < deque.size(); ++i) {
-            // Just push the first four processes.
             if(i < 4) {
-                subDeque.push_back(deque.at(i));
+                listos.push_back(deque.at(i));
             } else {
                 break;
             }
@@ -508,7 +514,7 @@ std::deque<Process> MainWindow::slice(const std::deque<Process> &deque)
 
     }
 
-    return subDeque;
+    return listos;
 }
 
 void MainWindow::sendData()

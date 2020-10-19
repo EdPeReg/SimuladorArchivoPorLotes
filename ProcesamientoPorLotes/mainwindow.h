@@ -82,7 +82,7 @@ private:
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
     void insertDataTableRunningProcess(Process runningProcess);
     void reset();
-    void updateBatchCounter(int value);
+    void updateProcCounter(int value);
     void deleteProcessesNuevo();
     std::deque<Process> slice(const std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
