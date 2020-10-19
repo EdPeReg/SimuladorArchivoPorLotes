@@ -65,7 +65,7 @@ private:
     bool keyError;
     bool IO_interruptionKey;
     int processInserted;
-    int processRemaining;
+    int processesRemaining;
     int batchNum;
     int id;
     int globalCounter;

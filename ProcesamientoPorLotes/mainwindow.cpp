@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     , keyError(false)
     , IO_interruptionKey(false)
     , processInserted(0)
-    , processRemaining(0)
+    , processesRemaining(0)
     , batchNum(1)
     , id(1)
     , globalCounter(0)
@@ -297,16 +297,9 @@ void MainWindow::updateTableFinish(Process process) {
 
 void MainWindow::runWithRandomData()
 {
-    int processesRemaining = ui->spnBx_CantProcesos->value();
-    if(processesRemaining > LIMITE_PROCESO) {
-        processesRemaining -= 4;
-        ui->lcd_ProcRestantes->display(processesRemaining);
-    }
 
     // Iterate in our processes.
-    while(!nuevos.empty()) {
-        std::deque<Process> listos = slice(nuevos);
-        deleteProcessesNuevo();
+//    while(!nuevos.empty()) {
 
         while(!listos.empty()) {
             Process process = listos.front(); // Get the first process.
@@ -349,13 +342,13 @@ void MainWindow::runWithRandomData()
     //                break;
 //                }
 
-    //            if(pauseRequired) {
-    //                process.setTT(counterTimeElapsed);
-    //                process.setTR(counterTimeLeft);
-    //                process.setIndexTime(indexTime);
-    //                batches[batchIndex].insertProcessFront(process);
-    //                break;
-    //            }
+                if(pauseRequired) {
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
+                    // Increment to be in the right index.
+                    listos.at(0).setIndexTime(++indexTime);
+                    break;
+                }
 
     //            if(keyError) {
     //                process.setEstado("ERROR");
@@ -366,7 +359,7 @@ void MainWindow::runWithRandomData()
 
                 ++indexTime;
             }
-    //        if(pauseRequired) break;
+            if(pauseRequired) break;
 
             if(!IO_interruptionKey) {
                 terminados.push_back(process);
@@ -377,10 +370,6 @@ void MainWindow::runWithRandomData()
                     nuevos.pop_front();
                 }
 
-                if(!nuevos.empty()) {
-//                    nuevos.pop_front();
-                }
-//                updateTableCurrentBatch(nuevos.front(), row);
                 updateTableFinish(process);
                 process.setTT(counterTimeElapsed);
 
@@ -399,7 +388,7 @@ void MainWindow::runWithRandomData()
     //        batches.removeFirst();
     //        updateProcCounter(--batchesRemaining);
         }
-    }
+//    }
 
     if(!pauseRequired) reset();
 }
@@ -468,7 +457,7 @@ void MainWindow::reset()
     keyError = false;
     IO_interruptionKey = false;
     processInserted = 0;
-    processRemaining = 0;
+    processesRemaining = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);
@@ -519,11 +508,6 @@ std::deque<Process> MainWindow::slice(const std::deque<Process> &deque)
 
 void MainWindow::sendData()
 {
-    if(!notFirstPauseTime) {
-        processRemaining = ui->spnBx_CantProcesos->value();
-        notFirstPauseTime = true;
-    }
-
     ui->spnBx_CantProcesos->setEnabled(false);
     insertProcessRandomly();
 
@@ -552,7 +536,16 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
             process.setTR(aux);
         }
 
-//        batchesCopy = batches;
+        // Push the first processes to our listos deque.
+        listos = slice(nuevos);
+        deleteProcessesNuevo();
+
+        processesRemaining = ui->spnBx_CantProcesos->value();
+        if(processesRemaining > LIMITE_PROCESO) {
+            processesRemaining -= 4;
+            ui->lcd_ProcRestantes->display(processesRemaining);
+        }
+
         runWithRandomData();
     } else {
         QMessageBox::information(this, tr("Inserte Procesos"), tr("Inserte el numero de procesos para continuar"));
