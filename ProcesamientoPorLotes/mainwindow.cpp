@@ -350,12 +350,14 @@ void MainWindow::runWithRandomData()
                     break;
                 }
 
-    //            if(keyError) {
-    //                process.setEstado("ERROR");
-    //                process.setTT(counterTimeElapsed);
-    //                batches[batchIndex].insertProcessFront(process);
-    //                break;
-    //            }
+                if(keyError) {
+                    process.setEstado("ERROR");
+                    process.setTT(counterTimeElapsed);
+                    listos.pop_front();
+                    listos.push_front(process);
+//                    batches[batchIndex].insertProcessFront(process);
+                    break;
+                }
 
                 ++indexTime;
             }
@@ -381,12 +383,7 @@ void MainWindow::runWithRandomData()
                 indexTime = 0;
             }
     //        IO_interruptionKey = false;
-    //        keyError = false;
-
-    //        if(pauseRequired) break;
-
-    //        batches.removeFirst();
-    //        updateProcCounter(--batchesRemaining);
+            keyError = false;
         }
 //    }
 
