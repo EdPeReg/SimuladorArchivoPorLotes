@@ -140,7 +140,7 @@ void MainWindow::insertProcessRandomly()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(3,5);
+    std::uniform_int_distribution<int> randomTME(5,8);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -298,18 +298,21 @@ void MainWindow::updateTableFinish(Process process) {
 void MainWindow::runWithRandomData()
 {
 
-    // Iterate in our processes.
-//    while(!nuevos.empty()) {
-
+    while(true) {
         while(!listos.empty()) {
             Process process = listos.front(); // Get the first process.
             int row = 0;
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
+            int counterTTB_p1 = 0;
+            int counterTTB_p2 = 0;
+            int counterTTB_p3 = 0;
+            int counterTTB_p4 = 0;
+
             updateTableCurrentBatch(listos, row);
 
-    //        // Iterate in our TME.
+            // Iterate in our TME.
             while(indexTime < process.getTiempoMaximoEst()) {
                 updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
                 insertDataTableRunningProcess(process);
@@ -317,36 +320,40 @@ void MainWindow::runWithRandomData()
 
                 delay(1000);
 
-//                if(IO_interruptionKey) {
-    //                // To not insert more than three processes in our queue.
-    //                if(ui->tblWdt_ProcListo->rowCount() < LIMITE_PROCESO) {
-    //                    // Update batch current table.
-    //                    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
-    //                    int row = ui->tblWdt_ProcListo->rowCount() - 1;
+                if(IO_interruptionKey) {
+                    // To not insert more than four processes.
+                    if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
+    //                    Process nullProcess;
+    //                    nullProcess.setId(-1);
 
-    //                    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
-    //                    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
-    //                    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(counterTimeElapsed));
-    //                    ui->tblWdt_ProcListo->setItem(row, ID, itemID);
-    //                    ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
-    //                    ui->tblWdt_ProcListo->setItem(row, 2, itemTT);
+                        process.setTT(counterTimeElapsed);
+                        process.setTR(counterTimeLeft);
+                        process.setIndexTime(++indexTime);
 
-    //                    process.setTT(counterTimeElapsed);
-    //                    process.setTR(counterTimeLeft);
-    //                    process.setIndexTime(counterTimeElapsed);
-    //                    batches[batchIndex].insertProcessFront(process);
+                        listos.pop_front();
+                        listos.push_front(process);
 
-    //                   // Simulate a queue.
-    //                    batches[batchIndex].simulateQueue();
-    //                }
-    //                break;
-//                }
+    //                    if(!nuevos.empty()) {
+    //                        listos.push_back(nuevos.front());
+    //                        nuevos.pop_front();
+    //                    }
+
+                        bloqueados.push_back(process);
+                        updateBloqueadosTable(process);
+
+                        listos.pop_front(); // ? I don't know about this.
+                        listos.push_back(nuevos.front());
+    //                    listos.push_back(nullProcess);
+    //                    listos.push_back(nuevos.front());
+    //                    listos.push_back(process);
+                    }
+                    break;
+                }
 
                 if(pauseRequired) {
                     listos.at(0).setTT(counterTimeElapsed);
                     listos.at(0).setTR(counterTimeLeft);
-                    // Increment to be in the right index.
-                    listos.at(0).setIndexTime(++indexTime);
+                    listos.at(0).setIndexTime(++indexTime); // Increment to be in the right index.
                     break;
                 }
 
@@ -355,12 +362,12 @@ void MainWindow::runWithRandomData()
                     process.setTT(counterTimeElapsed);
                     listos.pop_front();
                     listos.push_front(process);
-//                    batches[batchIndex].insertProcessFront(process);
                     break;
                 }
 
                 ++indexTime;
             }
+
             if(pauseRequired) break;
 
             if(!IO_interruptionKey) {
@@ -382,10 +389,14 @@ void MainWindow::runWithRandomData()
 
                 indexTime = 0;
             }
-    //        IO_interruptionKey = false;
+            IO_interruptionKey = false;
             keyError = false;
         }
-//    }
+
+        if(nuevos.empty() or pauseRequired) {
+            break;
+        }
+    }
 
     if(!pauseRequired) reset();
 }
@@ -408,24 +419,24 @@ void MainWindow::updateTableCurrentBatch(const std::deque<Process>& deque, int& 
 
 void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft)
 {
-    // Update Counters is this ok? using two times new.
-    // Why not to use set text?
     QTableWidgetItem *TT = new QTableWidgetItem(QString::number(++counterTimeElapsed));
     QTableWidgetItem *TR = new QTableWidgetItem(QString::number(counterTimeLeft--));
     ui->tblWdt_ProcesoEjec->setItem(0, TT_RP, TT);
     ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 }
 
-//void MainWindow::insertDataTableCurrentBatch()
-//{
-//    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
-//    int fila = ui->tblWdt_ProcListo->rowCount() - 1;
+void MainWindow::updateBloqueadosTable(Process &process)
+{
+    ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
+    int fila = ui->tblWgt_Bloqueados->rowCount() - 1;
+    int TTB = process.getTTB();
 
-//    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(ui->spnBx_ID->value()));
-//    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(ui->spnBx_TME->value()));
-//    ui->tblWdt_ProcListo->setItem(fila, ID, itemID);
-//    ui->tblWdt_ProcListo->setItem(fila, TME, itemTME);
-//}
+    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
+    QTableWidgetItem *itemTTB = new QTableWidgetItem(QString::number(++TTB));
+    ui->tblWgt_Bloqueados->setItem(fila, ID_BP, itemID);
+    ui->tblWgt_Bloqueados->setItem(fila, TTB_BP, itemTTB);
+    process.setTTB(TTB); // ??
+}
 
 void MainWindow::insertDataTableRunningProcess(Process runningProcess) {
     QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess.getId()));
@@ -478,6 +489,18 @@ void MainWindow::deleteProcessesNuevo()
         }
     } else {
         nuevos.erase(nuevos.begin(), nuevos.begin() + 4);
+    }
+}
+
+void MainWindow::setInitialProcCounterValue()
+{
+    processesRemaining = ui->spnBx_CantProcesos->value();
+    if(processesRemaining > LIMITE_PROCESO) {
+        processesRemaining -= 4;
+        ui->lcd_ProcRestantes->display(processesRemaining);
+    } else {
+        processesRemaining = 0;
+        ui->lcd_ProcRestantes->display(processesRemaining);
     }
 }
 
@@ -537,12 +560,7 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
         listos = slice(nuevos);
         deleteProcessesNuevo();
 
-        processesRemaining = ui->spnBx_CantProcesos->value();
-        if(processesRemaining > LIMITE_PROCESO) {
-            processesRemaining -= 4;
-            ui->lcd_ProcRestantes->display(processesRemaining);
-        }
-
+        setInitialProcCounterValue();
         runWithRandomData();
     } else {
         QMessageBox::information(this, tr("Inserte Procesos"), tr("Inserte el numero de procesos para continuar"));

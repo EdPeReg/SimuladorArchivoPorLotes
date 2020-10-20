@@ -35,6 +35,10 @@ enum FINISH_PROCESS{
     ID_FP, NOMBRE_FP, OPERACION_FP, RESULT_FP, TME_FP, LOTE_FP
 };
 
+enum BLOQUEADO_PROCESS {
+    ID_BP, TTB_BP
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -80,10 +84,12 @@ private:
     void runWithRandomData();
     void updateTableCurrentBatch(const std::deque<Process>&deque, int& row);
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
+    void updateBloqueadosTable(Process& process);
     void insertDataTableRunningProcess(Process runningProcess);
     void reset();
     void updateProcCounter(int value);
     void deleteProcessesNuevo();
+    void setInitialProcCounterValue();
     std::deque<Process> slice(const std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
