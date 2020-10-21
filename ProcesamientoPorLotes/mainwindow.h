@@ -61,6 +61,7 @@ private:
 //    QList<Batch> batchesCopy;
 
     const int LIMITE_PROCESO = 4;
+    const int LIMITE_TTB = 7;
 
     bool errorOperation;
     bool errorID;
@@ -68,6 +69,7 @@ private:
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
+    bool startTTBCounter;
     int processInserted;
     int processesRemaining;
     int batchNum;
@@ -83,13 +85,17 @@ private:
     void updateTableFinish(Process process);
     void runWithRandomData();
     void updateTableCurrentBatch(const std::deque<Process>&deque, int& row);
+    void insertLastTableListo(const Process& process);
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
+    void updateTTBCounter();
     void updateBloqueadosTable(Process& process);
     void insertDataTableRunningProcess(Process runningProcess);
     void reset();
     void updateProcCounter(int value);
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
+    void setNullProcess();
+    void aux();
     std::deque<Process> slice(const std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);

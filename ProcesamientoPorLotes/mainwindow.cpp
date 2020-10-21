@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     , pauseRequired(false)
     , keyError(false)
     , IO_interruptionKey(false)
+    , startTTBCounter(false)
     , processInserted(0)
     , processesRemaining(0)
     , batchNum(1)
@@ -299,17 +300,17 @@ void MainWindow::runWithRandomData()
 {
 
     while(true) {
-        while(!listos.empty()) {
+        int counterTTB_p1 = 0;
+        int counterTTB_p2 = 0;
+        int counterTTB_p3 = 0;
+        int counterTTB_p4 = 0;
+
+        while(true) {
             Process process = listos.front(); // Get the first process.
             int row = 0;
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
-            int counterTTB_p1 = 0;
-            int counterTTB_p2 = 0;
-            int counterTTB_p3 = 0;
-            int counterTTB_p4 = 0;
-
             updateTableCurrentBatch(listos, row);
 
             // Iterate in our TME.
@@ -318,34 +319,23 @@ void MainWindow::runWithRandomData()
                 insertDataTableRunningProcess(process);
                 updateGlobalCounter(++globalCounter);
 
+                if(startTTBCounter) {
+                    updateTTBCounter();
+                }
+
                 delay(1000);
 
                 if(IO_interruptionKey) {
                     // To not insert more than four processes.
                     if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
-    //                    Process nullProcess;
-    //                    nullProcess.setId(-1);
-
+                        startTTBCounter = true;
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
 
-                        listos.pop_front();
-                        listos.push_front(process);
-
-    //                    if(!nuevos.empty()) {
-    //                        listos.push_back(nuevos.front());
-    //                        nuevos.pop_front();
-    //                    }
-
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
-
-                        listos.pop_front(); // ? I don't know about this.
-                        listos.push_back(nuevos.front());
-    //                    listos.push_back(nullProcess);
-    //                    listos.push_back(nuevos.front());
-    //                    listos.push_back(process);
+                        listos.pop_front();
                     }
                     break;
                 }
@@ -391,8 +381,23 @@ void MainWindow::runWithRandomData()
             }
             IO_interruptionKey = false;
             keyError = false;
+
+            if(listos.empty()) {
+                qDebug() << "YES";
+                setNullProcess();
+                break;
+            }
         }
 
+        while(!bloqueados.empty()) {
+            qDebug() << "dentro de aqui";
+            updateBloqueadosTable(bloqueados.at(0));
+            updateTTBCounter();
+            delay(1000);
+//            qDebug() << "detroooooo";
+        }
+
+        // Out infinite loop.
         if(nuevos.empty() or pauseRequired) {
             break;
         }
@@ -412,9 +417,20 @@ void MainWindow::updateTableCurrentBatch(const std::deque<Process>& deque, int& 
         ui->tblWdt_ProcListo->setItem(row, ID, itemID);
         ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
         ui->tblWdt_ProcListo->setItem(row++, TT, itemTT);
-
     }
     ui->tblWdt_ProcListo->removeRow(0);
+}
+
+void MainWindow::insertLastTableListo(const Process &process)
+{
+    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
+    int fila = ui->tblWdt_ProcListo->rowCount() - 1;
+    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
+    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
+    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
+    ui->tblWdt_ProcListo->setItem(fila, ID, itemID);
+    ui->tblWdt_ProcListo->setItem(fila, TME, itemTME);
+    ui->tblWdt_ProcListo->setItem(fila++, TT, itemTT);
 }
 
 void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft)
@@ -425,6 +441,133 @@ void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeL
     ui->tblWdt_ProcesoEjec->setItem(0, TR_RP, TR);
 }
 
+void MainWindow::updateTTBCounter()
+{
+    // REVISAR.
+    qDebug() << "bloqueados size: " << bloqueados.size();
+    if(bloqueados.size() == 1) {
+        if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
+            qDebug() << "dentro size = 1";
+            int TTB_p1 = bloqueados.at(0).getTTB();
+            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+            bloqueados.at(0).setTTB(TTB_p1);
+        } else {
+            listos.push_back(bloqueados.at(0));
+            bloqueados.pop_front();
+            ui->tblWgt_Bloqueados->removeRow(0);
+            insertLastTableListo(listos.back());
+            startTTBCounter = false;
+        }
+    }
+
+//    if(bloqueados.size() == 2) {
+//        if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
+//            qDebug() << "dentro size = 2";
+//            int TTB_p1 = bloqueados.at(0).getTTB();
+//            int TTB_p2 = bloqueados.at(1).getTTB();
+//            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            bloqueados.at(0).setTTB(TTB_p1);
+//            bloqueados.at(1).setTTB(TTB_p2);
+//        } else {
+//            listos.push_back(bloqueados.at(0));
+//            bloqueados.pop_front();
+//            ui->tblWgt_Bloqueados->removeRow(0);
+//            insertLastTableListo(listos.back());
+//            startTTBCounter = false;
+//        }
+
+//        if(bloqueados.at(1).getTTB() < LIMITE_TTB) {
+//            int TTB_p2 = bloqueados.at(1).getTTB();
+//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            bloqueados.at(1).setTTB(TTB_p2);
+//        } else {
+//            listos.push_back(bloqueados.at(1));
+//            bloqueados.pop_front();
+//            ui->tblWgt_Bloqueados->removeRow(1);
+//            insertLastTableListo(listos.back());
+//            startTTBCounter = false;
+//        }
+//    }
+
+//    if(bloqueados.size() == 3) {
+//        if(bloqueados.at(2).getTTB() < LIMITE_TTB) {
+//            int TTB_p1 = bloqueados.at(0).getTTB();
+//            int TTB_p2 = bloqueados.at(1).getTTB();
+//            int TTB_p3 = bloqueados.at(2).getTTB();
+//            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+//            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//            bloqueados.at(0).setTTB(TTB_p1);
+//            bloqueados.at(1).setTTB(TTB_p2);
+//            bloqueados.at(2).setTTB(TTB_p3);
+//        }
+//    }
+
+//    if(bloqueados.size() == 4) {
+//        if(bloqueados.at(3).getTTB() < LIMITE_TTB) {
+//            int TTB_p1 = bloqueados.at(0).getTTB();
+//            int TTB_p2 = bloqueados.at(1).getTTB();
+//            int TTB_p3 = bloqueados.at(2).getTTB();
+//            int TTB_p4 = bloqueados.at(3).getTTB();
+//            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+//            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
+//            QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
+//            bloqueados.at(0).setTTB(TTB_p1);
+//            bloqueados.at(1).setTTB(TTB_p2);
+//            bloqueados.at(2).setTTB(TTB_p3);
+//            bloqueados.at(3).setTTB(TTB_p4);
+//        }
+//    }
+//    int TTB_p4 = bloqueados.at(3).getTTB();
+
+//    QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
+//    ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//    ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
+//    bloqueados.at(3).setTTB(TTB_p4);
+
+//    for(auto& process : bloqueados) {
+//        if(process.getTTB() < LIMITE_TTB) {
+//            int TTB = process.getTTB();
+//            QTableWidgetItem *item_TTB = new QTableWidgetItem(QString::number(++TTB));
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, item_TTB);
+//            bloqueados.at(0).setTTB(TTB);
+//        } else {
+//            listos.push_back(process);
+//            bloqueados.pop_front();
+//            ui->tblWgt_Bloqueados->removeRow(0);
+//            insertLastTableListo(listos.back());
+//            startTTBCounter = false;
+//        }
+//    }
+
+
+//    if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
+//        int TTB = bloqueados.at(0).getTTB();
+//        QTableWidgetItem *item_TTB = new QTableWidgetItem(QString::number(++TTB));
+//        ui->tblWgt_Bloqueados->setItem(0, TTB_BP, item_TTB);
+//        bloqueados.at(0).setTTB(TTB);
+//    } else {
+//        listos.push_back(bloqueados.at(0));
+//        bloqueados.pop_front();
+//        ui->tblWgt_Bloqueados->removeRow(0);
+//        insertLastTableListo(listos.back());
+//        startTTBCounter = false;
+//    }
+}
+
 void MainWindow::updateBloqueadosTable(Process &process)
 {
     ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
@@ -432,10 +575,8 @@ void MainWindow::updateBloqueadosTable(Process &process)
     int TTB = process.getTTB();
 
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
-    QTableWidgetItem *itemTTB = new QTableWidgetItem(QString::number(++TTB));
     ui->tblWgt_Bloqueados->setItem(fila, ID_BP, itemID);
-    ui->tblWgt_Bloqueados->setItem(fila, TTB_BP, itemTTB);
-    process.setTTB(TTB); // ??
+
 }
 
 void MainWindow::insertDataTableRunningProcess(Process runningProcess) {
@@ -464,6 +605,7 @@ void MainWindow::reset()
     pauseRequired = false;
     keyError = false;
     IO_interruptionKey = false;
+    startTTBCounter= false;
     processInserted = 0;
     processesRemaining = 0;
 
@@ -502,6 +644,25 @@ void MainWindow::setInitialProcCounterValue()
         processesRemaining = 0;
         ui->lcd_ProcRestantes->display(processesRemaining);
     }
+}
+
+void MainWindow::setNullProcess()
+{
+    Process nullProcess;
+    nullProcess.setId(-1);
+    nullProcess.setProgrammerName("NULL");
+    nullProcess.setOperation("NULL");
+    int invalidNumber = -2;
+    nullProcess.setTiempoMaximoEst(-1);
+    nullProcess.setTR(invalidNumber);
+    nullProcess.setTT(invalidNumber);
+    insertDataTableRunningProcess(nullProcess);
+    updateTT_TR_counters(invalidNumber, invalidNumber);
+}
+
+void MainWindow::aux()
+{
+
 }
 
 std::deque<Process> MainWindow::slice(const std::deque<Process> &deque)

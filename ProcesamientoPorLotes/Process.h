@@ -50,7 +50,7 @@ class Process {
             this->TR = TR;
         }
 
-        void setTTB(int TTB) {
+        void setTTB(int& TTB) {
             this->TTB = TTB;
         }
 
