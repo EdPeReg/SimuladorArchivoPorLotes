@@ -55,11 +55,6 @@ private:
     std::deque<Process> bloqueados;
     std::vector<Process> terminados;
 
-//    QList< std::deque<Process> > queues;
-
-//    QList<Batch> batches;
-//    QList<Batch> batchesCopy;
-
     const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 7;
 
@@ -69,12 +64,13 @@ private:
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
-    bool startTTBCounter;
     int processInserted;
     int processesRemaining;
     int batchNum;
     int id;
     int globalCounter;
+    int auxCounter;
+    int nuevosSize;
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();

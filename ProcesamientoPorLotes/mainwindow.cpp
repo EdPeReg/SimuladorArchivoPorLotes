@@ -24,12 +24,13 @@ MainWindow::MainWindow(QWidget *parent)
     , pauseRequired(false)
     , keyError(false)
     , IO_interruptionKey(false)
-    , startTTBCounter(false)
     , processInserted(0)
     , processesRemaining(0)
     , batchNum(1)
     , id(1)
     , globalCounter(0)
+    , auxCounter(0)
+    , nuevosSize(0)
 {
     ui->setupUi(this);
 
@@ -141,7 +142,7 @@ void MainWindow::insertProcessRandomly()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(5,8);
+    std::uniform_int_distribution<int> randomTME(8,10);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -298,19 +299,14 @@ void MainWindow::updateTableFinish(Process process) {
 
 void MainWindow::runWithRandomData()
 {
-
-    while(true) {
-        int counterTTB_p1 = 0;
-        int counterTTB_p2 = 0;
-        int counterTTB_p3 = 0;
-        int counterTTB_p4 = 0;
-
-        while(true) {
+    while(auxCounter < nuevosSize) {
+        if(!listos.empty()) {
             Process process = listos.front(); // Get the first process.
             int row = 0;
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
+
             updateTableCurrentBatch(listos, row);
 
             // Iterate in our TME.
@@ -319,23 +315,22 @@ void MainWindow::runWithRandomData()
                 insertDataTableRunningProcess(process);
                 updateGlobalCounter(++globalCounter);
 
-                if(startTTBCounter) {
+                if(!bloqueados.empty()) {
                     updateTTBCounter();
                 }
-
                 delay(1000);
 
                 if(IO_interruptionKey) {
                     // To not insert more than four processes.
                     if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
-                        startTTBCounter = true;
+                        qDebug() << "dentro del if IO interrupcion";
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
 
+                        listos.pop_front();
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
-                        listos.pop_front();
                     }
                     break;
                 }
@@ -377,29 +372,15 @@ void MainWindow::runWithRandomData()
                     ui->lcd_ProcRestantes->display(--processesRemaining);
                 }
 
+                ++auxCounter;
                 indexTime = 0;
             }
             IO_interruptionKey = false;
             keyError = false;
-
-            if(listos.empty()) {
-                qDebug() << "YES";
-                setNullProcess();
-                break;
-            }
-        }
-
-        while(!bloqueados.empty()) {
-            qDebug() << "dentro de aqui";
-            updateBloqueadosTable(bloqueados.at(0));
+        } else {
+            setNullProcess();
             updateTTBCounter();
             delay(1000);
-//            qDebug() << "detroooooo";
-        }
-
-        // Out infinite loop.
-        if(nuevos.empty() or pauseRequired) {
-            break;
         }
     }
 
@@ -443,140 +424,160 @@ void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeL
 
 void MainWindow::updateTTBCounter()
 {
-    // REVISAR.
+    // NOT PROUD OF THIS, BASICALLY, DEPENDING OF OUR BLOQUEADOS SIZE, WE ARE
+    // UPDATING OUR COUNTER FOR EACH ROW, THERE SHOULD BE AN AUTOMATIC WAY
+    // TO UPDATE EACH ROW DEPENDING OF OUR BLOQUEADOS SIZE WITHOUT REPETING CODE!
     qDebug() << "bloqueados size: " << bloqueados.size();
     if(bloqueados.size() == 1) {
         if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
-            qDebug() << "dentro size = 1";
+            qDebug() << "dentro del bloqueadis size 1";
             int TTB_p1 = bloqueados.at(0).getTTB();
             QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
             ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
             bloqueados.at(0).setTTB(TTB_p1);
         } else {
+            bloqueados.at(0).setTTB(0);
             listos.push_back(bloqueados.at(0));
             bloqueados.pop_front();
             ui->tblWgt_Bloqueados->removeRow(0);
             insertLastTableListo(listos.back());
-            startTTBCounter = false;
         }
     }
 
-//    if(bloqueados.size() == 2) {
-//        if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
-//            qDebug() << "dentro size = 2";
-//            int TTB_p1 = bloqueados.at(0).getTTB();
-//            int TTB_p2 = bloqueados.at(1).getTTB();
-//            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
-//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
-//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
-//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-//            bloqueados.at(0).setTTB(TTB_p1);
-//            bloqueados.at(1).setTTB(TTB_p2);
-//        } else {
-//            listos.push_back(bloqueados.at(0));
-//            bloqueados.pop_front();
-//            ui->tblWgt_Bloqueados->removeRow(0);
-//            insertLastTableListo(listos.back());
-//            startTTBCounter = false;
-//        }
+    if(bloqueados.size() == 2) {
+        if(bloqueados.at(0).getTTB() < LIMITE_TTB and
+           bloqueados.at(1).getTTB() < LIMITE_TTB)
+        {
+            qDebug() << "dentro del bloqueadis size 2";
+            int TTB_p1 = bloqueados.at(0).getTTB();
+            int TTB_p2 = bloqueados.at(1).getTTB();
+            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+            bloqueados.at(0).setTTB(TTB_p1);
+            bloqueados.at(1).setTTB(TTB_p2);
+        } else {
+            // Update immediately the bloqueados table after the front process finish.
+            int TTB_p2 = bloqueados.at(1).getTTB();
+            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+            bloqueados.at(1).setTTB(TTB_p2);
 
-//        if(bloqueados.at(1).getTTB() < LIMITE_TTB) {
-//            int TTB_p2 = bloqueados.at(1).getTTB();
-//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
-//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-//            bloqueados.at(1).setTTB(TTB_p2);
-//        } else {
-//            listos.push_back(bloqueados.at(1));
-//            bloqueados.pop_front();
-//            ui->tblWgt_Bloqueados->removeRow(1);
-//            insertLastTableListo(listos.back());
-//            startTTBCounter = false;
-//        }
-//    }
+            bloqueados.at(0).setTTB(0);
+            listos.push_back(bloqueados.at(0));
+            bloqueados.pop_front();
+            ui->tblWgt_Bloqueados->removeRow(0);
+            insertLastTableListo(listos.back());
+        }
+    }
 
-//    if(bloqueados.size() == 3) {
-//        if(bloqueados.at(2).getTTB() < LIMITE_TTB) {
-//            int TTB_p1 = bloqueados.at(0).getTTB();
-//            int TTB_p2 = bloqueados.at(1).getTTB();
-//            int TTB_p3 = bloqueados.at(2).getTTB();
-//            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
-//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
-//            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
-//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
-//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
-//            bloqueados.at(0).setTTB(TTB_p1);
-//            bloqueados.at(1).setTTB(TTB_p2);
-//            bloqueados.at(2).setTTB(TTB_p3);
-//        }
-//    }
+    if(bloqueados.size() == 3) {
+        if(bloqueados.at(0).getTTB() < LIMITE_TTB and
+           bloqueados.at(1).getTTB() < LIMITE_TTB and
+           bloqueados.at(2).getTTB() < LIMITE_TTB)
+        {
+            qDebug() << "dentro del bloqueadis size 3";
+            int TTB_p1 = bloqueados.at(0).getTTB();
+            int TTB_p2 = bloqueados.at(1).getTTB();
+            int TTB_p3 = bloqueados.at(2).getTTB();
+            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
+            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+            bloqueados.at(0).setTTB(TTB_p1);
+            bloqueados.at(1).setTTB(TTB_p2);
+            bloqueados.at(2).setTTB(TTB_p3);
+        } else {
+            // Update immediately the bloqueados table after the front process finish.
+            int TTB_p2 = bloqueados.at(1).getTTB();
+            int TTB_p3 = bloqueados.at(2).getTTB();
+            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
+            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+            bloqueados.at(1).setTTB(TTB_p2);
+            bloqueados.at(2).setTTB(TTB_p3);
 
-//    if(bloqueados.size() == 4) {
-//        if(bloqueados.at(3).getTTB() < LIMITE_TTB) {
-//            int TTB_p1 = bloqueados.at(0).getTTB();
-//            int TTB_p2 = bloqueados.at(1).getTTB();
-//            int TTB_p3 = bloqueados.at(2).getTTB();
-//            int TTB_p4 = bloqueados.at(3).getTTB();
-//            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
-//            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
-//            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
-//            QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
-//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
-//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
-//            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
-//            bloqueados.at(0).setTTB(TTB_p1);
-//            bloqueados.at(1).setTTB(TTB_p2);
-//            bloqueados.at(2).setTTB(TTB_p3);
-//            bloqueados.at(3).setTTB(TTB_p4);
-//        }
-//    }
-//    int TTB_p4 = bloqueados.at(3).getTTB();
+            bloqueados.at(0).setTTB(0);
+            listos.push_back(bloqueados.at(0));
+            bloqueados.pop_front();
+            ui->tblWgt_Bloqueados->removeRow(0);
+            insertLastTableListo(listos.back());
+        }
+    }
 
-//    QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
-//    ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
-//    ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
-//    bloqueados.at(3).setTTB(TTB_p4);
+    if(bloqueados.size() == 4) {
+        if(bloqueados.at(0).getTTB() < LIMITE_TTB and
+           bloqueados.at(1).getTTB() < LIMITE_TTB and
+           bloqueados.at(2).getTTB() < LIMITE_TTB and
+           bloqueados.at(3).getTTB() < LIMITE_TTB)
+        {
+            qDebug() << "dentro del bloqueadis size 4";
+            int TTB_p1 = bloqueados.at(0).getTTB();
+            int TTB_p2 = bloqueados.at(1).getTTB();
+            int TTB_p3 = bloqueados.at(2).getTTB();
+            int TTB_p4 = bloqueados.at(3).getTTB();
+            QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
+            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
+            QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
+            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
+            bloqueados.at(0).setTTB(TTB_p1);
+            bloqueados.at(1).setTTB(TTB_p2);
+            bloqueados.at(2).setTTB(TTB_p3);
+            bloqueados.at(3).setTTB(TTB_p4);
 
-//    for(auto& process : bloqueados) {
-//        if(process.getTTB() < LIMITE_TTB) {
-//            int TTB = process.getTTB();
-//            QTableWidgetItem *item_TTB = new QTableWidgetItem(QString::number(++TTB));
-//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, item_TTB);
-//            bloqueados.at(0).setTTB(TTB);
-//        } else {
-//            listos.push_back(process);
-//            bloqueados.pop_front();
-//            ui->tblWgt_Bloqueados->removeRow(0);
-//            insertLastTableListo(listos.back());
-//            startTTBCounter = false;
-//        }
-//    }
+        } else {
+            // Update immediately the bloqueados table after the front process finish.
+            int TTB_p2 = bloqueados.at(1).getTTB();
+            int TTB_p3 = bloqueados.at(2).getTTB();
+            int TTB_p4 = bloqueados.at(3).getTTB();
+            QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
+            QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
+            QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
+            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
+            bloqueados.at(1).setTTB(TTB_p2);
+            bloqueados.at(2).setTTB(TTB_p3);
+            bloqueados.at(3).setTTB(TTB_p4);
 
+            // Update our TT and TR counters.
+            int counterTimeElapsed = bloqueados.at(0).getTT();
+            int counterTimeLeft = bloqueados.at(0).getTR();
+            updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
+            insertDataTableRunningProcess(bloqueados.at(0));
 
-//    if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
-//        int TTB = bloqueados.at(0).getTTB();
-//        QTableWidgetItem *item_TTB = new QTableWidgetItem(QString::number(++TTB));
-//        ui->tblWgt_Bloqueados->setItem(0, TTB_BP, item_TTB);
-//        bloqueados.at(0).setTTB(TTB);
-//    } else {
-//        listos.push_back(bloqueados.at(0));
-//        bloqueados.pop_front();
-//        ui->tblWgt_Bloqueados->removeRow(0);
-//        insertLastTableListo(listos.back());
-//        startTTBCounter = false;
-//    }
+            bloqueados.at(0).setTTB(0);
+            listos.push_back(bloqueados.at(0));
+
+            // Also because we updated before our TT and TR counters,
+            // we also need to increment its index.
+            int aux = listos.at(0).getIndexTime();
+            listos.at(0).setIndexTime(++aux);
+            listos.at(0).setTT(counterTimeElapsed);
+            listos.at(0).setTR(counterTimeLeft);
+
+            bloqueados.pop_front();
+            ui->tblWgt_Bloqueados->removeRow(0);
+        }
+    }
 }
 
 void MainWindow::updateBloqueadosTable(Process &process)
 {
+    qDebug() << "dentro de uptabe cloqueados";
     ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
     int fila = ui->tblWgt_Bloqueados->rowCount() - 1;
-    int TTB = process.getTTB();
 
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
     ui->tblWgt_Bloqueados->setItem(fila, ID_BP, itemID);
-
 }
 
 void MainWindow::insertDataTableRunningProcess(Process runningProcess) {
@@ -605,9 +606,10 @@ void MainWindow::reset()
     pauseRequired = false;
     keyError = false;
     IO_interruptionKey = false;
-    startTTBCounter= false;
     processInserted = 0;
     processesRemaining = 0;
+    auxCounter = 0;
+    nuevosSize = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);
@@ -716,6 +718,8 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
             int aux = process.getTiempoMaximoEst();
             process.setTR(aux);
         }
+
+        nuevosSize = nuevos.size();
 
         // Push the first processes to our listos deque.
         listos = slice(nuevos);
