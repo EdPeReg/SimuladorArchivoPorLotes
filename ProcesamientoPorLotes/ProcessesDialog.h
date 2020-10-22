@@ -1,0 +1,32 @@
+#ifndef PROCESSESDIALOG_H
+#define PROCESSESDIALOG_H
+
+#include <QDialog>
+
+#include <vector>
+
+#include "Process.h"
+
+namespace Ui {
+class ProcessesDialog;
+}
+
+enum PROCESS_INFO {
+    ID_PI, NAME_PI, OPERATION_PI, RESULT_PI, TME_PI
+};
+
+class ProcessesDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit ProcessesDialog(QWidget *parent = nullptr);
+    ~ProcessesDialog();
+
+    void setProcessesFinished(const std::vector<Process>& proesses);
+
+private:
+    Ui::ProcessesDialog *ui;
+};
+
+#endif // PROCESSESDIALOG_H

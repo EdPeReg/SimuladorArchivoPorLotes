@@ -37,6 +37,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // We do this to our mainwindow to get the keys pressed.
     this->setFocusPolicy(Qt::StrongFocus);
+    setWindowTitle(tr("Procesamiento tipo FIFO"));
+
+    processesDialog = new ProcessesDialog(this);
 
     ui->tblWdt_ProcListo->setColumnCount(3);
     ui->tblWdt_ProcListo->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -214,7 +217,7 @@ int MainWindow::getRightOperand(const std::string& operation) {
     return stoi(operation.substr(operandPos + 1));
 }
 
-long MainWindow::doOperation(std::string& operation) {
+QString MainWindow::doOperation(std::string& operation) {
     int operandPos = getOperandPos(operation);
     int leftOperand = getLeftOperand(operation);
     int rightOperand = getRightOperand(operation);
@@ -241,7 +244,7 @@ long MainWindow::doOperation(std::string& operation) {
         break;
     }
 
-    return result;
+    return QString::number(result);
 }
 
 // THX dvntehn00bz,
@@ -284,10 +287,10 @@ void MainWindow::updateTableFinish(Process process) {
     if(keyError) {
         int TT = process.getTT();
         QString TTstr = QString::number(TT);
-        itemResult->setText(process.getEstado() + " TT " + TTstr);
+        itemResult->setText(process.getResult() + " TT " + TTstr);
         itemResult->setBackground(Qt::red);
     } else {
-        itemResult->setText(QString::number(process.getResult()));
+        itemResult->setText(process.getResult());
     }
 
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
@@ -316,6 +319,8 @@ void MainWindow::runWithRandomData()
                 insertDataTableRunningProcess(process);
                 updateGlobalCounter(++globalCounter);
 
+                // Keep continue updating my TTB counters from each process in the
+                // table bloqueados.
                 if(!bloqueados.empty()) {
                     updateTTBCounter();
                 }
@@ -344,7 +349,7 @@ void MainWindow::runWithRandomData()
                 }
 
                 if(keyError) {
-                    process.setEstado("ERROR");
+                    process.setResult("ERROR");
                     process.setTT(counterTimeElapsed);
                     listos.pop_front();
                     listos.push_front(process);
@@ -379,9 +384,13 @@ void MainWindow::runWithRandomData()
             IO_interruptionKey = false;
             keyError = false;
         } else {
+            // List is empty, all processes are in the bloqueados table.
             setNullProcess();
             updateTTBCounter();
+            updateGlobalCounter(++globalCounter);
             delay(1000);
+
+            if(pauseRequired) break;
         }
     }
 
@@ -659,6 +668,9 @@ void MainWindow::insertDataTableRunningProcess(Process runningProcess) {
 void MainWindow::reset()
 {
     qDebug() << "reseteando";
+
+    processesDialog->setProcessesFinished(terminados);
+    processesDialog->show();
 
     nuevos.clear();
     listos.clear();

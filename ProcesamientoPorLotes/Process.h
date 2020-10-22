@@ -8,6 +8,7 @@ class Process {
         QString programmerName;
         QString operation;
         QString estado;
+        QString result;
         int tiempoMaximoEst;
         int id;
         int TT;
@@ -15,10 +16,9 @@ class Process {
         int TTB;
         int indexTime;
         int TME;
-        long result;
     public:
         Process() : programmerName(""), operation(""),
-                    estado("SIN ERROR"), tiempoMaximoEst(0), id(0),
+                    estado("SIN ERROR"), result(""), tiempoMaximoEst(0), id(0),
                     TT(0), TR(0), TTB(0), indexTime(0), TME(0) { };
 
         void setProgrammerName(const QString& programmerName) {
@@ -31,6 +31,10 @@ class Process {
 
         void setEstado(const QString& estado) {
             this->estado = estado;
+        }
+
+        void setResult(const QString& result) {
+            this->result = result;
         }
 
         void setTiempoMaximoEst(int tiempoMaximoEst) {
@@ -77,6 +81,10 @@ class Process {
             return estado;
         }
 
+        QString getResult() const {
+            return result;
+        }
+
         int getTiempoMaximoEst() const {
             return tiempoMaximoEst;
         }
@@ -104,10 +112,6 @@ class Process {
 
         int getTME() const {
             return TME;
-        }
-
-        long getResult() const {
-            return result;
         }
 };
 

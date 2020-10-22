@@ -16,8 +16,8 @@
 #include <deque>
 #include <vector>
 
-//#include "Batch.h"
 #include "Process.h"
+#include "ProcessesDialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -50,6 +50,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    ProcessesDialog* processesDialog;
     std::deque<Process> nuevos;
     std::deque<Process> listos;
     std::deque<Process> bloqueados;
@@ -98,7 +99,7 @@ private:
     int computeQueues(int numProcess);
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
-    long doOperation(std::string& operation);
+    QString doOperation(std::string& operation);
 protected:
     void keyPressEvent(QKeyEvent* event) override; // new
 
