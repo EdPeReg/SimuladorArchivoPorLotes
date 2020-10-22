@@ -12,6 +12,7 @@
 
 - Memory leak qtablewidgetitem
 - Use a list for batches and a deque for the processes.
+- Pause when processes are blocked?
 
 */
 
@@ -427,6 +428,7 @@ void MainWindow::updateTTBCounter()
     // NOT PROUD OF THIS, BASICALLY, DEPENDING OF OUR BLOQUEADOS SIZE, WE ARE
     // UPDATING OUR COUNTER FOR EACH ROW, THERE SHOULD BE AN AUTOMATIC WAY
     // TO UPDATE EACH ROW DEPENDING OF OUR BLOQUEADOS SIZE WITHOUT REPETING CODE!
+    // REFACTOR IT!!!!!
     qDebug() << "bloqueados size: " << bloqueados.size();
     if(bloqueados.size() == 1) {
         if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
@@ -436,11 +438,32 @@ void MainWindow::updateTTBCounter()
             ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
             bloqueados.at(0).setTTB(TTB_p1);
         } else {
-            bloqueados.at(0).setTTB(0);
-            listos.push_back(bloqueados.at(0));
-            bloqueados.pop_front();
-            ui->tblWgt_Bloqueados->removeRow(0);
-            insertLastTableListo(listos.back());
+            if(!listos.empty()) {
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+                insertLastTableListo(listos.back());
+            } else {
+                // Update our TT and TR counters.
+                int counterTimeElapsed = bloqueados.at(0).getTT();
+                int counterTimeLeft = bloqueados.at(0).getTR();
+                updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
+                insertDataTableRunningProcess(bloqueados.at(0));
+
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+
+                // Also because we updated before our TT and TR counters,
+                // we also need to increment its index.
+                int aux = listos.at(0).getIndexTime();
+                listos.at(0).setIndexTime(++aux);
+                listos.at(0).setTT(counterTimeElapsed);
+                listos.at(0).setTR(counterTimeLeft);
+
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+            }
         }
     }
 
@@ -464,11 +487,32 @@ void MainWindow::updateTTBCounter()
             ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
             bloqueados.at(1).setTTB(TTB_p2);
 
-            bloqueados.at(0).setTTB(0);
-            listos.push_back(bloqueados.at(0));
-            bloqueados.pop_front();
-            ui->tblWgt_Bloqueados->removeRow(0);
-            insertLastTableListo(listos.back());
+            if(!listos.empty()) {
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+                insertLastTableListo(listos.back());
+            } else {
+                // Update our TT and TR counters.
+                int counterTimeElapsed = bloqueados.at(0).getTT();
+                int counterTimeLeft = bloqueados.at(0).getTR();
+                updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
+                insertDataTableRunningProcess(bloqueados.at(0));
+
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+
+                // Also because we updated before our TT and TR counters,
+                // we also need to increment its index.
+                int aux = listos.at(0).getIndexTime();
+                listos.at(0).setIndexTime(++aux);
+                listos.at(0).setTT(counterTimeElapsed);
+                listos.at(0).setTR(counterTimeLeft);
+
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+            }
         }
     }
 
@@ -501,11 +545,32 @@ void MainWindow::updateTTBCounter()
             bloqueados.at(1).setTTB(TTB_p2);
             bloqueados.at(2).setTTB(TTB_p3);
 
-            bloqueados.at(0).setTTB(0);
-            listos.push_back(bloqueados.at(0));
-            bloqueados.pop_front();
-            ui->tblWgt_Bloqueados->removeRow(0);
-            insertLastTableListo(listos.back());
+            if(!listos.empty()) {
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+                insertLastTableListo(listos.back());
+            } else {
+                // Update our TT and TR counters.
+                int counterTimeElapsed = bloqueados.at(0).getTT();
+                int counterTimeLeft = bloqueados.at(0).getTR();
+                updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
+                insertDataTableRunningProcess(bloqueados.at(0));
+
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+
+                // Also because we updated before our TT and TR counters,
+                // we also need to increment its index.
+                int aux = listos.at(0).getIndexTime();
+                listos.at(0).setIndexTime(++aux);
+                listos.at(0).setTT(counterTimeElapsed);
+                listos.at(0).setTR(counterTimeLeft);
+
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+            }
         }
     }
 
