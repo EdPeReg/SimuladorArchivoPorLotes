@@ -73,7 +73,6 @@ private:
     int globalCounter;
     int auxCounter;
     int nuevosSize;
-    int tiempoLlegadaCounter;
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();

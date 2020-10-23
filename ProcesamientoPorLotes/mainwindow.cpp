@@ -34,7 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
     , globalCounter(0)
     , auxCounter(0)
     , nuevosSize(0)
-    , tiempoLlegadaCounter(0)
 {
     ui->setupUi(this);
 
@@ -149,7 +148,7 @@ void MainWindow::insertProcessRandomly()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(10,13);
+    std::uniform_int_distribution<int> randomTME(7,16);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -309,7 +308,9 @@ void MainWindow::runWithRandomData()
 {
     while(auxCounter < nuevosSize) {
         if(!listos.empty()) {
-            Process process = listos.front(); // Get the first process.
+            Process process = listos.front(); 		  // Get the first process.
+//            process.setEnteredExecution(true);
+//            listos.front().setEnteredExecution(true); // The process is in execution table.
             listos.pop_front();
             int row = 0;
             int counterTimeElapsed = process.getTT();
@@ -334,12 +335,34 @@ void MainWindow::runWithRandomData()
                 if(IO_interruptionKey) {
                     // To not insert more than four processes.
                     if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
-                        qDebug() << "dentro del if IO interrupcion";
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
+                        process.setEnteredExecution(true);
 
-//                        listos.pop_front();
+//                        if(!listos.front().getEnteredExecution()) {
+//                            listos.front().setEnteredExecution(true);
+//                            if(!nuevos.empty()) {
+//                                qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+//                                qDebug() << "contador global: " << globalCounter;
+
+//                                // The new process finally enters to listos table.
+//                                nuevos.front().setTiempoLlegada(globalCounter);
+
+//                                listos.front().setGlobalCounter(globalCounter);
+//                                listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+
+//                                listos.push_back(nuevos.front());
+//                                nuevos.pop_front();
+//                            } else {
+//                                qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+//                                qDebug() << "contador global: " << globalCounter;
+//                                listos.front().setGlobalCounter(globalCounter);
+//                                listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+//                            }
+//                        }
+
+
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
                     }
@@ -349,7 +372,7 @@ void MainWindow::runWithRandomData()
                 if(pauseRequired) {
                     process.setTT(counterTimeElapsed);
                     process.setTR(counterTimeLeft);
-                    process.setIndexTime(++indexTime); // INcrement to be in the right index.
+                    process.setIndexTime(++indexTime); // Increment to be in the right index.
 
                     // Push again the process with the updated information.
                     // Doing this to show again the process when you resume.
@@ -381,20 +404,26 @@ void MainWindow::runWithRandomData()
 
                 terminados.push_back(process);
 
-                if(!nuevos.empty()) {
-                    // We set its tiempo llegada once the first processes finish.
-                    nuevos.front().setTiempoLlegada(globalCounter);
+                if(!listos.front().getEnteredExecution()) {
+                    listos.front().setEnteredExecution(true);
+                    if(!nuevos.empty()) {
+                        qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+                        qDebug() << "contador global: " << globalCounter;
 
-                    qDebug() << "contador global: " << globalCounter;
-                    qDebug() << "tiempo llegada: " << nuevos.front().getTiempoLlegada();
+                        // The new process finally enters to listos table.
+                        nuevos.front().setTiempoLlegada(globalCounter);
 
-//                    nuevos.front().setTiempoDeRespuesta(globalCounter - nuevos.front().getTiempoLlegada());
+                        listos.front().setGlobalCounter(globalCounter);
+                        listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
 
-
-
-
-                    listos.push_back(nuevos.front());
-                    nuevos.pop_front();
+                        listos.push_back(nuevos.front());
+                        nuevos.pop_front();
+                    } else {
+                        qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+                        qDebug() << "contador global: " << globalCounter;
+                        listos.front().setGlobalCounter(globalCounter);
+                        listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+                    }
                 }
 
                 updateTableFinish(process);
@@ -746,7 +775,6 @@ void MainWindow::updateTTBCounter()
 
 void MainWindow::updateBloqueadosTable(Process &process)
 {
-    qDebug() << "dentro de uptabe cloqueados";
     ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
     int fila = ui->tblWgt_Bloqueados->rowCount() - 1;
 
@@ -789,7 +817,6 @@ void MainWindow::reset()
     processesRemaining = 0;
     auxCounter = 0;
     nuevosSize = 0;
-    tiempoLlegadaCounter = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);

@@ -1,6 +1,8 @@
 #include "ProcessesDialog.h"
 #include "ui_processesdialog.h"
 
+#include <QDebug>
+
 ProcessesDialog::ProcessesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ProcessesDialog)
@@ -37,6 +39,8 @@ void ProcessesDialog::setProcessesFinished(const std::vector<Process> &processes
     int row = 0;
     ui->tblWdt_Terminados->setRowCount(totalRows--);
     for(const auto& process : processes) {
+        qDebug() << "process with ID: " << process.getId() << " global counter: " << process.getGlobalCounter();
+
         // It can also be tiempo de espera - tiempo de servicio.
         int _tiempoRetorno = process.getTiempoFinalizacion() - process.getTiempoLlegada();
         int _tiempoEspera = _tiempoRetorno - process.getTiempoServicio();

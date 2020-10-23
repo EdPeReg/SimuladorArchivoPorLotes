@@ -19,6 +19,8 @@ class Process {
         int tiempoFinalizacion;
         int tiempoDeRespuesta;
         int tiempoServicio;
+        int globalCounter;
+        bool enteredExecution; // If the process touch for the first time execution.
     public:
         Process() :
             programmerName("")
@@ -34,7 +36,9 @@ class Process {
           , tiempoLlegada(0)
           , tiempoFinalizacion(0)
           , tiempoDeRespuesta(0)
-          , tiempoServicio(0) { }
+          , tiempoServicio(0)
+          , globalCounter(0)
+          , enteredExecution(false) { }
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -76,6 +80,10 @@ class Process {
             this->tiempoLlegada = tiempoLlegada;
         }
 
+        void setGlobalCounter(int globalCounter) {
+            this->globalCounter = globalCounter;
+        }
+
         void setResult(const QString& result) {
             this->result = result;
         }
@@ -90,6 +98,10 @@ class Process {
 
         void setTiempoServicio(int tiempoServicio) {
             this->tiempoServicio = tiempoServicio;
+        }
+
+        void setEnteredExecution(bool enteredExecution) {
+            this->enteredExecution = enteredExecution;
         }
 
         QString getProgrammerName() const {
@@ -147,6 +159,14 @@ class Process {
 
         int getTiempoServicio() const {
             return tiempoServicio;
+        }
+
+        int getGlobalCounter() const {
+            return globalCounter;
+        }
+
+        bool getEnteredExecution() {
+            return enteredExecution;
         }
 };
 
