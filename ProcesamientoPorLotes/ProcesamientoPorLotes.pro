@@ -21,7 +21,6 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
-    Batch.h \
     Process.h \
     ProcessesDialog.h \
     mainwindow.h

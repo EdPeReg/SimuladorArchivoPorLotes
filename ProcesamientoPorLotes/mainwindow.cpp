@@ -309,8 +309,6 @@ void MainWindow::runWithRandomData()
     while(auxCounter < nuevosSize) {
         if(!listos.empty()) {
             Process process = listos.front(); 		  // Get the first process.
-//            process.setEnteredExecution(true);
-//            listos.front().setEnteredExecution(true); // The process is in execution table.
             listos.pop_front();
             int row = 0;
             int counterTimeElapsed = process.getTT();
@@ -347,13 +345,10 @@ void MainWindow::runWithRandomData()
                                 qDebug() << "contador global: " << globalCounter;
 
                                 // The new process finally enters to listos table.
-//                                nuevos.front().setTiempoLlegada(globalCounter);
+                                nuevos.front().setTiempoLlegada(globalCounter);
 
                                 listos.front().setGlobalCounter(globalCounter);
                                 listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
-
-//                                listos.push_back(nuevos.front());
-//                                nuevos.pop_front();
                             } else {
                                 qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                                 qDebug() << "contador global: " << globalCounter;
@@ -361,7 +356,6 @@ void MainWindow::runWithRandomData()
                                 listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
                             }
                         }
-
 
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
@@ -415,9 +409,13 @@ void MainWindow::runWithRandomData()
 
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+                    } else {
+                        // The new process finally enters to listos table.
+                        nuevos.front().setTiempoLlegada(globalCounter);
+
+                        listos.push_back(nuevos.front());
+                        nuevos.pop_front();
                     }
-                    listos.push_back(nuevos.front());
-                    nuevos.pop_front();
                 } else {
                     if(!listos.front().getEnteredExecution()) {
                         listos.front().setEnteredExecution(true);
@@ -432,7 +430,6 @@ void MainWindow::runWithRandomData()
                     }
                 }
 
-                ///////////////////////////////////////////
                 updateTableFinish(process);
                 process.setTT(counterTimeElapsed);
 
