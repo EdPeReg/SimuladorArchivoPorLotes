@@ -65,6 +65,7 @@ private:
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
+    bool isProcessNull;
     int processInserted;
     int processesRemaining;
     int batchNum;
@@ -73,7 +74,6 @@ private:
     int auxCounter;
     int nuevosSize;
     int tiempoLlegadaCounter;
-    int counterTiempoRespuesta; // falta
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();

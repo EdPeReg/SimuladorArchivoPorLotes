@@ -13,6 +13,7 @@
 - Memory leak qtablewidgetitem
 - Use a list for batches and a deque for the processes.
 - Pause when processes are blocked?
+- Maybe there TT in the process table is not updated after e
 
 */
 
@@ -25,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     , pauseRequired(false)
     , keyError(false)
     , IO_interruptionKey(false)
+    , isProcessNull(false)
     , processInserted(0)
     , processesRemaining(0)
     , batchNum(1)
@@ -33,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent)
     , auxCounter(0)
     , nuevosSize(0)
     , tiempoLlegadaCounter(0)
-    , counterTiempoRespuesta(0)
 {
     ui->setupUi(this);
 
@@ -148,7 +149,7 @@ void MainWindow::insertProcessRandomly()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(3,5);
+    std::uniform_int_distribution<int> randomTME(10,13);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -309,6 +310,7 @@ void MainWindow::runWithRandomData()
     while(auxCounter < nuevosSize) {
         if(!listos.empty()) {
             Process process = listos.front(); // Get the first process.
+            listos.pop_front();
             int row = 0;
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
@@ -337,7 +339,7 @@ void MainWindow::runWithRandomData()
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
 
-                        listos.pop_front();
+//                        listos.pop_front();
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
                     }
@@ -345,9 +347,13 @@ void MainWindow::runWithRandomData()
                 }
 
                 if(pauseRequired) {
-                    listos.at(0).setTT(counterTimeElapsed);
-                    listos.at(0).setTR(counterTimeLeft);
-                    listos.at(0).setIndexTime(++indexTime); // Increment to be in the right index.
+                    process.setTT(counterTimeElapsed);
+                    process.setTR(counterTimeLeft);
+                    process.setIndexTime(++indexTime); // INcrement to be in the right index.
+
+                    // Push again the process with the updated information.
+                    // Doing this to show again the process when you resume.
+                    listos.push_front(process);
                     break;
                 }
 
@@ -357,8 +363,6 @@ void MainWindow::runWithRandomData()
                     process.setTT(counterTimeElapsed);
                     // If there is an error, our tiempo servicio will be our TT.
                     process.setTiempoServicio(counterTimeElapsed);
-                    listos.pop_front();
-                    listos.push_front(process);
                     break;
                 }
 
@@ -376,7 +380,6 @@ void MainWindow::runWithRandomData()
                 }
 
                 terminados.push_back(process);
-                listos.pop_front();
 
                 if(!nuevos.empty()) {
                     // We set its tiempo llegada once the first processes finish.
@@ -433,7 +436,7 @@ void MainWindow::updateTableCurrentBatch(const std::deque<Process>& deque, int& 
         ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
         ui->tblWdt_ProcListo->setItem(row++, TT, itemTT);
     }
-    ui->tblWdt_ProcListo->removeRow(0);
+//    ui->tblWdt_ProcListo->removeRow(0);
 }
 
 void MainWindow::insertLastTableListo(const Process &process)
@@ -480,20 +483,39 @@ void MainWindow::updateTTBCounter()
                 int counterTimeElapsed = bloqueados.at(0).getTT();
                 int counterTimeLeft = bloqueados.at(0).getTR();
                 updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
-                insertDataTableRunningProcess(bloqueados.at(0));
 
-                bloqueados.at(0).setTTB(0);
-                listos.push_back(bloqueados.at(0));
+                // If there is a null process, insert the process in the running table
+                // if not, just insert the process in our listos table.
+                if(isProcessNull) {
+                    isProcessNull = false;
+                    insertDataTableRunningProcess(bloqueados.at(0));
+                    bloqueados.at(0).setTTB(0);
+                    listos.push_back(bloqueados.at(0));
 
-                // Also because we updated before our TT and TR counters,
-                // we also need to increment its index.
-                int aux = listos.at(0).getIndexTime();
-                listos.at(0).setIndexTime(++aux);
-                listos.at(0).setTT(counterTimeElapsed);
-                listos.at(0).setTR(counterTimeLeft);
+                    // Also because we updated before our TT and TR counters,
+                    // we also need to increment its index.
+                    int aux = listos.at(0).getIndexTime();
+                    listos.at(0).setIndexTime(++aux);
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
 
-                bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
+                    bloqueados.pop_front();
+                    ui->tblWgt_Bloqueados->removeRow(0);
+                } else {
+                    bloqueados.at(0).setTTB(0);
+                    listos.push_back(bloqueados.at(0));
+                    insertLastTableListo(listos.back());
+
+                    // Also because we updated before our TT and TR counters,
+                    // we also need to increment its index.
+                    int aux = listos.at(0).getIndexTime();
+                    listos.at(0).setIndexTime(++aux);
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
+
+                    bloqueados.pop_front();
+                    ui->tblWgt_Bloqueados->removeRow(0);
+                }
             }
         }
     }
@@ -528,20 +550,39 @@ void MainWindow::updateTTBCounter()
                 int counterTimeElapsed = bloqueados.at(0).getTT();
                 int counterTimeLeft = bloqueados.at(0).getTR();
                 updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
-                insertDataTableRunningProcess(bloqueados.at(0));
 
-                bloqueados.at(0).setTTB(0);
-                listos.push_back(bloqueados.at(0));
+                // If there is a null process, insert the process in the running table
+                // if not, just insert the process in our listos table.
+                if(isProcessNull) {
+                    isProcessNull = false;
+                    insertDataTableRunningProcess(bloqueados.at(0));
+                    bloqueados.at(0).setTTB(0);
+                    listos.push_back(bloqueados.at(0));
 
-                // Also because we updated before our TT and TR counters,
-                // we also need to increment its index.
-                int aux = listos.at(0).getIndexTime();
-                listos.at(0).setIndexTime(++aux);
-                listos.at(0).setTT(counterTimeElapsed);
-                listos.at(0).setTR(counterTimeLeft);
+                    // Also because we updated before our TT and TR counters,
+                    // we also need to increment its index.
+                    int aux = listos.at(0).getIndexTime();
+                    listos.at(0).setIndexTime(++aux);
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
 
-                bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
+                    bloqueados.pop_front();
+                    ui->tblWgt_Bloqueados->removeRow(0);
+                } else {
+                    bloqueados.at(0).setTTB(0);
+                    listos.push_back(bloqueados.at(0));
+                    insertLastTableListo(listos.back());
+
+                    // Also because we updated before our TT and TR counters,
+                    // we also need to increment its index.
+                    int aux = listos.at(0).getIndexTime();
+                    listos.at(0).setIndexTime(++aux);
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
+
+                    bloqueados.pop_front();
+                    ui->tblWgt_Bloqueados->removeRow(0);
+                }
             }
         }
     }
@@ -585,20 +626,40 @@ void MainWindow::updateTTBCounter()
                 int counterTimeElapsed = bloqueados.at(0).getTT();
                 int counterTimeLeft = bloqueados.at(0).getTR();
                 updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
-                insertDataTableRunningProcess(bloqueados.at(0));
 
-                bloqueados.at(0).setTTB(0);
-                listos.push_back(bloqueados.at(0));
+                // If there is a null process, insert the process in the running table
+                // if not, just insert the process in our listos table.
+                if(isProcessNull) {
+                    isProcessNull = false;
+                    insertDataTableRunningProcess(bloqueados.at(0));
+                    bloqueados.at(0).setTTB(0);
+                    listos.push_back(bloqueados.at(0));
 
-                // Also because we updated before our TT and TR counters,
-                // we also need to increment its index.
-                int aux = listos.at(0).getIndexTime();
-                listos.at(0).setIndexTime(++aux);
-                listos.at(0).setTT(counterTimeElapsed);
-                listos.at(0).setTR(counterTimeLeft);
+                    // Also because we updated before our TT and TR counters,
+                    // we also need to increment its index.
+                    int aux = listos.at(0).getIndexTime();
+                    listos.at(0).setIndexTime(++aux);
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
 
-                bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
+                    bloqueados.pop_front();
+                    ui->tblWgt_Bloqueados->removeRow(0);
+                } else {
+                    bloqueados.at(0).setTTB(0);
+                    listos.push_back(bloqueados.at(0));
+                    insertLastTableListo(listos.back());
+
+                    // Also because we updated before our TT and TR counters,
+                    // we also need to increment its index.
+                    int aux = listos.at(0).getIndexTime();
+                    listos.at(0).setIndexTime(++aux);
+                    listos.at(0).setTT(counterTimeElapsed);
+                    listos.at(0).setTR(counterTimeLeft);
+
+                    bloqueados.pop_front();
+                    ui->tblWgt_Bloqueados->removeRow(0);
+                }
+
             }
         }
     }
@@ -647,18 +708,38 @@ void MainWindow::updateTTBCounter()
             updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
             insertDataTableRunningProcess(bloqueados.at(0));
 
-            bloqueados.at(0).setTTB(0);
-            listos.push_back(bloqueados.at(0));
+            // If there is a null process, insert the process in the running table
+            // if not, just insert the process in our listos table.
+            if(isProcessNull) {
+                isProcessNull = false;
+                insertDataTableRunningProcess(bloqueados.at(0));
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
 
-            // Also because we updated before our TT and TR counters,
-            // we also need to increment its index.
-            int aux = listos.at(0).getIndexTime();
-            listos.at(0).setIndexTime(++aux);
-            listos.at(0).setTT(counterTimeElapsed);
-            listos.at(0).setTR(counterTimeLeft);
+                // Also because we updated before our TT and TR counters,
+                // we also need to increment its index.
+                int aux = listos.at(0).getIndexTime();
+                listos.at(0).setIndexTime(++aux);
+                listos.at(0).setTT(counterTimeElapsed);
+                listos.at(0).setTR(counterTimeLeft);
 
-            bloqueados.pop_front();
-            ui->tblWgt_Bloqueados->removeRow(0);
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+            } else {
+                bloqueados.at(0).setTTB(0);
+                listos.push_back(bloqueados.at(0));
+                insertLastTableListo(listos.back());
+
+                // Also because we updated before our TT and TR counters,
+                // we also need to increment its index.
+                int aux = listos.at(0).getIndexTime();
+                listos.at(0).setIndexTime(++aux);
+                listos.at(0).setTT(counterTimeElapsed);
+                listos.at(0).setTR(counterTimeLeft);
+
+                bloqueados.pop_front();
+                ui->tblWgt_Bloqueados->removeRow(0);
+            }
         }
     }
 }
@@ -703,12 +784,12 @@ void MainWindow::reset()
     pauseRequired = false;
     keyError = false;
     IO_interruptionKey = false;
+    isProcessNull = false;
     processInserted = 0;
     processesRemaining = 0;
     auxCounter = 0;
     nuevosSize = 0;
     tiempoLlegadaCounter = 0;
-    counterTiempoRespuesta = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);
@@ -749,6 +830,7 @@ void MainWindow::setInitialProcCounterValue()
 
 void MainWindow::setNullProcess()
 {
+    isProcessNull = true;
     Process nullProcess;
     nullProcess.setId(-1);
     nullProcess.setProgrammerName("NULL");
