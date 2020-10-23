@@ -7,7 +7,6 @@ class Process {
     private:
         QString programmerName;
         QString operation;
-        QString estado;
         QString result;
         int tiempoMaximoEst;
         int id;
@@ -16,10 +15,26 @@ class Process {
         int TTB;
         int indexTime;
         int TME;
+        int tiempoLlegada;
+        int tiempoFinalizacion;
+        int tiempoDeRespuesta;
+        int tiempoServicio;
     public:
-        Process() : programmerName(""), operation(""),
-                    estado("SIN ERROR"), result(""), tiempoMaximoEst(0), id(0),
-                    TT(0), TR(0), TTB(0), indexTime(0), TME(0) { };
+        Process() :
+            programmerName("")
+          , operation("")
+          , result("")
+          , tiempoMaximoEst(0)
+          , id(0)
+          , TT(0)
+          , TR(0)
+          , TTB(0)
+          , indexTime(0)
+          , TME(0)
+          , tiempoLlegada(0)
+          , tiempoFinalizacion(0)
+          , tiempoDeRespuesta(0)
+          , tiempoServicio(0) { }
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -27,14 +42,6 @@ class Process {
 
         void setOperation(const QString& operation) {
             this->operation = operation;
-        }
-
-        void setEstado(const QString& estado) {
-            this->estado = estado;
-        }
-
-        void setResult(const QString& result) {
-            this->result = result;
         }
 
         void setTiempoMaximoEst(int tiempoMaximoEst) {
@@ -65,8 +72,24 @@ class Process {
             this->TME = TME;
         }
 
-        void setResult(long result) {
+        void setTiempoLlegada(int tiempoLlegada) {
+            this->tiempoLlegada = tiempoLlegada;
+        }
+
+        void setResult(const QString& result) {
             this->result = result;
+        }
+
+        void setTiempoFinalizacion(int tiempoFinalizacion) {
+            this->tiempoFinalizacion = tiempoFinalizacion;
+        }
+
+        void setTiempoDeRespuesta(int tiempoDeRespuest) {
+            this->tiempoDeRespuesta = tiempoDeRespuest;
+        }
+
+        void setTiempoServicio(int tiempoServicio) {
+            this->tiempoServicio = tiempoServicio;
         }
 
         QString getProgrammerName() const {
@@ -75,14 +98,6 @@ class Process {
 
         QString getOperation() const {
             return operation;
-        }
-
-        QString getEstado() const {
-            return estado;
-        }
-
-        QString getResult() const {
-            return result;
         }
 
         int getTiempoMaximoEst() const {
@@ -112,6 +127,26 @@ class Process {
 
         int getTME() const {
             return TME;
+        }
+
+        int getTiempoLlegada() const {
+            return tiempoLlegada;
+        }
+
+        QString getResult() const {
+            return result;
+        }
+
+        int getTiempoFinalizacion() const {
+            return tiempoFinalizacion;
+        }
+
+        int getTiempoDeRespuesta() const {
+            return tiempoDeRespuesta;
+        }
+
+        int getTiempoServicio() const {
+            return tiempoServicio;
         }
 };
 

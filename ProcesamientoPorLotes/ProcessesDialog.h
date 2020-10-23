@@ -12,7 +12,8 @@ class ProcessesDialog;
 }
 
 enum PROCESS_INFO {
-    ID_PI, NAME_PI, OPERATION_PI, RESULT_PI, TME_PI
+    ID_PI, NAME_PI, OPERATION_PI, RESULT_PI, TME_PI,
+    TL_PI, TF_PI, TR_PI, TRE_PI, TE_PI, TS_PI
 };
 
 class ProcessesDialog : public QDialog

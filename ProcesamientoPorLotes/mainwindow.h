@@ -72,6 +72,8 @@ private:
     int globalCounter;
     int auxCounter;
     int nuevosSize;
+    int tiempoLlegadaCounter;
+    int counterTiempoRespuesta; // falta
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();
@@ -92,8 +94,7 @@ private:
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
-    void aux();
-    std::deque<Process> slice(const std::deque<Process> &deque);
+    std::deque<Process> slice(std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int computeQueues(int numProcess);

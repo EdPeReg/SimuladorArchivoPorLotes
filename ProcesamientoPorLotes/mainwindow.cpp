@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     , globalCounter(0)
     , auxCounter(0)
     , nuevosSize(0)
+    , tiempoLlegadaCounter(0)
+    , counterTiempoRespuesta(0)
 {
     ui->setupUi(this);
 
@@ -146,7 +148,7 @@ void MainWindow::insertProcessRandomly()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(8,10);
+    std::uniform_int_distribution<int> randomTME(3,5);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -169,7 +171,8 @@ void MainWindow::insertProcessRandomly()
 
         process.setProgrammerName(programmerName);
         process.setOperation(auxOperation);
-        process.setResult(doOperation(operation));
+        QString r = doOperation(operation);
+        process.setResult(r);
         process.setTiempoMaximoEst(randomTME(mt));
         process.setId(id++);
 
@@ -243,8 +246,8 @@ QString MainWindow::doOperation(std::string& operation) {
             result = pow(leftOperand, rightOperand);
         break;
     }
-
-    return QString::number(result);
+    QString r = QString::number(result);
+    return r;
 }
 
 // THX dvntehn00bz,
@@ -312,12 +315,12 @@ void MainWindow::runWithRandomData()
             int indexTime = process.getIndexTime();
 
             updateTableCurrentBatch(listos, row);
+            insertDataTableRunningProcess(process);
 
-            // Iterate in our TME.
+            // Iterate in our TME, our process is in execution.
             while(indexTime < process.getTiempoMaximoEst()) {
-                updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
-                insertDataTableRunningProcess(process);
                 updateGlobalCounter(++globalCounter);
+                updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
 
                 // Keep continue updating my TTB counters from each process in the
                 // table bloqueados.
@@ -349,8 +352,11 @@ void MainWindow::runWithRandomData()
                 }
 
                 if(keyError) {
-                    process.setResult("ERROR");
+                    QString aux = "ERROR";
+                    process.setResult(aux);
                     process.setTT(counterTimeElapsed);
+                    // If there is an error, our tiempo servicio will be our TT.
+                    process.setTiempoServicio(counterTimeElapsed);
                     listos.pop_front();
                     listos.push_front(process);
                     break;
@@ -362,10 +368,28 @@ void MainWindow::runWithRandomData()
             if(pauseRequired) break;
 
             if(!IO_interruptionKey) {
+                process.setTiempoFinalizacion(globalCounter);
+
+                // If there is no error, our tiempo servicio will be our TME.
+                if(!keyError) {
+                    process.setTiempoServicio(process.getTiempoMaximoEst());
+                }
+
                 terminados.push_back(process);
                 listos.pop_front();
 
                 if(!nuevos.empty()) {
+                    // We set its tiempo llegada once the first processes finish.
+                    nuevos.front().setTiempoLlegada(globalCounter);
+
+                    qDebug() << "contador global: " << globalCounter;
+                    qDebug() << "tiempo llegada: " << nuevos.front().getTiempoLlegada();
+
+//                    nuevos.front().setTiempoDeRespuesta(globalCounter - nuevos.front().getTiempoLlegada());
+
+
+
+
                     listos.push_back(nuevos.front());
                     nuevos.pop_front();
                 }
@@ -438,10 +462,8 @@ void MainWindow::updateTTBCounter()
     // UPDATING OUR COUNTER FOR EACH ROW, THERE SHOULD BE AN AUTOMATIC WAY
     // TO UPDATE EACH ROW DEPENDING OF OUR BLOQUEADOS SIZE WITHOUT REPETING CODE!
     // REFACTOR IT!!!!!
-    qDebug() << "bloqueados size: " << bloqueados.size();
     if(bloqueados.size() == 1) {
         if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
-            qDebug() << "dentro del bloqueadis size 1";
             int TTB_p1 = bloqueados.at(0).getTTB();
             QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
             ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
@@ -480,7 +502,6 @@ void MainWindow::updateTTBCounter()
         if(bloqueados.at(0).getTTB() < LIMITE_TTB and
            bloqueados.at(1).getTTB() < LIMITE_TTB)
         {
-            qDebug() << "dentro del bloqueadis size 2";
             int TTB_p1 = bloqueados.at(0).getTTB();
             int TTB_p2 = bloqueados.at(1).getTTB();
             QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
@@ -530,7 +551,6 @@ void MainWindow::updateTTBCounter()
            bloqueados.at(1).getTTB() < LIMITE_TTB and
            bloqueados.at(2).getTTB() < LIMITE_TTB)
         {
-            qDebug() << "dentro del bloqueadis size 3";
             int TTB_p1 = bloqueados.at(0).getTTB();
             int TTB_p2 = bloqueados.at(1).getTTB();
             int TTB_p3 = bloqueados.at(2).getTTB();
@@ -589,7 +609,6 @@ void MainWindow::updateTTBCounter()
            bloqueados.at(2).getTTB() < LIMITE_TTB and
            bloqueados.at(3).getTTB() < LIMITE_TTB)
         {
-            qDebug() << "dentro del bloqueadis size 4";
             int TTB_p1 = bloqueados.at(0).getTTB();
             int TTB_p2 = bloqueados.at(1).getTTB();
             int TTB_p3 = bloqueados.at(2).getTTB();
@@ -675,6 +694,7 @@ void MainWindow::reset()
     nuevos.clear();
     listos.clear();
     bloqueados.clear();
+    terminados.clear();
 
     errorOperation = false;
     errorID = false;
@@ -687,6 +707,8 @@ void MainWindow::reset()
     processesRemaining = 0;
     auxCounter = 0;
     nuevosSize = 0;
+    tiempoLlegadaCounter = 0;
+    counterTiempoRespuesta = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);
@@ -739,17 +761,14 @@ void MainWindow::setNullProcess()
     updateTT_TR_counters(invalidNumber, invalidNumber);
 }
 
-void MainWindow::aux()
-{
-
-}
-
-std::deque<Process> MainWindow::slice(const std::deque<Process> &deque)
+std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
 {
     std::deque<Process> listos;
     if(deque.size() <= 4) {
         for(auto& process : deque) {
+            // First processes has a tiempo llegada 0.
             listos.push_back(process);
+
         }
     } else {
         // Just push the first four processes.
@@ -778,7 +797,6 @@ void MainWindow::sendData()
         qDebug() << "Name: " << process.getProgrammerName();
         qDebug() << "Operation: " << process.getOperation();
         qDebug() << "TME: " << process.getTiempoMaximoEst();
-        qDebug() << "ESTADO: " << process.getEstado();
         qDebug() << "ID: " << process.getId();
         ++i;
     }
