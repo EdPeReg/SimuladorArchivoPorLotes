@@ -338,29 +338,29 @@ void MainWindow::runWithRandomData()
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
-                        process.setEnteredExecution(true);
+                        process.setEnteredExecution(true); // Making the first process entered.
 
-//                        if(!listos.front().getEnteredExecution()) {
-//                            listos.front().setEnteredExecution(true);
-//                            if(!nuevos.empty()) {
-//                                qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
-//                                qDebug() << "contador global: " << globalCounter;
+                        if(!listos.front().getEnteredExecution()) {
+                            listos.front().setEnteredExecution(true);
+                            if(!nuevos.empty()) {
+                                qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+                                qDebug() << "contador global: " << globalCounter;
 
-//                                // The new process finally enters to listos table.
+                                // The new process finally enters to listos table.
 //                                nuevos.front().setTiempoLlegada(globalCounter);
 
-//                                listos.front().setGlobalCounter(globalCounter);
-//                                listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+                                listos.front().setGlobalCounter(globalCounter);
+                                listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
 
 //                                listos.push_back(nuevos.front());
 //                                nuevos.pop_front();
-//                            } else {
-//                                qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
-//                                qDebug() << "contador global: " << globalCounter;
-//                                listos.front().setGlobalCounter(globalCounter);
-//                                listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
-//                            }
-//                        }
+                            } else {
+                                qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+                                qDebug() << "contador global: " << globalCounter;
+                                listos.front().setGlobalCounter(globalCounter);
+                                listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+                            }
+                        }
 
 
                         bloqueados.push_back(process);
@@ -404,9 +404,9 @@ void MainWindow::runWithRandomData()
 
                 terminados.push_back(process);
 
-                if(!listos.front().getEnteredExecution()) {
-                    listos.front().setEnteredExecution(true);
-                    if(!nuevos.empty()) {
+                if(!nuevos.empty()) {
+                    if(!listos.front().getEnteredExecution()) {
+                        listos.front().setEnteredExecution(true);
                         qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                         qDebug() << "contador global: " << globalCounter;
 
@@ -415,17 +415,24 @@ void MainWindow::runWithRandomData()
 
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
-
-                        listos.push_back(nuevos.front());
-                        nuevos.pop_front();
-                    } else {
+                    }
+                    listos.push_back(nuevos.front());
+                    nuevos.pop_front();
+                } else {
+                    if(!listos.front().getEnteredExecution()) {
+                        listos.front().setEnteredExecution(true);
                         qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                         qDebug() << "contador global: " << globalCounter;
+
+                        // The new process finally enters to listos table.
+                        nuevos.front().setTiempoLlegada(globalCounter);
+
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
                     }
                 }
 
+                ///////////////////////////////////////////
                 updateTableFinish(process);
                 process.setTT(counterTimeElapsed);
 
