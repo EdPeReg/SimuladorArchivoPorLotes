@@ -59,19 +59,16 @@ private:
     const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 7;
 
-    bool errorOperation;
-    bool errorID;
-    bool notFirstPauseTime;
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
     bool isProcessNull;
     int processInserted;
     int processesRemaining;
-    int batchNum;
+    int processNum;
     int id;
     int globalCounter;
-    int auxCounter;
+    int nuevosIndex;
     int nuevosSize;
 
     void removeSpace(std::string& operation);
@@ -80,20 +77,20 @@ private:
     void pause();
     void resume();
     void updateGlobalCounter(int value);
-    void updateTableFinish(Process process);
+    void updateTableFinish(const Process& process);
     void runWithRandomData();
-    void updateTableCurrentBatch(const std::deque<Process>&deque, int& row);
+    void updateTableListos(const std::deque<Process>&deque, int& row);
     void insertLastTableListo(const Process& process);
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
     void updateTTBCounter();
-    void updateBloqueadosTable(Process& process);
-    void insertDataTableRunningProcess(Process runningProcess);
+    void updateBloqueadosTable(const Process& process);
+    void insertDataTableRunningProcess(const Process& runningProcess);
     void reset();
     void updateProcCounter(int value);
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
-    std::deque<Process> slice(std::deque<Process> &deque);
+    std::deque<Process> slice(const std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int computeQueues(int numProcess);

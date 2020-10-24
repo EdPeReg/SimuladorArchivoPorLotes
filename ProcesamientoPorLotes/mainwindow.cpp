@@ -20,19 +20,15 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    , errorOperation(false)
-    , errorID(false)
-    , notFirstPauseTime(false)
     , pauseRequired(false)
     , keyError(false)
     , IO_interruptionKey(false)
     , isProcessNull(false)
-    , processInserted(0)
     , processesRemaining(0)
-    , batchNum(1)
+    , processNum(1)
     , id(1)
     , globalCounter(0)
-    , auxCounter(0)
+    , nuevosIndex(0)
     , nuevosSize(0)
 {
     ui->setupUi(this);
@@ -177,7 +173,7 @@ void MainWindow::insertProcessRandomly()
         process.setId(id++);
 
         nuevos.push_back(process);
-        ui->lcd_ProcRestantes->display(batchNum);
+        ui->lcd_ProcRestantes->display(processNum);
     }
 }
 
@@ -277,7 +273,7 @@ void MainWindow::updateGlobalCounter(int value)
     ui->lcd_ContGlobal->display(value);
 }
 
-void MainWindow::updateTableFinish(Process process) {
+void MainWindow::updateTableFinish(const Process &process) {
     ui->tblWdt_Terminados->insertRow(ui->tblWdt_Terminados->rowCount());
     int fila = ui->tblWdt_Terminados->rowCount() - 1;
 
@@ -306,7 +302,7 @@ void MainWindow::updateTableFinish(Process process) {
 
 void MainWindow::runWithRandomData()
 {
-    while(auxCounter < nuevosSize) {
+    while(nuevosIndex < nuevosSize) {
         if(!listos.empty()) {
             Process process = listos.front(); 		  // Get the first process.
             listos.pop_front();
@@ -315,7 +311,7 @@ void MainWindow::runWithRandomData()
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
 
-            updateTableCurrentBatch(listos, row);
+            updateTableListos(listos, row);
             insertDataTableRunningProcess(process);
 
             // Iterate in our TME, our process is in execution.
@@ -438,7 +434,7 @@ void MainWindow::runWithRandomData()
                     ui->lcd_ProcRestantes->display(--processesRemaining);
                 }
 
-                ++auxCounter;
+                ++nuevosIndex;
                 indexTime = 0;
             }
             IO_interruptionKey = false;
@@ -457,7 +453,7 @@ void MainWindow::runWithRandomData()
     if(!pauseRequired) reset();
 }
 
-void MainWindow::updateTableCurrentBatch(const std::deque<Process>& deque, int& row)
+void MainWindow::updateTableListos(const std::deque<Process>& deque, int& row)
 {
     int totalRows = deque.size();
     ui->tblWdt_ProcListo->setRowCount(totalRows--);
@@ -777,7 +773,7 @@ void MainWindow::updateTTBCounter()
     }
 }
 
-void MainWindow::updateBloqueadosTable(Process &process)
+void MainWindow::updateBloqueadosTable(const Process &process)
 {
     ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
     int fila = ui->tblWgt_Bloqueados->rowCount() - 1;
@@ -786,7 +782,7 @@ void MainWindow::updateBloqueadosTable(Process &process)
     ui->tblWgt_Bloqueados->setItem(fila, ID_BP, itemID);
 }
 
-void MainWindow::insertDataTableRunningProcess(Process runningProcess) {
+void MainWindow::insertDataTableRunningProcess(const Process &runningProcess) {
     QTableWidgetItem *ID = new QTableWidgetItem(QString::number(runningProcess.getId()));
     QTableWidgetItem *name = new QTableWidgetItem(runningProcess.getProgrammerName());
     QTableWidgetItem *operation = new QTableWidgetItem(runningProcess.getOperation());
@@ -809,17 +805,13 @@ void MainWindow::reset()
     bloqueados.clear();
     terminados.clear();
 
-    errorOperation = false;
-    errorID = false;
-    notFirstPauseTime = false;
     keyError = false;
     pauseRequired = false;
     keyError = false;
     IO_interruptionKey = false;
     isProcessNull = false;
-    processInserted = 0;
     processesRemaining = 0;
-    auxCounter = 0;
+    nuevosIndex = 0;
     nuevosSize = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
@@ -874,7 +866,7 @@ void MainWindow::setNullProcess()
     updateTT_TR_counters(invalidNumber, invalidNumber);
 }
 
-std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
+std::deque<Process> MainWindow::slice(const std::deque<Process> &deque)
 {
     std::deque<Process> listos;
     if(deque.size() <= 4) {
