@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.12.3, 2020-10-23T01:00:08. -->
+<!-- Written by QtCreator 4.12.3, 2020-10-30T09:34:39. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -89,8 +89,8 @@
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
     <value type="bool">true</value>
     <value type="int" key="EnableQmlDebugging">0</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_6_ FCFS/build</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_6_ FCFS/build</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_8_FCFS_Continuacion/build</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_8_FCFS_Continuacion/build</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -314,9 +314,8 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">ProcesamientoPorLotes2</value>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_6_ FCFS/SimuladorArchivoPorLotes/ProcesamientoPorLotes/ProcesamientoPorLotes.pro</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_6_ FCFS/SimuladorArchivoPorLotes/ProcesamientoPorLotes/ProcesamientoPorLotes.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_8_FCFS_Continuacion/SimuladorArchivoPorLotes/ProcesamientoPorLotes/ProcesamientoPorLotes.pro</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_8_FCFS_Continuacion/SimuladorArchivoPorLotes/ProcesamientoPorLotes/ProcesamientoPorLotes.pro</value>
     <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>
     <value type="QString" key="RunConfiguration.OverrideDebuggerStartup"></value>
@@ -326,8 +325,8 @@
     <value type="bool" key="RunConfiguration.UseMultiProcess">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_6_ FCFS/SimuladorArchivoPorLotes/ProcesamientoPorLotes</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_6_ FCFS/build</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory"></value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/eduardo/Documents/SEXTO_SEMESTRE/SEMINARIO_DE_SOLUCION_DE_PROBLEMAS_DE_SISTEMAS_OPERATIVOS/Actividad_8_FCFS_Continuacion/build</value>
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>

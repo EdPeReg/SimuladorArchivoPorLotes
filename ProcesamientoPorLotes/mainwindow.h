@@ -57,30 +57,35 @@ private:
     std::vector<Process> terminados;
 
     const int LIMITE_PROCESO = 4;
-    const int LIMITE_TTB = 7;
+    const int LIMITE_TTB = 8;
 
     bool pauseRequired;
     bool keyError;
     bool IO_interruptionKey;
     bool isProcessNull;
+    bool keyN_pressed;
     int processInserted;
     int processesRemaining;
     int processNum;
     int id;
     int globalCounter;
     int nuevosIndex;
-    int nuevosSize;
+    int nuevosdequeSize; // CHANGE nuevosSize
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();
+    void insertProcess(); // NEW.
     inline void delay(int millisecondsWait);
     void pause();
     void resume();
     void updateGlobalCounter(int value);
     void updateTableFinish(const Process& process);
     void runWithRandomData();
+    void updateTableNuevos(); // NEW
     void updateTableListos(const std::deque<Process>&deque, int& row);
     void insertLastTableListo(const Process& process);
+    void insertLastTableNuevo(const Process& process); // NEW
+    void insertDataTableNuevo(const std::deque<Process>& nuevos); // NEW
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
     void updateTTBCounter();
     void updateBloqueadosTable(const Process& process);

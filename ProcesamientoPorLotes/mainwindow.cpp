@@ -24,12 +24,13 @@ MainWindow::MainWindow(QWidget *parent)
     , keyError(false)
     , IO_interruptionKey(false)
     , isProcessNull(false)
+    , keyN_pressed(false)
     , processesRemaining(0)
     , processNum(1)
     , id(1)
     , globalCounter(0)
     , nuevosIndex(0)
-    , nuevosSize(0)
+    , nuevosdequeSize(0)
 {
     ui->setupUi(this);
 
@@ -38,6 +39,12 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(tr("Procesamiento tipo FIFO"));
 
     processesDialog = new ProcessesDialog(this);
+
+    ui->tblWdt_ProcLNuevos->setColumnCount(3);
+    ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
+    ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
+    ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
+    ui->tblWdt_ProcLNuevos->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     ui->tblWdt_ProcListo->setColumnCount(3);
     ui->tblWdt_ProcListo->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -126,6 +133,22 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                     IO_interruptionKey = true;
                 }
             break;
+
+
+           // Nuevo.
+           case Qt::Key_N:
+                qDebug() << "NUEVO PROCESO";
+                ui->lnEdt_teclaPresionada->setText(tr("N"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+
+                if(pauseRequired) {
+                    QMessageBox::information(this, tr("Imposible continuar"), tr("Programa pausado, presiona C para continuar"));
+                } else {
+                    ui->lnEdt_teclaPresionada->setText(tr("N"));
+                    keyN_pressed = true;
+                    insertProcessRandomly();
+                }
+            break;
         }
     }
 }
@@ -142,9 +165,23 @@ void MainWindow::removeSpace(std::string& operation) {
 
 void MainWindow::insertProcessRandomly()
 {
+    if(keyN_pressed) {
+        insertProcess();
+        insertLastTableNuevo(nuevos.back());
+        ++nuevosdequeSize;     // Update our size from our deque nuevos.
+        ui->lcd_ProcRestantes->display(++processesRemaining);
+    } else {
+        for(int i = 0; i < ui->spnBx_CantProcesos->value(); ++i) {
+            insertProcess();
+        }
+    }
+}
+
+void MainWindow::insertProcess()
+{
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(7,16);
+    std::uniform_int_distribution<int> randomTME(4,6);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -152,29 +189,27 @@ void MainWindow::insertProcessRandomly()
                          "alberto", "pewdipew", "auron", "juana la loca", "andrea"};
     QString operators[6] = {"+", "-", "*", "/", "m", "p"};
 
-    for(int i = 0; i < ui->spnBx_CantProcesos->value(); ++i) {
-        Process process;
-        QString auxOperation;
-        QString programmerName = names[rand() % 10]; // Get a random name.
-        QString operand1 = QString::number(randomOperand(mt));
-        QString operand2 = QString::number(randomOperand(mt));
-        QString _operator = operators[rand() % 6];  // Get a random operator.
+    Process process;
+    QString auxOperation;
+    QString programmerName = names[rand() % 10]; // Get a random name.
+    QString operand1 = QString::number(randomOperand(mt));
+    QString operand2 = QString::number(randomOperand(mt));
+    QString _operator = operators[rand() % 6];  // Get a random operator.
 
-        auxOperation.append(operand1);
-        auxOperation.append(_operator);
-        auxOperation.append(operand2);
-        std::string operation = auxOperation.toStdString();
+    auxOperation.append(operand1);
+    auxOperation.append(_operator);
+    auxOperation.append(operand2);
+    std::string operation = auxOperation.toStdString();
 
-        process.setProgrammerName(programmerName);
-        process.setOperation(auxOperation);
-        QString r = doOperation(operation);
-        process.setResult(r);
-        process.setTiempoMaximoEst(randomTME(mt));
-        process.setId(id++);
+    process.setProgrammerName(programmerName);
+    process.setOperation(auxOperation);
+    QString r = doOperation(operation);
+    process.setResult(r);
+    process.setTiempoMaximoEst(randomTME(mt));
+    process.setId(id++);
 
-        nuevos.push_back(process);
-        ui->lcd_ProcRestantes->display(processNum);
-    }
+    nuevos.push_back(process);
+    ui->lcd_ProcRestantes->display(processNum);
 }
 
 int MainWindow::getOperatorPos(const std::string& operation) {
@@ -302,7 +337,7 @@ void MainWindow::updateTableFinish(const Process &process) {
 
 void MainWindow::runWithRandomData()
 {
-    while(nuevosIndex < nuevosSize) {
+    while(nuevosIndex < nuevosdequeSize) {
         if(!listos.empty()) {
             Process process = listos.front(); 		  // Get the first process.
             listos.pop_front();
@@ -310,6 +345,7 @@ void MainWindow::runWithRandomData()
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
+        qDebug() << "LAST ELEMENT: " << nuevos.back().getId();
 
             updateTableListos(listos, row);
             insertDataTableRunningProcess(process);
@@ -380,7 +416,7 @@ void MainWindow::runWithRandomData()
                 }
 
                 ++indexTime;
-            }
+            } // end iteration TME.
 
             if(pauseRequired) break;
 
@@ -396,6 +432,7 @@ void MainWindow::runWithRandomData()
 
                 if(!nuevos.empty()) {
                     if(!listos.front().getEnteredExecution()) {
+                        // This process is in execution.
                         listos.front().setEnteredExecution(true);
                         qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                         qDebug() << "contador global: " << globalCounter;
@@ -403,12 +440,14 @@ void MainWindow::runWithRandomData()
                         // The new process finally enters to listos table.
                         nuevos.front().setTiempoLlegada(globalCounter);
 
+                        listos.push_back(nuevos.front());
+                        nuevos.pop_front();
+
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
                     } else {
                         // The new process finally enters to listos table.
                         nuevos.front().setTiempoLlegada(globalCounter);
-
                         listos.push_back(nuevos.front());
                         nuevos.pop_front();
                     }
@@ -426,6 +465,7 @@ void MainWindow::runWithRandomData()
                     }
                 }
 
+                updateTableNuevos();
                 updateTableFinish(process);
                 process.setTT(counterTimeElapsed);
 
@@ -436,7 +476,8 @@ void MainWindow::runWithRandomData()
 
                 ++nuevosIndex;
                 indexTime = 0;
-            }
+            } // end IO interruption if.
+
             IO_interruptionKey = false;
             keyError = false;
         } else {
@@ -453,6 +494,11 @@ void MainWindow::runWithRandomData()
     if(!pauseRequired) reset();
 }
 
+void MainWindow::updateTableNuevos()
+{
+    ui->tblWdt_ProcLNuevos->removeRow(0);
+}
+
 void MainWindow::updateTableListos(const std::deque<Process>& deque, int& row)
 {
     int totalRows = deque.size();
@@ -465,7 +511,6 @@ void MainWindow::updateTableListos(const std::deque<Process>& deque, int& row)
         ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
         ui->tblWdt_ProcListo->setItem(row++, TT, itemTT);
     }
-//    ui->tblWdt_ProcListo->removeRow(0);
 }
 
 void MainWindow::insertLastTableListo(const Process &process)
@@ -478,6 +523,33 @@ void MainWindow::insertLastTableListo(const Process &process)
     ui->tblWdt_ProcListo->setItem(fila, ID, itemID);
     ui->tblWdt_ProcListo->setItem(fila, TME, itemTME);
     ui->tblWdt_ProcListo->setItem(fila++, TT, itemTT);
+}
+
+void MainWindow::insertLastTableNuevo(const Process &process)
+{
+    ui->tblWdt_ProcLNuevos->insertRow(ui->tblWdt_ProcLNuevos->rowCount());
+    int fila = ui->tblWdt_ProcLNuevos->rowCount() - 1;
+    QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
+    QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
+    QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
+    ui->tblWdt_ProcLNuevos->setItem(fila, ID, itemID);
+    ui->tblWdt_ProcLNuevos->setItem(fila, TME, itemTME);
+    ui->tblWdt_ProcLNuevos->setItem(fila++, TT, itemTT);
+}
+
+void MainWindow::insertDataTableNuevo(const std::deque<Process> &nuevos)
+{
+    int totalRows = nuevos.size();
+    int row = 0;
+    ui->tblWdt_ProcLNuevos->setRowCount(totalRows--);
+    for(const auto& process : nuevos) {
+        QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
+        QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
+        QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
+        ui->tblWdt_ProcLNuevos->setItem(row, ID, itemID);
+        ui->tblWdt_ProcLNuevos->setItem(row, TME, itemTME);
+        ui->tblWdt_ProcLNuevos->setItem(row++, TT, itemTT);
+    }
 }
 
 void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft)
@@ -810,9 +882,10 @@ void MainWindow::reset()
     keyError = false;
     IO_interruptionKey = false;
     isProcessNull = false;
+    keyN_pressed= false;
     processesRemaining = 0;
     nuevosIndex = 0;
-    nuevosSize = 0;
+    nuevosdequeSize = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);
@@ -919,11 +992,14 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
             process.setTR(aux);
         }
 
-        nuevosSize = nuevos.size();
+        nuevosdequeSize = nuevos.size();
 
         // Push the first processes to our listos deque.
         listos = slice(nuevos);
         deleteProcessesNuevo();
+
+        // Insert all nuevos processes into the table.
+        insertDataTableNuevo(nuevos);
 
         setInitialProcCounterValue();
         runWithRandomData();
