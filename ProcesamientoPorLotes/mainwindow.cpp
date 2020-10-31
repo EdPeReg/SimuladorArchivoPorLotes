@@ -176,11 +176,12 @@ void MainWindow::insertProcessRandomly()
             nuevos.front().setTiempoLlegada(globalCounter);
             listos.push_back(nuevos.front());
 
-//            updateTableFinish(nuevos.front());
-//            insertLastTableListo(nuevos.front());
             nuevos.pop_front();
             ++nuevosdequeSize;
-        } else if(listos.size() < LIMITE_PROCESO - 1) {
+        }
+        // Insert if we only have less than our four processes in memory.
+        // Remember that processes that are in bloqueados table also are in memory.
+        else if(listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
             // To have the correct TR.
             int aux = nuevos.front().getTiempoMaximoEst();
             nuevos.front().setTR(aux);
@@ -193,7 +194,9 @@ void MainWindow::insertProcessRandomly()
             nuevos.pop_front();
 
             ++nuevosdequeSize;
-        } else {
+        }
+        // Just insert in our nuevos table.
+        else {
             // To have the correct TR.
             int aux = nuevos.back().getTiempoMaximoEst();
             nuevos.back().setTR(aux);
@@ -202,7 +205,9 @@ void MainWindow::insertProcessRandomly()
             ++nuevosdequeSize;     // Update our size from our deque nuevos.
             ui->lcd_ProcRestantes->display(++processesRemaining);
         }
-    } else {
+    }
+    // At the beggining we insert our processes in our listos table.
+    else {
         for(int i = 0; i < ui->spnBx_CantProcesos->value(); ++i) {
             insertProcess();
         }
