@@ -11,8 +11,6 @@
 // Find a way to obtain a random number for names and operations, don't use rand.
 
 - Memory leak qtablewidgetitem
-- Use a list for batches and a deque for the processes.
-- Pause when processes are blocked?
 - Maybe there TT in the process table is not updated after e
 
 */
@@ -167,9 +165,43 @@ void MainWindow::insertProcessRandomly()
 {
     if(keyN_pressed) {
         insertProcess();
-        insertLastTableNuevo(nuevos.back());
-        ++nuevosdequeSize;     // Update our size from our deque nuevos.
-        ui->lcd_ProcRestantes->display(++processesRemaining);
+        // There is a null process, insert this process directly to table running process.
+        if(isProcessNull) {
+            isProcessNull = false;
+             // To have the correct TR.
+            int aux = nuevos.front().getTiempoMaximoEst();
+            nuevos.front().setTR(aux);
+
+            // Establecer el tiempo de llegada.
+            nuevos.front().setTiempoLlegada(globalCounter);
+            listos.push_back(nuevos.front());
+
+//            updateTableFinish(nuevos.front());
+//            insertLastTableListo(nuevos.front());
+            nuevos.pop_front();
+            ++nuevosdequeSize;
+        } else if(listos.size() < LIMITE_PROCESO - 1) {
+            // To have the correct TR.
+            int aux = nuevos.front().getTiempoMaximoEst();
+            nuevos.front().setTR(aux);
+
+            // Establecer el tiempo de llegada.
+            nuevos.front().setTiempoLlegada(globalCounter);
+
+            listos.push_back(nuevos.front());
+            insertLastTableListo(nuevos.front());
+            nuevos.pop_front();
+
+            ++nuevosdequeSize;
+        } else {
+            // To have the correct TR.
+            int aux = nuevos.back().getTiempoMaximoEst();
+            nuevos.back().setTR(aux);
+
+            insertLastTableNuevo(nuevos.back());
+            ++nuevosdequeSize;     // Update our size from our deque nuevos.
+            ui->lcd_ProcRestantes->display(++processesRemaining);
+        }
     } else {
         for(int i = 0; i < ui->spnBx_CantProcesos->value(); ++i) {
             insertProcess();
@@ -181,7 +213,7 @@ void MainWindow::insertProcess()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(4,6);
+    std::uniform_int_distribution<int> randomTME(7,16);
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -209,7 +241,7 @@ void MainWindow::insertProcess()
     process.setId(id++);
 
     nuevos.push_back(process);
-    ui->lcd_ProcRestantes->display(processNum);
+//    ui->lcd_ProcRestantes->display(processNum); // IS THIS OK?
 }
 
 int MainWindow::getOperatorPos(const std::string& operation) {
@@ -339,13 +371,12 @@ void MainWindow::runWithRandomData()
 {
     while(nuevosIndex < nuevosdequeSize) {
         if(!listos.empty()) {
-            Process process = listos.front(); 		  // Get the first process.
+            Process process = listos.front(); // Get the first process.
             listos.pop_front();
             int row = 0;
             int counterTimeElapsed = process.getTT();
             int counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
-        qDebug() << "LAST ELEMENT: " << nuevos.back().getId();
 
             updateTableListos(listos, row);
             insertDataTableRunningProcess(process);
