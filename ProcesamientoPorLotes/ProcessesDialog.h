@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QKeyEvent>
+#include <QDebug>
 
 #include <vector>
 
@@ -13,7 +14,7 @@ class ProcessesDialog;
 }
 
 enum PROCESS_INFO {
-    ID_PI, NAME_PI, OPERATION_PI, RESULT_PI, TME_PI,
+    ID_PI, NAME_PI, OPERATION_PI, RESULT_PI, ESTADO_PI, TME_PI,
     TL_PI, TF_PI, TR_PI, TRE_PI, TE_PI, TS_PI
 };
 
@@ -25,7 +26,7 @@ public:
     explicit ProcessesDialog(QWidget *parent = nullptr);
     ~ProcessesDialog();
 
-    void setProcesses(const std::vector<Process>& proesses);
+    void setProcesses(const std::vector<Process>& proesses); // NEW
 
 protected:
     void keyPressEvent(QKeyEvent * e) override;

@@ -8,6 +8,7 @@ class Process {
         QString programmerName;
         QString operation;
         QString result;
+        QString estado; // NEW
         int tiempoMaximoEst;
         int id;
         int TT;
@@ -21,11 +22,13 @@ class Process {
         int tiempoServicio;
         int globalCounter;
         bool enteredExecution; // If the process touch for the first time execution.
+        bool noResult; // NEW
     public:
         Process() :
             programmerName("")
           , operation("")
           , result("")
+          , estado("")
           , tiempoMaximoEst(0)
           , id(0)
           , TT(0)
@@ -38,7 +41,8 @@ class Process {
           , tiempoDeRespuesta(0)
           , tiempoServicio(0)
           , globalCounter(0)
-          , enteredExecution(false) { }
+          , enteredExecution(false)
+          , noResult(false) { }
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -88,6 +92,10 @@ class Process {
             this->result = result;
         }
 
+        void setEstado(const QString& estado) {
+            this->estado = estado;
+        }
+
         void setTiempoFinalizacion(int tiempoFinalizacion) {
             this->tiempoFinalizacion = tiempoFinalizacion;
         }
@@ -102,6 +110,10 @@ class Process {
 
         void setEnteredExecution(bool enteredExecution) {
             this->enteredExecution = enteredExecution;
+        }
+
+        void setNoResult(bool noResult) {
+            this->noResult = noResult;
         }
 
         QString getProgrammerName() const {
@@ -149,6 +161,10 @@ class Process {
             return result;
         }
 
+        QString getEstado() const {
+            return estado;
+        }
+
         int getTiempoFinalizacion() const {
             return tiempoFinalizacion;
         }
@@ -167,6 +183,10 @@ class Process {
 
         bool getEnteredExecution() {
             return enteredExecution;
+        }
+
+        bool getNoResult() const {
+            return noResult;
         }
 };
 

@@ -54,8 +54,8 @@ private:
     std::deque<Process> nuevos;
     std::deque<Process> listos;
     std::deque<Process> bloqueados;
-    std::vector<Process> terminados;
     std::vector<Process> allProcesses; // NEW
+    std::vector<Process> terminados;
 
     const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 8;
@@ -65,8 +65,8 @@ private:
     bool IO_interruptionKey;
     bool isProcessNull;
     bool keyN_pressed;
+    bool noResult;
     int processInserted;
-    bool showTableProcesses; // NEW
     int processesRemaining;
     int processNum;
     int id;
@@ -97,7 +97,7 @@ private:
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
-    std::deque<Process> slice(const std::deque<Process> &deque);
+    std::deque<Process> slice(std::deque<Process> &deque); // CHANGE
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int computeQueues(int numProcess);
