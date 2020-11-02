@@ -192,8 +192,9 @@ void MainWindow::insertProcessRandomly()
 {
     if(keyN_pressed) {
         insertProcess();
-        // There is a null process, insert this process directly to table running process.
-        if(isProcessNull) {
+        // There is a null process and we don't pass the memory limit,
+        // insert this process directly to table running process.
+        if(isProcessNull and listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
             isProcessNull = false;
              // To have the correct TR.
             int aux = nuevos.front().getTiempoMaximoEst();
@@ -513,7 +514,7 @@ void MainWindow::runWithRandomData()
 
                 if(!nuevos.empty()) {
                     if(!listos.front().getEnteredExecution()) {
-                        // This process is in execution.
+                        // This process is in execution and has not entered to execution.
                         listos.front().setEnteredExecution(true);
                         qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                         qDebug() << "contador global: " << globalCounter;
@@ -534,9 +535,20 @@ void MainWindow::runWithRandomData()
 
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
-                    } else {
+                    }
+                    // The process entered in execution.
+                    else {
                         // The new process finally enters to listos table.
                         nuevos.front().setTiempoLlegada(globalCounter);
+                        nuevos.front().setEstado("EN MEMORIA");
+
+                        // Find which process finish and set it memoria.
+                        for(auto& p : allProcesses) {
+                            if(p.getId() == nuevos.front().getId()) {
+                                p.setEstado("EN MEMORIA");
+                            }
+                        }
+
                         listos.push_back(nuevos.front());
                         nuevos.pop_front();
                     }
