@@ -8,8 +8,10 @@ ProcessesDialog::ProcessesDialog(QWidget *parent) :
     ui(new Ui::ProcessesDialog)
 {
     ui->setupUi(this);
+    this->setFocusPolicy(Qt::StrongFocus);
+    ui->tblWdt_Terminados->setFocusPolicy(Qt::NoFocus);
 
-    setWindowTitle(tr("Informacion de procesos terminados"));
+    setWindowTitle(tr("Informacion de procesos"));
 
     ui->tblWdt_Terminados->setColumnCount(11);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
@@ -33,7 +35,7 @@ ProcessesDialog::~ProcessesDialog()
     delete ui;
 }
 
-void ProcessesDialog::setProcessesFinished(const std::vector<Process> &processes)
+void ProcessesDialog::setProcesses(const std::vector<Process> &processes)
 {
     int totalRows = processes.size();
     int row = 0;
@@ -66,5 +68,16 @@ void ProcessesDialog::setProcessesFinished(const std::vector<Process> &processes
         ui->tblWdt_Terminados->setItem(row, TRE_PI, tiempoDeRespuesta);
         ui->tblWdt_Terminados->setItem(row, TE_PI, tiempoEspera);
         ui->tblWdt_Terminados->setItem(row++, TS_PI, tiempoServicio);
+    }
+}
+
+void ProcessesDialog::keyPressEvent(QKeyEvent *event)
+{
+    switch(event->key()) {
+        // Continue.
+        case Qt::Key_C:
+            qDebug() << "CONTINUE";
+            this->close(); // Close this dialog.
+        break;
     }
 }

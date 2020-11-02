@@ -2,6 +2,7 @@
 #define PROCESSESDIALOG_H
 
 #include <QDialog>
+#include <QKeyEvent>
 
 #include <vector>
 
@@ -24,7 +25,10 @@ public:
     explicit ProcessesDialog(QWidget *parent = nullptr);
     ~ProcessesDialog();
 
-    void setProcessesFinished(const std::vector<Process>& proesses);
+    void setProcesses(const std::vector<Process>& proesses);
+
+protected:
+    void keyPressEvent(QKeyEvent * e) override;
 
 private:
     Ui::ProcessesDialog *ui;

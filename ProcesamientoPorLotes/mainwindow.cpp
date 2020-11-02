@@ -12,6 +12,8 @@
 
 - Memory leak qtablewidgetitem
 - Maybe there TT in the process table is not updated after e
+- CLOSE DIALOG WHEN C hits.
+- NEW PROCESS ADDED BY N KEY IS NOT ADDED TO ALLPROCESSES VECTOR.
 
 */
 
@@ -23,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     , IO_interruptionKey(false)
     , isProcessNull(false)
     , keyN_pressed(false)
+    , showTableProcesses(false)
     , processesRemaining(0)
     , processNum(1)
     , id(1)
@@ -147,6 +150,23 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                     insertProcessRandomly();
                 }
             break;
+
+
+           // Table de procesos BCP de cada proceso.
+           case Qt::Key_T:
+                qDebug() << "TABLA DE PROCESOS";
+                ui->lnEdt_teclaPresionada->setText(tr("T"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+
+                if(pauseRequired) {
+                    QMessageBox::information(this, tr("Imposible continuar"), tr("Programa pausado, presiona C para continuar"));
+                } else {
+                    ui->lnEdt_teclaPresionada->setText(tr("T"));
+
+                    processesDialog->setProcesses(allProcesses);
+                    processesDialog->exec();
+                }
+            break;
         }
     }
 }
@@ -246,7 +266,6 @@ void MainWindow::insertProcess()
     process.setId(id++);
 
     nuevos.push_back(process);
-//    ui->lcd_ProcRestantes->display(processNum); // IS THIS OK?
 }
 
 int MainWindow::getOperatorPos(const std::string& operation) {
@@ -337,6 +356,7 @@ void MainWindow::pause()
 void MainWindow::resume()
 {
     pauseRequired = false;
+    showTableProcesses = false;
     runWithRandomData();
 }
 
@@ -439,6 +459,13 @@ void MainWindow::runWithRandomData()
                     // Push again the process with the updated information.
                     // Doing this to show again the process when you resume.
                     listos.push_front(process);
+
+//                    if(showTableProcesses) {
+//                        terminados.push_back(process);
+//                        processesDialog->setProcesses(terminados);
+//                        processesDialog->exec();
+//                        terminados.clear();
+//                    }
                     break;
                 }
 
@@ -905,7 +932,7 @@ void MainWindow::reset()
 {
     qDebug() << "reseteando";
 
-    processesDialog->setProcessesFinished(terminados);
+    processesDialog->setProcesses(terminados);
     processesDialog->show();
 
     nuevos.clear();
@@ -1026,6 +1053,13 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
         for(auto& process : nuevos) {
             int aux = process.getTiempoMaximoEst();
             process.setTR(aux);
+        }
+
+        // Convert the content of our deque to a vector.
+        allProcesses = {nuevos.begin(), nuevos.end()};
+
+        for(auto p : allProcesses) {
+            qDebug() << p.getId();
         }
 
         nuevosdequeSize = nuevos.size();

@@ -55,6 +55,7 @@ private:
     std::deque<Process> listos;
     std::deque<Process> bloqueados;
     std::vector<Process> terminados;
+    std::vector<Process> allProcesses; // NEW
 
     const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 8;
@@ -65,6 +66,7 @@ private:
     bool isProcessNull;
     bool keyN_pressed;
     int processInserted;
+    bool showTableProcesses; // NEW
     int processesRemaining;
     int processNum;
     int id;
@@ -102,6 +104,7 @@ private:
     int getLeftOperand(const std::string& operation);
     int getRightOperand(const std::string& operation);
     QString doOperation(std::string& operation);
+
 protected:
     void keyPressEvent(QKeyEvent* event) override; // new
 
