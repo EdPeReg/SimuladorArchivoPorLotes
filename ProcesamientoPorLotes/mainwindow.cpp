@@ -264,12 +264,9 @@ void MainWindow::insertProcess()
     auxOperation.append(operand1);
     auxOperation.append(_operator);
     auxOperation.append(operand2);
-    std::string operation = auxOperation.toStdString();
 
     process.setProgrammerName(programmerName);
     process.setOperation(auxOperation);
-    QString r = doOperation(operation);
-    process.setResult(r);
     process.setTiempoMaximoEst(randomTME(mt));
     process.setId(id++);
 
@@ -523,7 +520,7 @@ void MainWindow::runWithRandomData()
                         nuevos.front().setTiempoLlegada(globalCounter);
                         nuevos.front().setEstado("EN MEMORIA");
 
-                        // Find which process finish and set it memoria.
+                        // Find which process finish and set it in memoria.
                         for(auto& p : allProcesses) {
                             if(p.getId() == nuevos.front().getId()) {
                                 p.setEstado("EN MEMORIA");
@@ -542,7 +539,7 @@ void MainWindow::runWithRandomData()
                         nuevos.front().setTiempoLlegada(globalCounter);
                         nuevos.front().setEstado("EN MEMORIA");
 
-                        // Find which process finish and set it memoria.
+                        // Find which process finish and set it in memoria.
                         for(auto& p : allProcesses) {
                             if(p.getId() == nuevos.front().getId()) {
                                 p.setEstado("EN MEMORIA");
@@ -567,19 +564,20 @@ void MainWindow::runWithRandomData()
                 }
 
                 updateTableNuevos();
-                updateTableFinish(process);
-//                process.setTT(counterTimeElapsed);
 
                 if(!keyError) {
                     process.setEstado("TERMINADO");
+                    insertResult(process);
                     // Find which process finish and set it as terminado.
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
                             p.setEstado("TERMINADO");
+                            insertResult(p);
                         }
                     }
                 }
                 terminados.push_back(process);
+                updateTableFinish(process);
 
                 // Update process counter.
                 if(ui->lcd_ProcRestantes->value() != 0) {
@@ -1050,6 +1048,14 @@ void MainWindow::setNullProcess()
     nullProcess.setTT(invalidNumber);
     insertDataTableRunningProcess(nullProcess);
     updateTT_TR_counters(invalidNumber, invalidNumber);
+}
+
+void MainWindow::insertResult(Process &process)
+{
+    QString _operation = process.getOperation();
+    std::string operation = _operation.toStdString();
+    QString result = doOperation(operation);
+    process.setResult(result);
 }
 
 std::deque<Process> MainWindow::slice(std::deque<Process> &deque)

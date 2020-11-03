@@ -27,7 +27,7 @@ class Process {
         Process() :
             programmerName("")
           , operation("")
-          , result("")
+          , result("-")
           , estado("")
           , tiempoMaximoEst(0)
           , id(0)

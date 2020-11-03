@@ -97,6 +97,7 @@ private:
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
+    void insertResult(Process& process); // NEW
     std::deque<Process> slice(std::deque<Process> &deque); // CHANGE
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
