@@ -12,8 +12,6 @@
 
 - Memory leak qtablewidgetitem
 - Maybe there TT in the process table is not updated after e
-- BUG: When you click continue all processes are deleted.
-- Is it correct to show the result when the process is not finished?
 
 */
 
@@ -25,13 +23,14 @@ MainWindow::MainWindow(QWidget *parent)
     , IO_interruptionKey(false)
     , isProcessNull(false)
     , keyN_pressed(false)
-    , noResult(false)
     , processesRemaining(0)
     , processNum(1)
     , id(1)
     , globalCounter(0)
     , nuevosIndex(0)
     , nuevosdequeSize(0)
+    , counterTimeElapsed(0)
+    , counterTimeLeft(0)
 {
     ui->setupUi(this);
 
@@ -163,13 +162,22 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 } else {
                     ui->lnEdt_teclaPresionada->setText(tr("T"));
 
-//                    for(auto& process : allProcesses) {
-//                        if(process.getEstado() == "EN MEMORIA" or process.getEstado() == "NUEVO") {
-//                            process.setNoResult(true);
-//                        }
-//                    }
+                    for(auto& p : allProcesses) {
+                        // Find out process that is in execution.
+                        if(p.getId() == process.getId()) {
+                            p.setTiempoServicio(counterTimeElapsed);
+                            p.setTiempoRestanteCPU(counterTimeLeft);
+                            break;
+                        }
+                    }
 
-                    // All processes are converted to a vector.
+                    // Our tiempoFinalizacion will be our global counter.
+                    for(auto& process : allProcesses) {
+                        if(process.getEstado() == "EN MEMORIA" or process.getEstado() == "NUEVO") {
+                            process.setTiempoFinalizacion(globalCounter);
+                        }
+                    }
+
                     processesDialog->setProcesses(allProcesses);
                     processesDialog->exec();
                 }
@@ -194,7 +202,7 @@ void MainWindow::insertProcessRandomly()
         insertProcess();
         // There is a null process and we don't pass the memory limit,
         // insert this process directly to table running process.
-        if(isProcessNull and listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
+        if(isProcessNull and listos.size() + bloqueados.size() < LIMITE_PROCESO) {
             isProcessNull = false;
              // To have the correct TR.
             int aux = nuevos.front().getTiempoMaximoEst();
@@ -202,6 +210,13 @@ void MainWindow::insertProcessRandomly()
 
             // Establecer el tiempo de llegada.
             nuevos.front().setTiempoLlegada(globalCounter);
+
+            for(auto& process : allProcesses) {
+                if(process.getId() == nuevos.front().getId()) {
+                    process.setTiempoLlegada(globalCounter);
+                }
+            }
+
             listos.push_back(nuevos.front());
 
             nuevos.pop_front();
@@ -216,6 +231,12 @@ void MainWindow::insertProcessRandomly()
 
             // Establecer el tiempo de llegada.
             nuevos.front().setTiempoLlegada(globalCounter);
+
+            for(auto& process : allProcesses) {
+                if(process.getId() == nuevos.front().getId()) {
+                    process.setTiempoLlegada(globalCounter);
+                }
+            }
 
             listos.push_back(nuevos.front());
             insertLastTableListo(nuevos.front());
@@ -264,9 +285,12 @@ void MainWindow::insertProcess()
     auxOperation.append(operand1);
     auxOperation.append(_operator);
     auxOperation.append(operand2);
+    std::string operation = auxOperation.toStdString();
 
     process.setProgrammerName(programmerName);
     process.setOperation(auxOperation);
+    QString r = doOperation(operation);
+    process.setResult(r);
     process.setTiempoMaximoEst(randomTME(mt));
     process.setId(id++);
 
@@ -408,12 +432,12 @@ void MainWindow::runWithRandomData()
 {
     while(nuevosIndex < nuevosdequeSize) {
         if(!listos.empty()) {
-            Process process = listos.front(); // Get the first process.
+            process = listos.front(); // Get the first process.
             listos.pop_front();
 
             int row = 0;
-            int counterTimeElapsed = process.getTT();
-            int counterTimeLeft = process.getTR();
+            counterTimeElapsed = process.getTT();
+            counterTimeLeft = process.getTR();
             int indexTime = process.getIndexTime();
 
             updateTableListos(listos, row);
@@ -447,6 +471,12 @@ void MainWindow::runWithRandomData()
 
                                 // The new process finally enters to listos table.
                                 nuevos.front().setTiempoLlegada(globalCounter);
+
+                                for(auto& process : allProcesses) {
+                                    if(process.getId() == nuevos.front().getId()) {
+                                        process.setTiempoLlegada(globalCounter);
+                                    }
+                                }
 
                                 listos.front().setGlobalCounter(globalCounter);
                                 listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
@@ -489,6 +519,7 @@ void MainWindow::runWithRandomData()
                         if(p.getId() == process.getId()) {
                             p.setEstado("ERROR");
                             p.setResult("ERROR");
+                            p.setTiempoServicio(counterTimeElapsed);
                         }
                     }
 
@@ -503,21 +534,41 @@ void MainWindow::runWithRandomData()
             if(!IO_interruptionKey) {
                 process.setTiempoFinalizacion(globalCounter);
 
+                for(auto& p : allProcesses) {
+                    if(p.getId() == process.getId()) {
+                        p.setTiempoFinalizacion(globalCounter);
+                    }
+                }
+
                 // If there is no error, our tiempo servicio will be our TME.
                 if(!keyError) {
                     process.setTiempoServicio(process.getTiempoMaximoEst());
+
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == process.getId()) {
+                            p.setTiempoServicio(counterTimeElapsed);
+                        }
+                    }
                 }
 
 
                 if(!nuevos.empty()) {
+                    // This process is in execution and has not entered to execution.
                     if(!listos.front().getEnteredExecution()) {
-                        // This process is in execution and has not entered to execution.
                         listos.front().setEnteredExecution(true);
+
                         qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                         qDebug() << "contador global: " << globalCounter;
 
                         // The new process finally enters to listos table.
                         nuevos.front().setTiempoLlegada(globalCounter);
+
+                        for(auto& process : allProcesses) {
+                            if(process.getId() == nuevos.front().getId()) {
+                                process.setTiempoLlegada(globalCounter);
+                            }
+                        }
+
                         nuevos.front().setEstado("EN MEMORIA");
 
                         // Find which process finish and set it in memoria.
@@ -537,6 +588,13 @@ void MainWindow::runWithRandomData()
                     else {
                         // The new process finally enters to listos table.
                         nuevos.front().setTiempoLlegada(globalCounter);
+
+                        for(auto& process : allProcesses) {
+                            if(process.getId() == nuevos.front().getId()) {
+                                process.setTiempoLlegada(globalCounter);
+                            }
+                        }
+
                         nuevos.front().setEstado("EN MEMORIA");
 
                         // Find which process finish and set it in memoria.
@@ -558,6 +616,12 @@ void MainWindow::runWithRandomData()
                         // The new process finally enters to listos table.
                         nuevos.front().setTiempoLlegada(globalCounter);
 
+                        for(auto& process : allProcesses) {
+                            if(process.getId() == nuevos.front().getId()) {
+                                process.setTiempoLlegada(globalCounter);
+                            }
+                        }
+
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
                     }
@@ -567,12 +631,10 @@ void MainWindow::runWithRandomData()
 
                 if(!keyError) {
                     process.setEstado("TERMINADO");
-                    insertResult(process);
                     // Find which process finish and set it as terminado.
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
                             p.setEstado("TERMINADO");
-                            insertResult(p);
                         }
                     }
                 }
@@ -986,6 +1048,7 @@ void MainWindow::reset()
     listos.clear();
     bloqueados.clear();
     terminados.clear();
+    allProcesses.clear();
 
     keyError = false;
     pauseRequired = false;
@@ -993,10 +1056,10 @@ void MainWindow::reset()
     IO_interruptionKey = false;
     isProcessNull = false;
     keyN_pressed= false;
-    noResult = false;
     processesRemaining = 0;
     nuevosIndex = 0;
     nuevosdequeSize = 0;
+    counterTimeElapsed = 0;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_ProcListo->setRowCount(0);
@@ -1050,14 +1113,6 @@ void MainWindow::setNullProcess()
     updateTT_TR_counters(invalidNumber, invalidNumber);
 }
 
-void MainWindow::insertResult(Process &process)
-{
-    QString _operation = process.getOperation();
-    std::string operation = _operation.toStdString();
-    QString result = doOperation(operation);
-    process.setResult(result);
-}
-
 std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
 {
     std::deque<Process> listos;
@@ -1069,7 +1124,6 @@ std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
             // First processes has a tiempo llegada 0.
             listos.push_back(process);
             allProcesses.push_back(process);
-
         }
     } else {
         // Just push the first four processes when there are more than 4 processes.
@@ -1119,9 +1173,6 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
             int aux = process.getTiempoMaximoEst();
             process.setTR(aux);
         }
-
-        // Convert the content of our deque to a vector.
-//        allProcesses = {nuevos.begin(), nuevos.end()};
 
         nuevosdequeSize = nuevos.size();
 

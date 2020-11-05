@@ -51,6 +51,7 @@ private:
     Ui::MainWindow *ui;
 
     ProcessesDialog* processesDialog;
+    Process process; // NEW
     std::deque<Process> nuevos;
     std::deque<Process> listos;
     std::deque<Process> bloqueados;
@@ -65,7 +66,6 @@ private:
     bool IO_interruptionKey;
     bool isProcessNull;
     bool keyN_pressed;
-    bool noResult;
     int processInserted;
     int processesRemaining;
     int processNum;
@@ -73,6 +73,8 @@ private:
     int globalCounter;
     int nuevosIndex;
     int nuevosdequeSize; // CHANGE nuevosSize
+    int counterTimeElapsed; // NEW
+    int counterTimeLeft; // NEW
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();
@@ -97,7 +99,6 @@ private:
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
-    void insertResult(Process& process); // NEW
     std::deque<Process> slice(std::deque<Process> &deque); // CHANGE
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);

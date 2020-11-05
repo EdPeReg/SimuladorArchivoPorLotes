@@ -11,7 +11,7 @@ ProcessesDialog::ProcessesDialog(QWidget *parent) :
 
     setWindowTitle(tr("Informacion de procesos"));
 
-    ui->tblWdt_Terminados->setColumnCount(12);
+    ui->tblWdt_Terminados->setColumnCount(13);
     ui->tblWdt_Terminados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("NOMBRE")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("OPERACION")));
@@ -24,6 +24,7 @@ ProcessesDialog::ProcessesDialog(QWidget *parent) :
     ui->tblWdt_Terminados->setHorizontalHeaderItem(9, new QTableWidgetItem(tr("Tiempo de respuesta")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(10, new QTableWidgetItem(tr("Tiempo de espera")));
     ui->tblWdt_Terminados->setHorizontalHeaderItem(11, new QTableWidgetItem(tr("Tiempo de servicio")));
+    ui->tblWdt_Terminados->setHorizontalHeaderItem(12, new QTableWidgetItem(tr("Tiempo Restante en CPU")));
     ui->tblWdt_Terminados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
     ui->tblWdt_Terminados->resizeColumnsToContents(); // All text will fit in the column width.
 }
@@ -39,39 +40,87 @@ void ProcessesDialog::setProcesses(const std::vector<Process> &processes)
     int row = 0;
     ui->tblWdt_Terminados->setRowCount(totalRows--);
     for(auto& process : processes) {
-//        if(process.getNoResult()) {
-//            process.setResult("-");
-//        }
-
-        qDebug() << "process with ID: " << process.getId() << " global counter: " << process.getGlobalCounter();
-
         // It can also be tiempo de espera - tiempo de servicio.
         int _tiempoRetorno = process.getTiempoFinalizacion() - process.getTiempoLlegada();
         int _tiempoEspera = _tiempoRetorno - process.getTiempoServicio();
-        QTableWidgetItem *ID = new QTableWidgetItem(QString::number(process.getId()));
-        QTableWidgetItem *Name = new QTableWidgetItem(process.getProgrammerName());
-        QTableWidgetItem *Operation = new QTableWidgetItem(process.getOperation());
-        QTableWidgetItem *Result = new QTableWidgetItem(process.getResult());
-        QTableWidgetItem *Estado = new QTableWidgetItem(process.getEstado());
-        QTableWidgetItem *TME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
-        QTableWidgetItem *tiempoLlegada = new QTableWidgetItem(QString::number(process.getTiempoLlegada()));
-        QTableWidgetItem *tiempoFinalizacion = new QTableWidgetItem(QString::number(process.getTiempoFinalizacion()));
-        QTableWidgetItem *tiempoDeRetorno = new QTableWidgetItem(QString::number(_tiempoRetorno));
-        QTableWidgetItem *tiempoDeRespuesta = new QTableWidgetItem(QString::number(process.getTiempoDeRespuesta()));
-        QTableWidgetItem *tiempoEspera = new QTableWidgetItem(QString::number(_tiempoEspera));
-        QTableWidgetItem *tiempoServicio = new QTableWidgetItem(QString::number(process.getTiempoServicio()));
-        ui->tblWdt_Terminados->setItem(row, ID_PI, ID);
-        ui->tblWdt_Terminados->setItem(row, NAME_PI, Name);
-        ui->tblWdt_Terminados->setItem(row, OPERATION_PI, Operation);
-        ui->tblWdt_Terminados->setItem(row, RESULT_PI, Result);
-        ui->tblWdt_Terminados->setItem(row, ESTADO_PI, Estado);
-        ui->tblWdt_Terminados->setItem(row, TME_PI, TME);
-        ui->tblWdt_Terminados->setItem(row, TL_PI, tiempoLlegada);
-        ui->tblWdt_Terminados->setItem(row, TF_PI, tiempoFinalizacion);
-        ui->tblWdt_Terminados->setItem(row, TR_PI, tiempoDeRetorno);
-        ui->tblWdt_Terminados->setItem(row, TRE_PI, tiempoDeRespuesta);
-        ui->tblWdt_Terminados->setItem(row, TE_PI, tiempoEspera);
-        ui->tblWdt_Terminados->setItem(row++, TS_PI, tiempoServicio);
+
+        QTableWidgetItem *ID = new QTableWidgetItem;
+        QTableWidgetItem *Name = new QTableWidgetItem;
+        QTableWidgetItem *Operation = new QTableWidgetItem;
+        QTableWidgetItem *Result = new QTableWidgetItem;
+        QTableWidgetItem *Estado = new QTableWidgetItem;
+        QTableWidgetItem *TME = new QTableWidgetItem;
+        QTableWidgetItem *tiempoLlegada = new QTableWidgetItem;
+        QTableWidgetItem *tiempoFinalizacion = new QTableWidgetItem;
+        QTableWidgetItem *tiempoDeRetorno = new QTableWidgetItem;
+        QTableWidgetItem *tiempoDeRespuesta = new QTableWidgetItem;
+        QTableWidgetItem *tiempoEspera = new QTableWidgetItem;
+        QTableWidgetItem *tiempoServicio = new QTableWidgetItem;
+        QTableWidgetItem *tiempoRestanteCPU = new QTableWidgetItem;
+
+        if(process.getEstado() == "EN MEMORIA" or process.getEstado() == "NUEVO") {
+            ID->setText(QString::number(process.getId()));
+            Name->setText(process.getProgrammerName());
+            Operation->setText(process.getOperation());
+            Result->setText("-");
+            Estado->setText(process.getEstado());
+            TME->setText(QString::number(process.getTiempoMaximoEst()));
+            tiempoLlegada->setText(QString::number(process.getTiempoLlegada()));
+            tiempoFinalizacion->setText("-");
+            tiempoDeRetorno->setText("-");
+            tiempoDeRespuesta->setText("NULL");
+            tiempoEspera->setText(QString::number(_tiempoEspera));
+            tiempoServicio->setText(QString::number(process.getTiempoServicio()));
+            tiempoRestanteCPU->setText(QString::number(process.getTiempoRestanteCPU()));
+
+            ui->tblWdt_Terminados->setItem(row, ID_PI, ID);
+            ui->tblWdt_Terminados->setItem(row, NAME_PI, Name);
+            ui->tblWdt_Terminados->setItem(row, OPERATION_PI, Operation);
+            ui->tblWdt_Terminados->setItem(row, RESULT_PI, Result);
+            ui->tblWdt_Terminados->setItem(row, ESTADO_PI, Estado);
+            ui->tblWdt_Terminados->setItem(row, TME_PI, TME);
+            ui->tblWdt_Terminados->setItem(row, TL_PI, tiempoLlegada);
+            ui->tblWdt_Terminados->setItem(row, TF_PI, tiempoFinalizacion);
+            ui->tblWdt_Terminados->setItem(row, TR_PI, tiempoDeRetorno);
+            ui->tblWdt_Terminados->setItem(row, TRE_PI, tiempoDeRespuesta);
+            ui->tblWdt_Terminados->setItem(row, TE_PI, tiempoEspera);
+            ui->tblWdt_Terminados->setItem(row, TS_PI, tiempoServicio);
+            ui->tblWdt_Terminados->setItem(row++, TRCPU_PI, tiempoRestanteCPU);
+        } else { // The process is not in memory anymore.
+            qDebug() << "process with ID: " << process.getId() << " global counter: " << process.getGlobalCounter();
+
+            // It can also be tiempo de espera - tiempo de servicio.
+            _tiempoRetorno = process.getTiempoFinalizacion() - process.getTiempoLlegada();
+            _tiempoEspera = _tiempoRetorno - process.getTiempoServicio();
+
+            ID->setText(QString::number(process.getId()));
+            Name->setText(process.getProgrammerName());
+            Operation->setText(process.getOperation());
+            Result->setText(process.getResult());
+            Estado->setText(process.getEstado());
+            TME->setText(QString::number(process.getTiempoMaximoEst()));
+            tiempoLlegada->setText(QString::number(process.getTiempoLlegada()));
+            tiempoFinalizacion->setText(QString::number(process.getTiempoFinalizacion()));
+            tiempoDeRetorno->setText(QString::number(_tiempoRetorno));
+            tiempoDeRespuesta->setText(QString::number(process.getTiempoDeRespuesta()));
+            tiempoEspera->setText(QString::number(_tiempoEspera));
+            tiempoServicio->setText(QString::number(process.getTiempoServicio()));
+            tiempoRestanteCPU->setText("-");
+
+            ui->tblWdt_Terminados->setItem(row, ID_PI, ID);
+            ui->tblWdt_Terminados->setItem(row, NAME_PI, Name);
+            ui->tblWdt_Terminados->setItem(row, OPERATION_PI, Operation);
+            ui->tblWdt_Terminados->setItem(row, RESULT_PI, Result);
+            ui->tblWdt_Terminados->setItem(row, ESTADO_PI, Estado);
+            ui->tblWdt_Terminados->setItem(row, TME_PI, TME);
+            ui->tblWdt_Terminados->setItem(row, TL_PI, tiempoLlegada);
+            ui->tblWdt_Terminados->setItem(row, TF_PI, tiempoFinalizacion);
+            ui->tblWdt_Terminados->setItem(row, TR_PI, tiempoDeRetorno);
+            ui->tblWdt_Terminados->setItem(row, TRE_PI, tiempoDeRespuesta);
+            ui->tblWdt_Terminados->setItem(row, TE_PI, tiempoEspera);
+            ui->tblWdt_Terminados->setItem(row, TS_PI, tiempoServicio);
+            ui->tblWdt_Terminados->setItem(row++, TRCPU_PI, tiempoRestanteCPU);
+        }
     }
 }
 

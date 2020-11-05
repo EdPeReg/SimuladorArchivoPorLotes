@@ -21,6 +21,7 @@ class Process {
         int tiempoDeRespuesta;
         int tiempoServicio;
         int globalCounter;
+        int tiempoRestanteCPU;
         bool enteredExecution; // If the process touch for the first time execution.
         bool noResult; // NEW
     public:
@@ -41,6 +42,7 @@ class Process {
           , tiempoDeRespuesta(0)
           , tiempoServicio(0)
           , globalCounter(0)
+          , tiempoRestanteCPU(0)
           , enteredExecution(false)
           , noResult(false) { }
 
@@ -86,6 +88,10 @@ class Process {
 
         void setGlobalCounter(int globalCounter) {
             this->globalCounter = globalCounter;
+        }
+
+        void setTiempoRestanteCPU(int tiempoRestanteCPU) {
+            this->tiempoRestanteCPU = tiempoRestanteCPU;
         }
 
         void setResult(const QString& result) {
@@ -179,6 +185,10 @@ class Process {
 
         int getGlobalCounter() const {
             return globalCounter;
+        }
+
+        int getTiempoRestanteCPU() const {
+            return tiempoRestanteCPU;
         }
 
         bool getEnteredExecution() {
