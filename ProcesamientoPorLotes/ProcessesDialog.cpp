@@ -68,7 +68,7 @@ void ProcessesDialog::setProcesses(const std::vector<Process> &processes)
             tiempoLlegada->setText(QString::number(process.getTiempoLlegada()));
             tiempoFinalizacion->setText("-");
             tiempoDeRetorno->setText("-");
-            tiempoDeRespuesta->setText("NULL");
+            tiempoDeRespuesta->setText(QString::number(process.getTiempoDeRespuesta()));
             tiempoEspera->setText(QString::number(_tiempoEspera));
             tiempoServicio->setText(QString::number(process.getTiempoServicio()));
             tiempoRestanteCPU->setText(QString::number(process.getTiempoRestanteCPU()));

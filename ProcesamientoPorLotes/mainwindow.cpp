@@ -162,7 +162,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 } else {
                     ui->lnEdt_teclaPresionada->setText(tr("T"));
 
+                    qDebug() << "ID: " << process.getId() << "ENTERED? " << process.getEnteredExecution();
+
                     for(auto& p : allProcesses) {
+                        qDebug() << "process entered? " << p.getEnteredExecution();
                         // Find out process that is in execution.
                         if(p.getId() == process.getId()) {
                             p.setTiempoServicio(counterTimeElapsed);
@@ -475,16 +478,32 @@ void MainWindow::runWithRandomData()
                                 for(auto& process : allProcesses) {
                                     if(process.getId() == nuevos.front().getId()) {
                                         process.setTiempoLlegada(globalCounter);
+                                        break;
                                     }
                                 }
 
                                 listos.front().setGlobalCounter(globalCounter);
                                 listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+
+                                for(auto& process : allProcesses) {
+                                    if(process.getId() == listos.front().getId()) {
+                                        process.setTiempoDeRespuesta(listos.front().getTiempoDeRespuesta());
+                                        break;
+                                    }
+                                }
+
                             } else {
                                 qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
                                 qDebug() << "contador global: " << globalCounter;
                                 listos.front().setGlobalCounter(globalCounter);
                                 listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+
+                                for(auto& process : allProcesses) {
+                                    if(process.getId() == listos.front().getId()) {
+                                        process.setTiempoDeRespuesta(listos.front().getTiempoDeRespuesta());
+                                        break;
+                                    }
+                                }
                             }
                         }
 
@@ -583,6 +602,13 @@ void MainWindow::runWithRandomData()
 
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+
+                        for(auto& process : allProcesses) {
+                            if(process.getId() == listos.front().getId()) {
+                                process.setTiempoDeRespuesta(listos.front().getTiempoDeRespuesta());
+                                break;
+                            }
+                        }
                     }
                     // The process entered in execution.
                     else {
@@ -624,6 +650,13 @@ void MainWindow::runWithRandomData()
 
                         listos.front().setGlobalCounter(globalCounter);
                         listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+
+                        for(auto& process : allProcesses) {
+                            if(process.getId() == listos.front().getId()) {
+                                process.setTiempoDeRespuesta(listos.front().getTiempoDeRespuesta());
+                                break;
+                            }
+                        }
                     }
                 }
 
