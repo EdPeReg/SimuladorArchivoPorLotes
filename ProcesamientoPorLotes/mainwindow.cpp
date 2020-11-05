@@ -507,6 +507,14 @@ void MainWindow::runWithRandomData()
                             }
                         }
 
+                        // When there are in bloqueados, the process as already a tiempo servicio.
+                        for(auto& p : allProcesses) {
+                            if(p.getId() == process.getId()) {
+                                p.setTiempoServicio(process.getTT());
+                                break;
+                            }
+                        }
+
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
                     }
