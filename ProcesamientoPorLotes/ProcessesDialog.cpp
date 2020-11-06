@@ -58,8 +58,37 @@ void ProcessesDialog::setProcesses(const std::vector<Process> &processes)
         QTableWidgetItem *tiempoServicio = new QTableWidgetItem;
         QTableWidgetItem *tiempoRestanteCPU = new QTableWidgetItem;
 
-        if(process.getEstado() == "LISTOS" or process.getEstado() == "EJECUCION" or
-           process.getEstado() == "BLOQUEADO" or process.getEstado() == "NUEVO")
+        if(process.getEstado() == "NUEVO") {
+            ID->setText(QString::number(process.getId()));
+            Name->setText(process.getProgrammerName());
+            Operation->setText(process.getOperation());
+            Result->setText("-");
+            Estado->setText(process.getEstado());
+            TME->setText(QString::number(process.getTiempoMaximoEst()));
+            tiempoLlegada->setText("-");
+            tiempoFinalizacion->setText("-");
+            tiempoDeRetorno->setText("-");
+            tiempoDeRespuesta->setText("-");
+            tiempoEspera->setText("-");
+            tiempoServicio->setText("-");
+            tiempoRestanteCPU->setText("-");
+
+            ui->tblWdt_Terminados->setItem(row, ID_PI, ID);
+            ui->tblWdt_Terminados->setItem(row, NAME_PI, Name);
+            ui->tblWdt_Terminados->setItem(row, OPERATION_PI, Operation);
+            ui->tblWdt_Terminados->setItem(row, RESULT_PI, Result);
+            ui->tblWdt_Terminados->setItem(row, ESTADO_PI, Estado);
+            ui->tblWdt_Terminados->setItem(row, TME_PI, TME);
+            ui->tblWdt_Terminados->setItem(row, TL_PI, tiempoLlegada);
+            ui->tblWdt_Terminados->setItem(row, TF_PI, tiempoFinalizacion);
+            ui->tblWdt_Terminados->setItem(row, TR_PI, tiempoDeRetorno);
+            ui->tblWdt_Terminados->setItem(row, TRE_PI, tiempoDeRespuesta);
+            ui->tblWdt_Terminados->setItem(row, TE_PI, tiempoEspera);
+            ui->tblWdt_Terminados->setItem(row, TS_PI, tiempoServicio);
+            ui->tblWdt_Terminados->setItem(row++, TRCPU_PI, tiempoRestanteCPU);
+        }
+        else if(process.getEstado() == "LISTOS" or process.getEstado() == "EJECUCION" or
+           process.getEstado() == "BLOQUEADO")
         {
             ID->setText(QString::number(process.getId()));
             Name->setText(process.getProgrammerName());

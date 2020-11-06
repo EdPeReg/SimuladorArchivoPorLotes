@@ -147,7 +147,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 }
             break;
 
-
            // Table de procesos BCP de cada proceso.
            case Qt::Key_T:
                 qDebug() << "TABLA DE PROCESOS";
@@ -160,7 +159,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                     ui->lnEdt_teclaPresionada->setText(tr("T"));
 
                     for(auto& p : allProcesses) {
-                        qDebug() << "process entered? " << p.getEnteredExecution();
                         // Find out process that is in execution.
                         if(p.getId() == process.getId()) {
                             p.setTiempoServicio(counterTimeElapsed);
@@ -214,6 +212,7 @@ void MainWindow::insertProcessRandomly()
             for(auto& process : allProcesses) {
                 if(process.getId() == nuevos.front().getId()) {
                     process.setTiempoLlegada(globalCounter);
+                    break;
                 }
             }
 
@@ -235,6 +234,7 @@ void MainWindow::insertProcessRandomly()
             for(auto& process : allProcesses) {
                 if(process.getId() == nuevos.front().getId()) {
                     process.setTiempoLlegada(globalCounter);
+                    break;
                 }
             }
 
@@ -476,6 +476,7 @@ void MainWindow::runWithRandomData()
                         for(auto& p : allProcesses) {
                             if(p.getId() == process.getId()) {
                                 p.setEstado("BLOQUEADO");
+                                p.setTiempoRestanteCPU(counterTimeLeft);
                                 break;
                             }
                         }
@@ -611,13 +612,11 @@ void MainWindow::runWithRandomData()
                         }
 
                         nuevos.front().setEstado("LISTOS");
-//                        nuevos.front().setEstado("EN MEMORIA");
 
                         // Find which process finish and set it in memoria.
                         for(auto& p : allProcesses) {
                             if(p.getId() == nuevos.front().getId()) {
                                 p.setEstado("LISTOS");
-//                                p.setEstado("EN MEMORIA");
                             }
                         }
 
@@ -646,7 +645,6 @@ void MainWindow::runWithRandomData()
                         }
 
                         nuevos.front().setEstado("LISTOS");
-//                        nuevos.front().setEstado("EN MEMORIA");
 
                         // Find which process finish and set it in memoria.
                         for(auto& p : allProcesses) {

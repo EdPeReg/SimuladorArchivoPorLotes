@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QList>
-#include <QVector>
 #include <cmath>
 #include <QDebug>
 #include <QMessageBox>
@@ -51,11 +50,11 @@ private:
     Ui::MainWindow *ui;
 
     ProcessesDialog* processesDialog;
-    Process process; // NEW
+    Process process;
     std::deque<Process> nuevos;
     std::deque<Process> listos;
     std::deque<Process> bloqueados;
-    std::vector<Process> allProcesses; // NEW
+    std::vector<Process> allProcesses;
     std::vector<Process> terminados;
 
     const int LIMITE_PROCESO = 4;
@@ -72,24 +71,24 @@ private:
     int id;
     int globalCounter;
     int nuevosIndex;
-    int nuevosdequeSize; // CHANGE nuevosSize
-    int counterTimeElapsed; // NEW
-    int counterTimeLeft; // NEW
+    int nuevosdequeSize;
+    int counterTimeElapsed;
+    int counterTimeLeft;
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();
-    void insertProcess(); // NEW.
+    void insertProcess();
     inline void delay(int millisecondsWait);
     void pause();
     void resume();
     void updateGlobalCounter(int value);
     void updateTableFinish(const Process& process);
     void runWithRandomData();
-    void updateTableNuevos(); // NEW
+    void updateTableNuevos();
     void updateTableListos(const std::deque<Process>&deque, int& row);
     void insertLastTableListo(const Process& process);
-    void insertLastTableNuevo(const Process& process); // NEW
-    void insertDataTableNuevo(const std::deque<Process>& nuevos); // NEW
+    void insertLastTableNuevo(const Process& process);
+    void insertDataTableNuevo(const std::deque<Process>& nuevos);
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
     void updateTTBCounter();
     void updateBloqueadosTable(const Process& process);
@@ -99,7 +98,7 @@ private:
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
-    std::deque<Process> slice(std::deque<Process> &deque); // CHANGE
+    std::deque<Process> slice(std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int computeQueues(int numProcess);

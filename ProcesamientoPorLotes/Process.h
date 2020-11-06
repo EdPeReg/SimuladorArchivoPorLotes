@@ -8,7 +8,7 @@ class Process {
         QString programmerName;
         QString operation;
         QString result;
-        QString estado; // NEW
+        QString estado;
         int tiempoMaximoEst;
         int id;
         int TT;
@@ -22,8 +22,7 @@ class Process {
         int tiempoServicio;
         int globalCounter;
         int tiempoRestanteCPU;
-        bool enteredExecution; // If the process touch for the first time execution.
-        bool noResult; // NEW
+        bool enteredExecution;
     public:
         Process() :
             programmerName("")
@@ -43,8 +42,7 @@ class Process {
           , tiempoServicio(0)
           , globalCounter(0)
           , tiempoRestanteCPU(0)
-          , enteredExecution(false)
-          , noResult(false) { }
+          , enteredExecution(false) { }
 
         void setProgrammerName(const QString& programmerName) {
             this->programmerName = programmerName;
@@ -118,10 +116,6 @@ class Process {
             this->enteredExecution = enteredExecution;
         }
 
-        void setNoResult(bool noResult) {
-            this->noResult = noResult;
-        }
-
         QString getProgrammerName() const {
             return programmerName;
         }
@@ -193,10 +187,6 @@ class Process {
 
         bool getEnteredExecution() {
             return enteredExecution;
-        }
-
-        bool getNoResult() const {
-            return noResult;
         }
 };
 

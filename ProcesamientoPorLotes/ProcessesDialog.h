@@ -26,7 +26,7 @@ public:
     explicit ProcessesDialog(QWidget *parent = nullptr);
     ~ProcessesDialog();
 
-    void setProcesses(const std::vector<Process>& proesses); // NEW
+    void setProcesses(const std::vector<Process>& proesses);
 
 protected:
     void keyPressEvent(QKeyEvent * e) override;
