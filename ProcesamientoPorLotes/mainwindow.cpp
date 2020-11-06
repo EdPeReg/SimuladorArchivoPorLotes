@@ -6,14 +6,9 @@
 //
 // NOTES:
 //
-// VALIDAR OPERACION.
-//
 // Find a way to obtain a random number for names and operations, don't use rand.
 
 - Memory leak qtablewidgetitem
-- Maybe there TT in the process table is not updated after e
-- CHECK TIEMPO DE ESPERA, DE ALGUNA MANERA ES NEGATIVA.
-- Resultado se muestra cuando le doy T?
 
 */
 
