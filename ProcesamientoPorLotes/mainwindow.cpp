@@ -12,6 +12,8 @@
 
 - Memory leak qtablewidgetitem
 - Maybe there TT in the process table is not updated after e
+- CHECK TIEMPO DE ESPERA, DE ALGUNA MANERA ES NEGATIVA.
+- Resultado se muestra cuando le doy T?
 
 */
 
@@ -162,8 +164,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 } else {
                     ui->lnEdt_teclaPresionada->setText(tr("T"));
 
-                    qDebug() << "ID: " << process.getId() << "ENTERED? " << process.getEnteredExecution();
-
                     for(auto& p : allProcesses) {
                         qDebug() << "process entered? " << p.getEnteredExecution();
                         // Find out process that is in execution.
@@ -176,7 +176,9 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
                     // Our tiempoFinalizacion will be our global counter.
                     for(auto& process : allProcesses) {
-                        if(process.getEstado() == "EN MEMORIA" or process.getEstado() == "NUEVO") {
+                        if(process.getEstado() == "LISTOS" or process.getEstado() == "BLOQUEADO" or
+                           process.getEstado() == "EJECUCION" or process.getEstado() == "NUEVO")
+                        {
                             process.setTiempoFinalizacion(globalCounter);
                         }
                     }
@@ -300,7 +302,7 @@ void MainWindow::insertProcess()
     nuevos.push_back(process);
 
     if(keyN_pressed and listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
-        process.setEstado("EN MEMORIA");
+        process.setEstado("LISTOS");
         allProcesses.push_back(process);
     } else if(keyN_pressed) {
         process.setEstado("NUEVO");
@@ -436,6 +438,15 @@ void MainWindow::runWithRandomData()
     while(nuevosIndex < nuevosdequeSize) {
         if(!listos.empty()) {
             process = listos.front(); // Get the first process.
+            process.setEstado("EJECUCION");
+
+            for(auto& p : allProcesses) {
+                if(p.getId() == process.getId()) {
+                    p.setEstado("EJECUCION");
+                    break;
+                }
+            }
+
             listos.pop_front();
 
             int row = 0;
@@ -465,6 +476,14 @@ void MainWindow::runWithRandomData()
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
                         process.setEnteredExecution(true); // Making the first process entered.
+                        process.setEstado("BLOQUEADO");
+
+                        for(auto& p : allProcesses) {
+                            if(p.getId() == process.getId()) {
+                                p.setEstado("BLOQUEADO");
+                                break;
+                            }
+                        }
 
                         if(!listos.front().getEnteredExecution()) {
                             listos.front().setEnteredExecution(true);
@@ -596,12 +615,14 @@ void MainWindow::runWithRandomData()
                             }
                         }
 
-                        nuevos.front().setEstado("EN MEMORIA");
+                        nuevos.front().setEstado("LISTOS");
+//                        nuevos.front().setEstado("EN MEMORIA");
 
                         // Find which process finish and set it in memoria.
                         for(auto& p : allProcesses) {
                             if(p.getId() == nuevos.front().getId()) {
-                                p.setEstado("EN MEMORIA");
+                                p.setEstado("LISTOS");
+//                                p.setEstado("EN MEMORIA");
                             }
                         }
 
@@ -629,12 +650,13 @@ void MainWindow::runWithRandomData()
                             }
                         }
 
-                        nuevos.front().setEstado("EN MEMORIA");
+                        nuevos.front().setEstado("LISTOS");
+//                        nuevos.front().setEstado("EN MEMORIA");
 
                         // Find which process finish and set it in memoria.
                         for(auto& p : allProcesses) {
                             if(p.getId() == nuevos.front().getId()) {
-                                p.setEstado("EN MEMORIA");
+                                p.setEstado("LISTOS");
                             }
                         }
 
@@ -775,9 +797,9 @@ void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeL
 
 void MainWindow::updateTTBCounter()
 {
-    // NOT PROUD OF THIS, BASICALLY, DEPENDING OF OUR BLOQUEADOS SIZE, WE ARE
+    // NOT PROUD OF THIS, BASICALLY, DEPENDING OF OUR BLOQUEADO SIZE, WE ARE
     // UPDATING OUR COUNTER FOR EACH ROW, THERE SHOULD BE AN AUTOMATIC WAY
-    // TO UPDATE EACH ROW DEPENDING OF OUR BLOQUEADOS SIZE WITHOUT REPETING CODE!
+    // TO UPDATE EACH ROW DEPENDING OF OUR BLOQUEADO SIZE WITHOUT REPETING CODE!
     // REFACTOR IT!!!!!
     if(bloqueados.size() == 1) {
         if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
@@ -791,6 +813,14 @@ void MainWindow::updateTTBCounter()
                 listos.push_back(bloqueados.at(0));
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
+
+                for(auto& p : allProcesses) {
+                    if(p.getId() == listos.back().getId()) {
+                        p.setEstado("LISTOS");
+                        break;
+                    }
+                }
+
                 insertLastTableListo(listos.back());
             } else {
                 // Update our TT and TR counters.
@@ -806,6 +836,13 @@ void MainWindow::updateTTBCounter()
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
 
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == bloqueados.at(0).getId()) {
+                            p.setEstado("EJECUCION");
+                            break;
+                        }
+                    }
+
                     // Also because we updated before our TT and TR counters,
                     // we also need to increment its index.
                     int aux = listos.at(0).getIndexTime();
@@ -819,6 +856,13 @@ void MainWindow::updateTTBCounter()
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
                     insertLastTableListo(listos.back());
+
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == listos.back().getId()) {
+                            p.setEstado("LISTOS");
+                            break;
+                        }
+                    }
 
                     // Also because we updated before our TT and TR counters,
                     // we also need to increment its index.
@@ -858,6 +902,14 @@ void MainWindow::updateTTBCounter()
                 listos.push_back(bloqueados.at(0));
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
+
+                for(auto& p : allProcesses) {
+                    if(p.getId() == listos.back().getId()) {
+                        p.setEstado("LISTOS");
+                        break;
+                    }
+                }
+
                 insertLastTableListo(listos.back());
             } else {
                 // Update our TT and TR counters.
@@ -873,6 +925,13 @@ void MainWindow::updateTTBCounter()
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
 
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == bloqueados.at(0).getId()) {
+                            p.setEstado("EJECUCION");
+                            break;
+                        }
+                    }
+
                     // Also because we updated before our TT and TR counters,
                     // we also need to increment its index.
                     int aux = listos.at(0).getIndexTime();
@@ -886,6 +945,13 @@ void MainWindow::updateTTBCounter()
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
                     insertLastTableListo(listos.back());
+
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == listos.back().getId()) {
+                            p.setEstado("LISTOS");
+                            break;
+                        }
+                    }
 
                     // Also because we updated before our TT and TR counters,
                     // we also need to increment its index.
@@ -934,6 +1000,14 @@ void MainWindow::updateTTBCounter()
                 listos.push_back(bloqueados.at(0));
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
+
+                for(auto& p : allProcesses) {
+                    if(p.getId() == listos.back().getId()) {
+                        p.setEstado("LISTOS");
+                        break;
+                    }
+                }
+
                 insertLastTableListo(listos.back());
             } else {
                 // Update our TT and TR counters.
@@ -949,6 +1023,13 @@ void MainWindow::updateTTBCounter()
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
 
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == bloqueados.at(0).getId()) {
+                            p.setEstado("EJECUCION");
+                            break;
+                        }
+                    }
+
                     // Also because we updated before our TT and TR counters,
                     // we also need to increment its index.
                     int aux = listos.at(0).getIndexTime();
@@ -962,6 +1043,13 @@ void MainWindow::updateTTBCounter()
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
                     insertLastTableListo(listos.back());
+
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == listos.back().getId()) {
+                            p.setEstado("LISTOS");
+                            break;
+                        }
+                    }
 
                     // Also because we updated before our TT and TR counters,
                     // we also need to increment its index.
@@ -1022,6 +1110,7 @@ void MainWindow::updateTTBCounter()
             updateTT_TR_counters(counterTimeElapsed, counterTimeLeft);
             insertDataTableRunningProcess(bloqueados.at(0));
 
+
             // If there is a null process, insert the process in the running table
             // if not, just insert the process in our listos table.
             if(isProcessNull) {
@@ -1029,6 +1118,13 @@ void MainWindow::updateTTBCounter()
                 insertDataTableRunningProcess(bloqueados.at(0));
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
+
+                for(auto& p : allProcesses) {
+                    if(p.getId() == bloqueados.at(0).getId()) {
+                        p.setEstado("EJECUCION");
+                        break;
+                    }
+                }
 
                 // Also because we updated before our TT and TR counters,
                 // we also need to increment its index.
@@ -1043,6 +1139,13 @@ void MainWindow::updateTTBCounter()
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
                 insertLastTableListo(listos.back());
+
+                for(auto& p : allProcesses) {
+                    if(p.getId() == listos.back().getId()) {
+                        p.setEstado("LISTOS");
+                        break;
+                    }
+                }
 
                 // Also because we updated before our TT and TR counters,
                 // we also need to increment its index.
@@ -1161,7 +1264,8 @@ std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
     // First case, only when there are less than 4 processes.
     if(deque.size() <= 4) {
         for(auto& process : deque) {
-            process.setEstado("EN MEMORIA");
+            process.setEstado("LISTOS");
+//            process.setEstado("EN MEMORIA");
             // First processes has a tiempo llegada 0.
             listos.push_back(process);
             allProcesses.push_back(process);
@@ -1170,7 +1274,8 @@ std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
         // Just push the first four processes when there are more than 4 processes.
         for(size_t i = 0; i < deque.size(); ++i) {
             if(i < 4) {
-                deque.at(i).setEstado("EN MEMORIA");
+                deque.at(i).setEstado("LISTOS");
+//                deque.at(i).setEstado("EN MEMORIA");
                 listos.push_back(deque.at(i));
                 allProcesses.push_back(deque.at(i));
             }
@@ -1180,7 +1285,6 @@ std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
                 allProcesses.push_back(deque.at(i));
             }
         }
-
     }
 
     return listos;

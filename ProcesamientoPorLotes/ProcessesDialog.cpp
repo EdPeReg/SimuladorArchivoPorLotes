@@ -58,7 +58,9 @@ void ProcessesDialog::setProcesses(const std::vector<Process> &processes)
         QTableWidgetItem *tiempoServicio = new QTableWidgetItem;
         QTableWidgetItem *tiempoRestanteCPU = new QTableWidgetItem;
 
-        if(process.getEstado() == "EN MEMORIA" or process.getEstado() == "NUEVO") {
+        if(process.getEstado() == "LISTOS" or process.getEstado() == "EJECUCION" or
+           process.getEstado() == "BLOQUEADO" or process.getEstado() == "NUEVO")
+        {
             ID->setText(QString::number(process.getId()));
             Name->setText(process.getProgrammerName());
             Operation->setText(process.getOperation());
