@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1762</width>
+    <height>747</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_9">
+    <item row="0" column="2">
+     <widget class="QGroupBox" name="gprBx_ProcEjec">
+      <property name="title">
+       <string>Proceso en Ejecución</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="QTableWidget" name="tblWdt_ProcesoEjec"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="4">
+     <widget class="QGroupBox" name="gprBx_Terminados">
+      <property name="title">
+       <string>Terminados</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0">
+        <widget class="QTableWidget" name="tblWdt_Terminados"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QGroupBox" name="gprBx_Listo">
+      <property name="title">
+       <string>Listos</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QTableWidget" name="tblWdt_ProcListo"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="gprBx_nuevos">
+      <property name="title">
+       <string>Nuevos</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="0" column="0">
+        <widget class="QTableWidget" name="tblWdt_ProcLNuevos"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbl_NumProcPend">
+        <property name="text">
+         <string>Número de procesos nuevos pendientes</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLCDNumber" name="lcd_ProcRestantes"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbl_TeclaPresionada">
+        <property name="text">
+         <string>Tecla Presionada</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="lnEdt_teclaPresionada">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLCDNumber" name="lcd_ContGlobal"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbl_ContGlobal">
+        <property name="text">
+         <string>Contador Global</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lbl_CantProceso">
+        <property name="text">
+         <string>Cantidad de Procesos</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="spnBx_CantProcesos">
+        <property name="maximum">
+         <number>255</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="3">
+     <widget class="QGroupBox" name="groupBox_bloqueados">
+      <property name="title">
+       <string>Bloqueados</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="0">
+        <widget class="QTableWidget" name="tblWgt_Bloqueados"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1762</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_Procesar_Procesos">
+    <property name="title">
+     <string>&amp;Proceso opciones</string>
+    </property>
+    <addaction name="action_Procesar_Procesos"/>
+   </widget>
+   <addaction name="menu_Procesar_Procesos"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_Procesar_Procesos">
+   <property name="text">
+    <string>&amp;Analizar procesos</string>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>tblWdt_ProcListo</tabstop>
+  <tabstop>tblWdt_ProcesoEjec</tabstop>
+  <tabstop>tblWdt_Terminados</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
