@@ -444,7 +444,6 @@ void MainWindow::runWithRandomData()
     while(nuevosIndex < nuevosdequeSize) {
         if(!listos.empty()) {
             process = listos.front(); // Get the first process.
-            process.setQuantumValue(quantumValue);
             process.setEstado("EJECUCION");
 
             for(auto& p : allProcesses) {
@@ -472,15 +471,32 @@ void MainWindow::runWithRandomData()
                 if(quantumValue != 0) {
                     updateQuantumValue();
                 } else {
+                    // To adjust our TT and TR counters.
+                    process.setTT(--counterTimeElapsed);
+                    process.setTR(++counterTimeLeft);
+                    process.setIndexTime(indexTime);
+                    process.setEstado("LISTOS");
+
+                    for(auto& p : allProcesses) {
+                        if(p.getId() == process.getId()) {
+                            p.setEstado("LISTOS");
+                        }
+                    }
+
                     listos.push_back(process);
                     insertLastTableListo(listos.back());
                     ui->tblWdt_ProcesoEjec->clearContents();
                     quantumValue = quantumValueDialog->getQuantum();
 
-                    qDebug() << "TT: " << process.getTT();
-                    qDebug() << "TR: " << process.getTR();
 
-                    runWithRandomData();
+                    qDebug() << "TT: " << counterTimeElapsed;
+                    qDebug() << "TR: " << counterTimeLeft;
+                    qDebug() << "";
+
+                    // Basically, passing a process to listos is the job of IO_interruption
+                    // so... let's do the same job.
+                    IO_interruptionKey = true;
+                    break;
                 }
 
                 // Keep continue updating my TTB counters from each process in the
@@ -493,6 +509,7 @@ void MainWindow::runWithRandomData()
                 if(IO_interruptionKey) {
                     // To not insert more than four processes.
                     if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
+                        quantumValue = quantumValueDialog->getQuantum();
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
                         process.setIndexTime(++indexTime);
@@ -720,6 +737,8 @@ void MainWindow::runWithRandomData()
                         }
                     }
                 }
+                // Reset quantum value when the process finish.
+                quantumValue = quantumValueDialog->getQuantum();
                 terminados.push_back(process);
                 updateTableFinish(process);
 
@@ -852,6 +871,10 @@ void MainWindow::updateTTBCounter()
                 if(isProcessNull) {
                     isProcessNull = false;
                     insertDataTableRunningProcess(bloqueados.at(0));
+
+                    // When the process goes to ejecucion, we need to update our quantumValue again.
+                    updateQuantumValue();
+
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
 
@@ -941,6 +964,10 @@ void MainWindow::updateTTBCounter()
                 if(isProcessNull) {
                     isProcessNull = false;
                     insertDataTableRunningProcess(bloqueados.at(0));
+
+                    // When the process goes to ejecucion, we need to update our quantumValue again.
+                    updateQuantumValue();
+
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
 
@@ -1040,6 +1067,10 @@ void MainWindow::updateTTBCounter()
                     isProcessNull = false;
                     insertDataTableRunningProcess(bloqueados.at(0));
                     bloqueados.at(0).setTTB(0);
+
+                    // When the process goes to ejecucion, we need to update our quantumValue again.
+                    updateQuantumValue();
+
                     listos.push_back(bloqueados.at(0));
 
                     for(auto& p : allProcesses) {
@@ -1136,6 +1167,10 @@ void MainWindow::updateTTBCounter()
                 isProcessNull = false;
                 insertDataTableRunningProcess(bloqueados.at(0));
                 bloqueados.at(0).setTTB(0);
+
+                // When the process goes to ejecucion, we need to update our quantumValue again.
+                updateQuantumValue();
+
                 listos.push_back(bloqueados.at(0));
 
                 for(auto& p : allProcesses) {
@@ -1182,9 +1217,14 @@ void MainWindow::updateTTBCounter()
 
 void MainWindow::updateQuantumValue()
 {
-    int quantumvalue = process.getQuantumValue();
-    QTableWidgetItem *quantumVal = new QTableWidgetItem(QString::number(quantumValue--));
-    ui->tblWdt_ProcesoEjec->setItem(0, QUANT_RP, quantumVal);
+    QTableWidgetItem *quantumVal = new QTableWidgetItem;
+    if(isProcessNull) {
+        quantumVal->setText(QString::number(-1));
+        ui->tblWdt_ProcesoEjec->setItem(0, QUANT_RP, quantumVal);
+    } else {
+        quantumVal->setText(QString::number(quantumValue--));
+        ui->tblWdt_ProcesoEjec->setItem(0, QUANT_RP, quantumVal);
+    }
 }
 
 void MainWindow::updateBloqueadosTable(const Process &process)
@@ -1281,6 +1321,11 @@ void MainWindow::setNullProcess()
     nullProcess.setTT(invalidNumber);
     insertDataTableRunningProcess(nullProcess);
     updateTT_TR_counters(invalidNumber, invalidNumber);
+    updateQuantumValue();
+
+    // Use the quantum update function here?
+//    QTableWidgetItem *quantumVal = new QTableWidgetItem(QString::number(-1));
+//    ui->tblWdt_ProcesoEjec->setItem(0, QUANT_RP, quantumVal);
 }
 
 std::deque<Process> MainWindow::slice(std::deque<Process> &deque)

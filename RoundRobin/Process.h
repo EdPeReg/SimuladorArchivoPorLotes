@@ -22,7 +22,6 @@ class Process {
         int tiempoServicio;
         int globalCounter;
         int tiempoRestanteCPU;
-        int quantumValue; // NEW
         bool enteredExecution;
     public:
         Process() :
@@ -43,7 +42,6 @@ class Process {
           , tiempoServicio(0)
           , globalCounter(0)
           , tiempoRestanteCPU(0)
-          , quantumValue(0)
           , enteredExecution(false) { }
 
         void setProgrammerName(const QString& programmerName) {
@@ -94,9 +92,6 @@ class Process {
             this->tiempoRestanteCPU = tiempoRestanteCPU;
         }
 
-        void setQuantumValue(int quantumValue) {
-            this->quantumValue = quantumValue;
-        }
         void setResult(const QString& result) {
             this->result = result;
         }
@@ -188,10 +183,6 @@ class Process {
 
         int getTiempoRestanteCPU() const {
             return tiempoRestanteCPU;
-        }
-
-        int getQuantumValue() const {
-            return quantumValue;
         }
 
         bool getEnteredExecution() {
