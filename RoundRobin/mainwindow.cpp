@@ -12,6 +12,7 @@
 - Check all warnings.
 - Maybe it would be a good idea to have a function that pass the process to listos table.
   or that inserts to listos.
+- Check the times whhen the final table is shown.
 
 */
 
@@ -278,7 +279,7 @@ void MainWindow::insertProcess()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(7,16);
+    std::uniform_int_distribution<int> randomTME(7,16); // 7, 16
     std::uniform_int_distribution<int> randomID(1,255);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -471,27 +472,41 @@ void MainWindow::runWithRandomData()
                 if(quantumValue != 0) {
                     updateQuantumValue();
                 } else {
+                    qDebug() << "ID: " << listos.front().getId() << " toco ejecucion";
+                    qDebug() << "contador global: " << globalCounter;
+                    qDebug() << "";
+
                     // To adjust our TT and TR counters.
                     process.setTT(--counterTimeElapsed);
                     process.setTR(++counterTimeLeft);
                     process.setIndexTime(indexTime);
                     process.setEstado("LISTOS");
+                    process.setEnteredExecution(true);
+                    listos.front().setGlobalCounter(globalCounter);
+
+                    if(!listos.front().getEnteredExecution()) {
+                        listos.front().setTiempoDeRespuesta(globalCounter - listos.front().getTiempoLlegada());
+                    }
+
+                    // To avoid to display other value. 6 -> 8
+                    --globalCounter;
 
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
                             p.setEstado("LISTOS");
                         }
+                        if(p.getId() == listos.front().getId()) {
+                            if(!listos.front().getEnteredExecution()) {
+                                p.setTiempoDeRespuesta(listos.front().getTiempoDeRespuesta());
+                            }
+                        }
                     }
 
+                    listos.front().setEnteredExecution(true);
                     listos.push_back(process);
                     insertLastTableListo(listos.back());
                     ui->tblWdt_ProcesoEjec->clearContents();
                     quantumValue = quantumValueDialog->getQuantum();
-
-
-                    qDebug() << "TT: " << counterTimeElapsed;
-                    qDebug() << "TR: " << counterTimeLeft;
-                    qDebug() << "";
 
                     // Basically, passing a process to listos is the job of IO_interruption
                     // so... let's do the same job.
@@ -622,6 +637,7 @@ void MainWindow::runWithRandomData()
                 for(auto& p : allProcesses) {
                     if(p.getId() == process.getId()) {
                         p.setTiempoFinalizacion(globalCounter);
+                        break;
                     }
                 }
 
@@ -632,6 +648,7 @@ void MainWindow::runWithRandomData()
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
                             p.setTiempoServicio(counterTimeElapsed);
+                            break;
                         }
                     }
                 }
@@ -660,6 +677,7 @@ void MainWindow::runWithRandomData()
                         for(auto& p : allProcesses) {
                             if(p.getId() == nuevos.front().getId()) {
                                 p.setEstado("LISTOS");
+                                break;
                             }
                         }
 
@@ -711,6 +729,7 @@ void MainWindow::runWithRandomData()
                         for(auto& process : allProcesses) {
                             if(process.getId() == nuevos.front().getId()) {
                                 process.setTiempoLlegada(globalCounter);
+                                break;
                             }
                         }
 
@@ -734,6 +753,7 @@ void MainWindow::runWithRandomData()
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
                             p.setEstado("TERMINADO");
+                            break;
                         }
                     }
                 }
@@ -1270,8 +1290,11 @@ void MainWindow::reset()
     nuevosIndex = 0;
     nuevosdequeSize = 0;
     counterTimeElapsed = 0;
+    globalCounter = 0;
+    id = 1;
 
     ui->tblWdt_ProcesoEjec->clearContents();
+    ui->tblWdt_Terminados->setRowCount(0);
     ui->tblWdt_ProcListo->setRowCount(0);
     ui->lcd_ProcRestantes->display(0);
     ui->lnEdt_teclaPresionada->setText("");
