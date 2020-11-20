@@ -12,7 +12,6 @@
 - Check all warnings.
 - Maybe it would be a good idea to have a function that pass the process to listos table.
   or that inserts to listos.
-- Check the times whhen the final table is shown.
 
 */
 
