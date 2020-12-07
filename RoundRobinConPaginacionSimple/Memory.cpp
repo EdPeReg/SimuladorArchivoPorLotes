@@ -64,7 +64,9 @@ void Memory::insertRunningProcess(const Process &process, int size)
     qDebug() << "process size: " << process.getTamano();
     qDebug() << "num pages: " << numPages;
     qDebug() << "remainder: " << processSize;
+    qDebug() << "row: " << row;
 
+    // Set the flag to not repeat elements.
     for(const auto& e : utilidades) {
         if(e.processID == process.getId()) {
             repeated = true;
@@ -72,9 +74,18 @@ void Memory::insertRunningProcess(const Process &process, int size)
         }
     }
 
+    // Save our start position from this process.
     if(!repeated) {
         utility.processID = process.getId();
         utility.start = row;
+    }
+
+    // Get the start proper position of our process.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            row = e.start;
+            break;
+        }
     }
 
     while(numPages--) {
@@ -130,6 +141,7 @@ void Memory::insertRunningProcess(const Process &process, int size)
         utility.end = row + 1;;
     }
 
+    // Save our start position from this process.
     if(!repeated) {
         utilidades.push_back(utility);
     }
@@ -161,7 +173,9 @@ void Memory::insertListos(const Process& process, int size)
     qDebug() << "process size: " << process.getTamano();
     qDebug() << "num pages: " << numPages;
     qDebug() << "remainder: " << processSize;
+    qDebug() << "row: " << row;
 
+    // Set the flag to not repeat elements.
     for(const auto& e : utilidades) {
         if(e.processID == process.getId()) {
             repeated = true;
@@ -172,6 +186,14 @@ void Memory::insertListos(const Process& process, int size)
     if(!repeated) {
         utility.processID = process.getId();
         utility.start = row;
+    }
+
+    // Get the start proper position of our process.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            row = e.start;
+            break;
+        }
     }
 
     while(numPages--) {
