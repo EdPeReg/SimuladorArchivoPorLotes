@@ -22,6 +22,7 @@ class Process {
         int tiempoServicio;
         int globalCounter;
         int tiempoRestanteCPU;
+        short tamano;
         bool enteredExecution;
     public:
         Process() :
@@ -42,6 +43,7 @@ class Process {
           , tiempoServicio(0)
           , globalCounter(0)
           , tiempoRestanteCPU(0)
+          , tamano(0)
           , enteredExecution(false) { }
 
         void setProgrammerName(const QString& programmerName) {
@@ -112,9 +114,15 @@ class Process {
             this->tiempoServicio = tiempoServicio;
         }
 
+        void setTamano(short tamano) {
+            this->tamano = tamano;
+        }
+
         void setEnteredExecution(bool enteredExecution) {
             this->enteredExecution = enteredExecution;
         }
+
+        // Getters.
 
         QString getProgrammerName() const {
             return programmerName;
@@ -185,8 +193,16 @@ class Process {
             return tiempoRestanteCPU;
         }
 
+        short getTamano() const {
+            return tamano;
+        }
+
         bool getEnteredExecution() {
             return enteredExecution;
+        }
+
+        friend bool operator < (const Process& p1, const Process& p2) {
+            return p1.id < p2.id;
         }
 };
 

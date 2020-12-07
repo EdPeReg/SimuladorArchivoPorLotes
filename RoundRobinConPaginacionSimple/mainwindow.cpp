@@ -279,8 +279,8 @@ void MainWindow::insertProcess()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(7,16); // 7, 16
-    std::uniform_int_distribution<int> randomID(1,255);
+    std::uniform_int_distribution<int> randomTME(5,16); // 7-16
+    std::uniform_int_distribution<short> randomTamano(6,28);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
     QString names[10] = {"jose", "morales", "jimnez", "lupita", "Lucia",
@@ -303,10 +303,12 @@ void MainWindow::insertProcess()
     process.setOperation(auxOperation);
     QString r = doOperation(operation);
     process.setResult(r);
+    process.setTamano(randomTamano(mt));
     process.setTiempoMaximoEst(randomTME(mt));
     process.setId(id++);
 
     nuevos.push_back(process);
+    marcos.push_back(process);
 
     if(keyN_pressed and listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
         process.setEstado("LISTOS");
@@ -445,7 +447,16 @@ void MainWindow::runWithRandomData()
     while(nuevosIndex < nuevosdequeSize) {
         if(!listos.empty()) {
             process = listos.front(); // Get the first process.
+            listos.front().setEstado("EJECUCION");
             process.setEstado("EJECUCION");
+
+            // Find the frame process to set it to EJECUCION.
+            for(auto& p : marcos) {
+                if(p.getId() == process.getId()) {
+                    p.setEstado("EJECUCION");
+                    break;
+                }
+            }
 
             for(auto& p : allProcesses) {
                 if(p.getId() == process.getId()) {
@@ -453,6 +464,10 @@ void MainWindow::runWithRandomData()
                     break;
                 }
             }
+
+//            memory->insertTable(marcos);
+
+            memory->insertTable(listos);
 
             listos.pop_front();
 
@@ -490,6 +505,14 @@ void MainWindow::runWithRandomData()
 
                     // To avoid to display other value. 6 -> 8
                     --globalCounter;
+
+                    // Find the frame process to set it to LISTOS.
+                    for(auto& p : marcos) {
+                        if(p.getId() == process.getId()) {
+                            p.setEstado("LISTOS");
+                            break;
+                        }
+                    }
 
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
@@ -628,6 +651,8 @@ void MainWindow::runWithRandomData()
 
                 ++indexTime;
             } // end iteration TME.
+
+            memory->clearRow();
 
             if(pauseRequired) break;
 
@@ -1345,10 +1370,6 @@ void MainWindow::setNullProcess()
     insertDataTableRunningProcess(nullProcess);
     updateTT_TR_counters(invalidNumber, invalidNumber);
     updateQuantumValue();
-
-    // Use the quantum update function here?
-//    QTableWidgetItem *quantumVal = new QTableWidgetItem(QString::number(-1));
-//    ui->tblWdt_ProcesoEjec->setItem(0, QUANT_RP, quantumVal);
 }
 
 std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
@@ -1424,6 +1445,8 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
             insertDataTableNuevo(nuevos);
 
             setInitialProcCounterValue();
+            memory->setProcessesLeft(listos.size());
+            memory->setProcLeftCopy(listos.size());
             runWithRandomData();
         }
     } else {

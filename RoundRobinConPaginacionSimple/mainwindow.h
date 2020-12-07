@@ -60,6 +60,7 @@ private:
     std::deque<Process> bloqueados;
     std::vector<Process> allProcesses;
     std::vector<Process> terminados;
+    std::deque<Process> marcos; // new
 
     const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 8;
