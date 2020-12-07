@@ -6,6 +6,13 @@
 
 #include "Process.h"
 
+struct Utility{
+    int processID;
+    int start;
+    int end;
+};
+
+
 namespace Ui {
 class Memory;
 }
@@ -18,10 +25,10 @@ public:
     explicit Memory(QWidget *parent = nullptr);
     ~Memory();
 
-    void insertTable(std::deque<Process> processes);
-    void insertRunningProcess(const Process& process);
-    void insertListos(std::deque<Process> listos);
-    void insertListos(const Process& process);
+    void insertTable(std::deque<Process> listos, std::deque<Process> bloqueados);
+    void insertRunningProcess(const Process& process, int size);
+    void insertListos(const Process& process, int size);
+    void insertBloqueado(const Process& process);
     void setTable();
     void setColor(int row, int col);
     void setProcessesLeft(int processesLeft);
@@ -33,10 +40,12 @@ public:
 private:
     Ui::Memory *ui;
 
+    std::vector<Utility> utilidades;
     const short TAMANO_PAGINA = 5;
     int processesLeft;
     int procLeftCopy;
     short row;
+    bool repeated;
 };
 
 #endif // MEMORY_H

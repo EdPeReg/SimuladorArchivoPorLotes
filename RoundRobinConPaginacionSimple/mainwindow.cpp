@@ -279,7 +279,7 @@ void MainWindow::insertProcess()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> randomTME(5,16); // 7-16
+    std::uniform_int_distribution<int> randomTME(7,16); // 7-16
     std::uniform_int_distribution<short> randomTamano(6,28);
     std::uniform_int_distribution<int> randomOperand(1, 500);
 
@@ -465,9 +465,7 @@ void MainWindow::runWithRandomData()
                 }
             }
 
-//            memory->insertTable(marcos);
-
-            memory->insertTable(listos);
+            memory->insertTable(listos, bloqueados);
 
             listos.pop_front();
 
@@ -553,6 +551,15 @@ void MainWindow::runWithRandomData()
                         process.setIndexTime(++indexTime);
                         process.setEnteredExecution(true); // Making the first process entered.
                         process.setEstado("BLOQUEADO");
+
+
+                        // Find the frame process to set it to BLOQUEADO.
+                        for(auto& p : marcos) {
+                            if(p.getId() == process.getId()) {
+                                p.setEstado("BLOQUEADO");
+                                break;
+                            }
+                        }
 
                         for(auto& p : allProcesses) {
                             if(p.getId() == process.getId()) {
