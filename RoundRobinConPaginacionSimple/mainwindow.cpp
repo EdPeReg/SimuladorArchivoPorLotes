@@ -308,7 +308,6 @@ void MainWindow::insertProcess()
     process.setId(id++);
 
     nuevos.push_back(process);
-    marcos.push_back(process);
 
     if(keyN_pressed and listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
         process.setEstado("LISTOS");
@@ -450,14 +449,6 @@ void MainWindow::runWithRandomData()
             listos.front().setEstado("EJECUCION");
             process.setEstado("EJECUCION");
 
-            // Find the frame process to set it to EJECUCION.
-            for(auto& p : marcos) {
-                if(p.getId() == process.getId()) {
-                    p.setEstado("EJECUCION");
-                    break;
-                }
-            }
-
             for(auto& p : allProcesses) {
                 if(p.getId() == process.getId()) {
                     p.setEstado("EJECUCION");
@@ -504,14 +495,6 @@ void MainWindow::runWithRandomData()
                     // To avoid to display other value. 6 -> 8
                     --globalCounter;
 
-                    // Find the frame process to set it to LISTOS.
-                    for(auto& p : marcos) {
-                        if(p.getId() == process.getId()) {
-                            p.setEstado("LISTOS");
-                            break;
-                        }
-                    }
-
                     for(auto& p : allProcesses) {
                         if(p.getId() == process.getId()) {
                             p.setEstado("LISTOS");
@@ -551,15 +534,6 @@ void MainWindow::runWithRandomData()
                         process.setIndexTime(++indexTime);
                         process.setEnteredExecution(true); // Making the first process entered.
                         process.setEstado("BLOQUEADO");
-
-
-                        // Find the frame process to set it to BLOQUEADO.
-                        for(auto& p : marcos) {
-                            if(p.getId() == process.getId()) {
-                                p.setEstado("BLOQUEADO");
-                                break;
-                            }
-                        }
 
                         for(auto& p : allProcesses) {
                             if(p.getId() == process.getId()) {
@@ -806,6 +780,7 @@ void MainWindow::runWithRandomData()
             IO_interruptionKey = false;
             keyError = false;
         } else {
+            memory->insertTable(listos, bloqueados);
             // List is empty, all processes are in the bloqueados table.
             setNullProcess();
             updateTTBCounter();
@@ -901,6 +876,7 @@ void MainWindow::updateTTBCounter()
             if(!listos.empty()) {
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
+                listos.back().setEstado("LISTOS");
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
 
@@ -912,6 +888,7 @@ void MainWindow::updateTTBCounter()
                 }
 
                 insertLastTableListo(listos.back());
+                memory->insertTable(listos, bloqueados);
             } else {
                 // Update our TT and TR counters.
                 int counterTimeElapsed = bloqueados.at(0).getTT();
@@ -929,6 +906,7 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
+                    listos.back().setEstado("LISTOS");
 
                     for(auto& p : allProcesses) {
                         if(p.getId() == bloqueados.at(0).getId()) {
@@ -946,10 +924,12 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.pop_front();
                     ui->tblWgt_Bloqueados->removeRow(0);
+                    memory->insertTable(listos, bloqueados);
                 } else {
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
                     insertLastTableListo(listos.back());
+                    listos.back().setEstado("LISTOS");
 
                     for(auto& p : allProcesses) {
                         if(p.getId() == listos.back().getId()) {
@@ -967,6 +947,7 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.pop_front();
                     ui->tblWgt_Bloqueados->removeRow(0);
+                    memory->insertTable(listos, bloqueados);
                 }
             }
         }
@@ -994,6 +975,7 @@ void MainWindow::updateTTBCounter()
             if(!listos.empty()) {
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
+                listos.back().setEstado("LISTOS");
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
 
@@ -1005,6 +987,7 @@ void MainWindow::updateTTBCounter()
                 }
 
                 insertLastTableListo(listos.back());
+                memory->insertTable(listos, bloqueados);
             } else {
                 // Update our TT and TR counters.
                 int counterTimeElapsed = bloqueados.at(0).getTT();
@@ -1022,6 +1005,7 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
+                    listos.back().setEstado("LISTOS");
 
                     for(auto& p : allProcesses) {
                         if(p.getId() == bloqueados.at(0).getId()) {
@@ -1039,9 +1023,11 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.pop_front();
                     ui->tblWgt_Bloqueados->removeRow(0);
+                    memory->insertTable(listos, bloqueados);
                 } else {
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
+                    listos.back().setEstado("LISTOS");
                     insertLastTableListo(listos.back());
 
                     for(auto& p : allProcesses) {
@@ -1060,6 +1046,7 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.pop_front();
                     ui->tblWgt_Bloqueados->removeRow(0);
+                    memory->insertTable(listos, bloqueados);
                 }
             }
         }
@@ -1096,6 +1083,7 @@ void MainWindow::updateTTBCounter()
             if(!listos.empty()) {
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
+                listos.back().setEstado("LISTOS");
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
 
@@ -1107,6 +1095,7 @@ void MainWindow::updateTTBCounter()
                 }
 
                 insertLastTableListo(listos.back());
+                memory->insertTable(listos, bloqueados);
             } else {
                 // Update our TT and TR counters.
                 int counterTimeElapsed = bloqueados.at(0).getTT();
@@ -1124,6 +1113,7 @@ void MainWindow::updateTTBCounter()
                     updateQuantumValue();
 
                     listos.push_back(bloqueados.at(0));
+                    listos.back().setEstado("LISTOS");
 
                     for(auto& p : allProcesses) {
                         if(p.getId() == bloqueados.at(0).getId()) {
@@ -1141,9 +1131,11 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.pop_front();
                     ui->tblWgt_Bloqueados->removeRow(0);
+                    memory->insertTable(listos, bloqueados);
                 } else {
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
+                    listos.back().setEstado("LISTOS");
                     insertLastTableListo(listos.back());
 
                     for(auto& p : allProcesses) {
@@ -1162,6 +1154,7 @@ void MainWindow::updateTTBCounter()
 
                     bloqueados.pop_front();
                     ui->tblWgt_Bloqueados->removeRow(0);
+                    memory->insertTable(listos, bloqueados);
                 }
 
             }
@@ -1190,6 +1183,7 @@ void MainWindow::updateTTBCounter()
             bloqueados.at(1).setTTB(TTB_p2);
             bloqueados.at(2).setTTB(TTB_p3);
             bloqueados.at(3).setTTB(TTB_p4);
+            memory->insertTable(listos, bloqueados);
 
         } else {
             // Update immediately the bloqueados table after the front process finish.
@@ -1224,6 +1218,7 @@ void MainWindow::updateTTBCounter()
                 updateQuantumValue();
 
                 listos.push_back(bloqueados.at(0));
+                listos.back().setEstado("LISTOS");
 
                 for(auto& p : allProcesses) {
                     if(p.getId() == bloqueados.at(0).getId()) {
@@ -1241,9 +1236,11 @@ void MainWindow::updateTTBCounter()
 
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
+                memory->insertTable(listos, bloqueados);
             } else {
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
+                listos.back().setEstado("LISTOS");
                 insertLastTableListo(listos.back());
 
                 for(auto& p : allProcesses) {
@@ -1262,6 +1259,7 @@ void MainWindow::updateTTBCounter()
 
                 bloqueados.pop_front();
                 ui->tblWgt_Bloqueados->removeRow(0);
+                memory->insertTable(listos, bloqueados);
             }
         }
     }

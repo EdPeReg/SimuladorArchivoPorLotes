@@ -36,20 +36,21 @@ void Memory::insertTable(std::deque<Process> listos, std::deque<Process> bloquea
     processesLeft = listos.size();
     for(auto process : listos) {
          if(process.getEstado() == "EJECUCION") {
-            insertRunningProcess(process, listos.size());
+            insertRunningProcess(process);
         } else if(process.getEstado() == "LISTOS") {
-            insertListos(process, listos.size());
-        } //else if(process.getEstado() == "BLOQUEADO") {
-          //  insertBloqueado(process);
-        //}
+            insertListos(process);
+        }
     }
 
     for(auto process : bloqueados) {
         insertBloqueado(process);
     }
+
+    // The processes that were bloqued, when they finish, the
+    // process still in estado bloqueado.
 }
 
-void Memory::insertRunningProcess(const Process &process, int size)
+void Memory::insertRunningProcess(const Process &process)
 {
     Utility utility;
     short processSize = process.getTamano();
@@ -146,11 +147,6 @@ void Memory::insertRunningProcess(const Process &process, int size)
         utilidades.push_back(utility);
     }
 
-    // Start again from the beggining in our table.
-    if(--processesLeft == 0) {
-        row = 2;
-    }
-
     for(const auto& e : utilidades) {
         qDebug() << e.processID;
         qDebug() << e.start;
@@ -158,7 +154,7 @@ void Memory::insertRunningProcess(const Process &process, int size)
     }
 }
 
-void Memory::insertListos(const Process& process, int size)
+void Memory::insertListos(const Process& process)
 {
     Utility utility;
     short processSize = process.getTamano();
@@ -253,11 +249,6 @@ void Memory::insertListos(const Process& process, int size)
         utilidades.push_back(utility);
     }
 
-    // Start again from the beggining in our table.
-    if(--processesLeft == 0) {
-        row = 2;
-    }
-
     for(const auto& e : utilidades) {
         qDebug() << e.processID;
         qDebug() << e.start;
@@ -271,10 +262,18 @@ void Memory::insertBloqueado(const Process &process)
     int numPages = getPagesNum(processSize);
     int rowStart, rowEnd;
 
+//    for(const auto& e : utilidades) {
+//        if(e.processID == process.getId()) {
+//            row = e.start;
+//            rowEnd = e.end;
+//            break;
+//        }
+//    }
+
+    // Get the start proper position of our process.
     for(const auto& e : utilidades) {
         if(e.processID == process.getId()) {
             row = e.start;
-            rowEnd = e.end;
             break;
         }
     }

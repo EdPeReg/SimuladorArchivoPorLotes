@@ -60,7 +60,6 @@ private:
     std::deque<Process> bloqueados;
     std::vector<Process> allProcesses;
     std::vector<Process> terminados;
-    std::deque<Process> marcos; // new
 
     const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 8;
@@ -97,7 +96,7 @@ private:
     void insertDataTableNuevo(const std::deque<Process>& nuevos);
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
     void updateTTBCounter();
-    void updateQuantumValue(); // NEW
+    void updateQuantumValue();
     void updateBloqueadosTable(const Process& process);
     void insertDataTableRunningProcess(const Process& runningProcess);
     void reset();

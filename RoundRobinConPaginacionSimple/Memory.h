@@ -26,8 +26,8 @@ public:
     ~Memory();
 
     void insertTable(std::deque<Process> listos, std::deque<Process> bloqueados);
-    void insertRunningProcess(const Process& process, int size);
-    void insertListos(const Process& process, int size);
+    void insertRunningProcess(const Process& process);
+    void insertListos(const Process& process);
     void insertBloqueado(const Process& process);
     void setTable();
     void setColor(int row, int col);
