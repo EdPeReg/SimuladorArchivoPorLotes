@@ -192,6 +192,20 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                     processesDialog->exec();
                 }
             break;
+
+           // Table de procesos BCP de cada proceso.
+           case Qt::Key_A:
+                qDebug() << "PAUSANDO";
+                ui->lnEdt_teclaPresionada->setText(tr("A"));
+                ui->lnEdt_teclaPresionada->setAlignment(Qt::AlignCenter);
+
+                if(pauseRequired) {
+                    QMessageBox::information(this, tr("Imposible continuar"), tr("Programa pausado, presiona C para continuar"));
+                } else {
+                    ui->lnEdt_teclaPresionada->setText(tr("A"));
+                    pause();
+                }
+            break;
         }
     }
 }
@@ -609,6 +623,7 @@ void MainWindow::runWithRandomData()
                     // Push again the process with the updated information.
                     // Doing this to show again the process when you resume.
                     listos.push_front(process);
+                    memory->insertTable(listos, bloqueados);
                     break;
                 }
 
@@ -636,9 +651,9 @@ void MainWindow::runWithRandomData()
                 ++indexTime;
             } // end iteration TME.
 
-            memory->clearRow();
-
             if(pauseRequired) break;
+
+            memory->clearRow();
 
             if(!IO_interruptionKey) {
                 process.setTiempoFinalizacion(globalCounter);

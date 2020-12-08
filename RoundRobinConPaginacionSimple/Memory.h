@@ -6,10 +6,11 @@
 
 #include "Process.h"
 
+/* We use this to know the row start and the process, to insert it to the proper row
+ * position table. */
 struct Utility{
     int processID;
     int start;
-    int end;
 };
 
 

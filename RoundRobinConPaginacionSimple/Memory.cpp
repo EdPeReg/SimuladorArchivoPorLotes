@@ -16,7 +16,7 @@ Memory::Memory(QWidget *parent) :
     ui->tbl_wdt_01->setIconSize(QSize(200,200));
     setTable();
 
-    // First two listos are for OS.
+    // First two marcos are for OS.
     setColor(0, 1);
     setColor(1, 1);
 }
@@ -45,9 +45,6 @@ void Memory::insertTable(std::deque<Process> listos, std::deque<Process> bloquea
     for(auto process : bloqueados) {
         insertBloqueado(process);
     }
-
-    // The processes that were bloqued, when they finish, the
-    // process still in estado bloqueado.
 }
 
 void Memory::insertRunningProcess(const Process &process)
@@ -100,9 +97,6 @@ void Memory::insertRunningProcess(const Process &process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/rojo/rojo_01.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
 
@@ -110,9 +104,6 @@ void Memory::insertRunningProcess(const Process &process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/rojo/rojo_02.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
 
@@ -120,9 +111,6 @@ void Memory::insertRunningProcess(const Process &process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/rojo/rojo_03.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
 
@@ -130,27 +118,13 @@ void Memory::insertRunningProcess(const Process &process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/rojo/rojo_04.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
-    }
-
-    // If pages are completed, start in the next position.
-    if(processSize == 0) {
-        utility.end = row + 1;;
     }
 
     // Save our start position from this process.
     if(!repeated) {
         utilidades.push_back(utility);
-    }
-
-    for(const auto& e : utilidades) {
-        qDebug() << e.processID;
-        qDebug() << e.start;
-        qDebug() << e.end;
     }
 }
 
@@ -203,9 +177,6 @@ void Memory::insertListos(const Process& process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/azul/azul_01.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
 
@@ -213,9 +184,6 @@ void Memory::insertListos(const Process& process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/azul/azul_02.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
 
@@ -223,9 +191,6 @@ void Memory::insertListos(const Process& process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/azul/azul_03.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
 
@@ -233,26 +198,12 @@ void Memory::insertListos(const Process& process)
             QTableWidgetItem *item = new QTableWidgetItem();
             item->setIcon(QIcon("images/azul/azul_04.png"));
             ui->tbl_wdt_01->setItem(row++, 1, item);
-            if(!repeated) {
-                utility.end = row;
-            }
         break;
         }
     }
 
-    // If pages are completed, start in the next position.
-    if(processSize == 0) {
-        utility.end = row + 1;;
-    }
-
     if(!repeated) {
         utilidades.push_back(utility);
-    }
-
-    for(const auto& e : utilidades) {
-        qDebug() << e.processID;
-        qDebug() << e.start;
-        qDebug() << e.end;
     }
 }
 
@@ -260,15 +211,6 @@ void Memory::insertBloqueado(const Process &process)
 {
     short processSize = process.getTamano();
     int numPages = getPagesNum(processSize);
-    int rowStart, rowEnd;
-
-//    for(const auto& e : utilidades) {
-//        if(e.processID == process.getId()) {
-//            row = e.start;
-//            rowEnd = e.end;
-//            break;
-//        }
-//    }
 
     // Get the start proper position of our process.
     for(const auto& e : utilidades) {
