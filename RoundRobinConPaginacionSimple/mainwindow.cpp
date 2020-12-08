@@ -229,6 +229,7 @@ void MainWindow::insertProcessRandomly()
             }
 
             listos.push_back(nuevos.front());
+            memory->insertTable(listos, bloqueados);
 
             nuevos.pop_front();
             ++nuevosdequeSize;
@@ -251,6 +252,8 @@ void MainWindow::insertProcessRandomly()
             }
 
             listos.push_back(nuevos.front());
+            listos.back().setEstado("LISTOS");
+            memory->insertTable(listos, bloqueados);
             insertLastTableListo(nuevos.front());
             nuevos.pop_front();
 
