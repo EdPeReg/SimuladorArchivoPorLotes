@@ -1794,8 +1794,6 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
             insertDataTableNuevo(nuevos);
 
             setInitialProcCounterValue();
-//            memory->setProcessesLeft(listos.size());
-//            memory->setProcLeftCopy(listos.size());
             runWithRandomData();
         }
     } else {
