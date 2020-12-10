@@ -30,6 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
     , counterTimeElapsed(0)
     , counterTimeLeft(0)
     , quantumValue(0)
+    , processesLeft(0)
+    , row(2)
 {
     ui->setupUi(this);
 
@@ -39,29 +41,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     processesDialog = new ProcessesDialog(this);
     quantumValueDialog = new dialogQuantum(this);
-    memory = new Memory(this);
-
-    memory->show();
 
     // Table nuevos.
-    ui->tblWdt_ProcLNuevos->setColumnCount(3);
+    ui->tblWdt_ProcLNuevos->setColumnCount(4);
     ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
     ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
     ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
+    ui->tblWdt_ProcLNuevos->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("TAMANO")));
     ui->tblWdt_ProcLNuevos->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
     // Table listos.
-    ui->tblWdt_ProcListo->setColumnCount(3);
-    ui->tblWdt_ProcListo->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
-    ui->tblWdt_ProcListo->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
-    ui->tblWdt_ProcListo->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
-    ui->tblWdt_ProcListo->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+//    ui->tblWdt_ProcListo->setColumnCount(3);
+//    ui->tblWdt_ProcListo->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
+//    ui->tblWdt_ProcListo->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TME")));
+//    ui->tblWdt_ProcListo->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("TT")));
+//    ui->tblWdt_ProcListo->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
 
-    // Table bloqueados.
-    ui->tblWgt_Bloqueados->setColumnCount(2);
-    ui->tblWgt_Bloqueados->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("ID")));
-    ui->tblWgt_Bloqueados->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("TTB")));
-    ui->tblWgt_Bloqueados->horizontalHeader()->setStretchLastSection(true); // Stretches the last column to fit the remaining space.
+    setTableMemory();
 
     // Table ejecucion.
     ui->tblWdt_ProcesoEjec->setColumnCount(1);
@@ -143,7 +139,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
                 }
             break;
 
-
            // Nuevo.
            case Qt::Key_N:
                 qDebug() << "NUEVO PROCESO";
@@ -224,9 +219,28 @@ void MainWindow::insertProcessRandomly()
 {
     if(keyN_pressed) {
         insertProcess();
+        short newProcessframes = nuevos.back().getTamano() / 5;
+        short remainder = nuevos.back().getTamano() % 5;
+
+        // There is a frame that doesn't complete 5 pages.
+        if(remainder != 0) {
+            ++newProcessframes;
+        }
+
+        // Just insert in our nuevos table the new process, because there is no more room in our memory.
+        if(memory.getMarcosSize() + newProcessframes > memory.getLimitFrames()) {
+            // To have the correct TR.
+            int aux = nuevos.back().getTiempoMaximoEst();
+            nuevos.back().setTR(aux);
+
+            insertLastTableNuevo(nuevos.back());
+            ++nuevosdequeSize;     // Update our size from our deque nuevos.
+            ui->lcd_ProcRestantes->display(++processesRemaining);
+        }
         // There is a null process and we don't pass the memory limit,
         // insert this process directly to table running process.
-        if(isProcessNull and listos.size() + bloqueados.size() < LIMITE_PROCESO) {
+//        else if(isProcessNull and listos.size() + bloqueados.size() /*< LIMITE_PROCESO*/) {
+        else if(isProcessNull /*and memory.getMarcosSize() < memory.getLimitFrames()*/) {
             isProcessNull = false;
              // To have the correct TR.
             int aux = nuevos.front().getTiempoMaximoEst();
@@ -243,14 +257,13 @@ void MainWindow::insertProcessRandomly()
             }
 
             listos.push_back(nuevos.front());
-            memory->insertTable(listos, bloqueados);
+//            memory->insertTable(listos, bloqueados);
 
             nuevos.pop_front();
             ++nuevosdequeSize;
         }
-        // Insert if we only have less than our four processes in memory.
-        // Remember that processes that are in bloqueados table also are in memory.
-        else if(listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
+//        else if(listos.size() + bloqueados.size() /*< LIMITE_PROCESO - 1*/) {
+        else /*if(memory.getMarcosSize() < memory.getLimitFrames())*/ {
             // To have the correct TR.
             int aux = nuevos.front().getTiempoMaximoEst();
             nuevos.front().setTR(aux);
@@ -265,24 +278,26 @@ void MainWindow::insertProcessRandomly()
                 }
             }
 
-            listos.push_back(nuevos.front());
+            memory.setTotalFrames(nuevos, listos);
+            insertTableMemory(listos, bloqueados);
+//            listos.push_back(nuevos.front());
             listos.back().setEstado("LISTOS");
-            memory->insertTable(listos, bloqueados);
+//            memory->insertTable(listos, bloqueados);
             insertLastTableListo(nuevos.front());
             nuevos.pop_front();
 
             ++nuevosdequeSize;
         }
-        // Just insert in our nuevos table.
-        else {
-            // To have the correct TR.
-            int aux = nuevos.back().getTiempoMaximoEst();
-            nuevos.back().setTR(aux);
+//        // Just insert in our nuevos table.
+//        else {
+//            // To have the correct TR.
+//            int aux = nuevos.back().getTiempoMaximoEst();
+//            nuevos.back().setTR(aux);
 
-            insertLastTableNuevo(nuevos.back());
-            ++nuevosdequeSize;     // Update our size from our deque nuevos.
-            ui->lcd_ProcRestantes->display(++processesRemaining);
-        }
+//            insertLastTableNuevo(nuevos.back());
+//            ++nuevosdequeSize;     // Update our size from our deque nuevos.
+//            ui->lcd_ProcRestantes->display(++processesRemaining);
+//        }
     }
     // At the beggining we insert our processes in our listos table.
     else {
@@ -326,10 +341,10 @@ void MainWindow::insertProcess()
 
     nuevos.push_back(process);
 
-    if(keyN_pressed and listos.size() + bloqueados.size() < LIMITE_PROCESO - 1) {
-        process.setEstado("LISTOS");
-        allProcesses.push_back(process);
-    } else if(keyN_pressed) {
+//    if(keyN_pressed and listos.size() + bloqueados.size() /*< LIMITE_PROCESO - 1*/) {
+//        process.setEstado("LISTOS");
+//        allProcesses.push_back(process);
+    if(keyN_pressed) {
         process.setEstado("NUEVO");
         allProcesses.push_back(process);
     }
@@ -473,7 +488,9 @@ void MainWindow::runWithRandomData()
                 }
             }
 
-            memory->insertTable(listos, bloqueados);
+            insertTableMemory(listos, bloqueados);
+//            memory.insertTable(listos, bloqueados);
+//            memory->insertTable(listos, bloqueados);
 
             listos.pop_front();
 
@@ -544,7 +561,7 @@ void MainWindow::runWithRandomData()
 
                 if(IO_interruptionKey) {
                     // To not insert more than four processes.
-                    if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
+//                    if(ui->tblWgt_Bloqueados->rowCount() < LIMITE_PROCESO) {
                         quantumValue = quantumValueDialog->getQuantum();
                         process.setTT(counterTimeElapsed);
                         process.setTR(counterTimeLeft);
@@ -559,6 +576,8 @@ void MainWindow::runWithRandomData()
                                 break;
                             }
                         }
+
+                        insertTableMemory(listos, bloqueados);
 
                         if(!listos.front().getEnteredExecution()) {
                             listos.front().setEnteredExecution(true);
@@ -611,7 +630,7 @@ void MainWindow::runWithRandomData()
 
                         bloqueados.push_back(process);
                         updateBloqueadosTable(process);
-                    }
+//                    }
                     break;
                 }
 
@@ -623,7 +642,7 @@ void MainWindow::runWithRandomData()
                     // Push again the process with the updated information.
                     // Doing this to show again the process when you resume.
                     listos.push_front(process);
-                    memory->insertTable(listos, bloqueados);
+//                    memory->insertTable(listos, bloqueados);
                     break;
                 }
 
@@ -653,7 +672,7 @@ void MainWindow::runWithRandomData()
 
             if(pauseRequired) break;
 
-            memory->clearRow();
+            clearRowMemory();
 
             if(!IO_interruptionKey) {
                 process.setTiempoFinalizacion(globalCounter);
@@ -786,6 +805,17 @@ void MainWindow::runWithRandomData()
                 terminados.push_back(process);
                 updateTableFinish(process);
 
+                memory.removeFrames(process);
+                insertTableMemory(listos, bloqueados);
+
+//                for(size_t i = 0; i < utilidades.size(); ++i) {
+//                    if(utilidades.at(i).processID == process.getId()) {
+//                        utilidades.at(i).startRow = 2;
+////                        row = 2;
+//                        utilidades.erase(utilidades.begin() + i);
+//                    }
+//                }
+
                 // Update process counter.
                 if(ui->lcd_ProcRestantes->value() != 0) {
                     ui->lcd_ProcRestantes->display(--processesRemaining);
@@ -798,7 +828,7 @@ void MainWindow::runWithRandomData()
             IO_interruptionKey = false;
             keyError = false;
         } else {
-            memory->insertTable(listos, bloqueados);
+            insertTableMemory(listos, bloqueados);
             // List is empty, all processes are in the bloqueados table.
             setNullProcess();
             updateTTBCounter();
@@ -820,27 +850,27 @@ void MainWindow::updateTableNuevos()
 void MainWindow::updateTableListos(const std::deque<Process>& deque, int& row)
 {
     int totalRows = deque.size();
-    ui->tblWdt_ProcListo->setRowCount(totalRows--);
+//    ui->tblWdt_ProcListo->setRowCount(totalRows--);
     for(const auto& process : deque) {
         QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
         QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
         QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
-        ui->tblWdt_ProcListo->setItem(row, ID, itemID);
-        ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
-        ui->tblWdt_ProcListo->setItem(row++, TT, itemTT);
+//        ui->tblWdt_ProcListo->setItem(row, ID, itemID);
+//        ui->tblWdt_ProcListo->setItem(row, TME, itemTME);
+//        ui->tblWdt_ProcListo->setItem(row++, TT, itemTT);
     }
 }
 
 void MainWindow::insertLastTableListo(const Process &process)
 {
-    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
-    int fila = ui->tblWdt_ProcListo->rowCount() - 1;
+//    ui->tblWdt_ProcListo->insertRow(ui->tblWdt_ProcListo->rowCount());
+//    int fila = ui->tblWdt_ProcListo->rowCount() - 1;
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
     QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
-    ui->tblWdt_ProcListo->setItem(fila, ID, itemID);
-    ui->tblWdt_ProcListo->setItem(fila, TME, itemTME);
-    ui->tblWdt_ProcListo->setItem(fila++, TT, itemTT);
+//    ui->tblWdt_ProcListo->setItem(fila, ID, itemID);
+//    ui->tblWdt_ProcListo->setItem(fila, TME, itemTME);
+//    ui->tblWdt_ProcListo->setItem(fila++, TT, itemTT);
 }
 
 void MainWindow::insertLastTableNuevo(const Process &process)
@@ -850,9 +880,11 @@ void MainWindow::insertLastTableNuevo(const Process &process)
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
     QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
     QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
+    QTableWidgetItem *itemTAMANO = new QTableWidgetItem(QString::number(process.getTamano()));
     ui->tblWdt_ProcLNuevos->setItem(fila, ID, itemID);
     ui->tblWdt_ProcLNuevos->setItem(fila, TME, itemTME);
-    ui->tblWdt_ProcLNuevos->setItem(fila++, TT, itemTT);
+    ui->tblWdt_ProcLNuevos->setItem(fila, TT, itemTT);
+    ui->tblWdt_ProcLNuevos->setItem(fila++, TAMANO, itemTAMANO);
 }
 
 void MainWindow::insertDataTableNuevo(const std::deque<Process> &nuevos)
@@ -864,10 +896,339 @@ void MainWindow::insertDataTableNuevo(const std::deque<Process> &nuevos)
         QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
         QTableWidgetItem *itemTME = new QTableWidgetItem(QString::number(process.getTiempoMaximoEst()));
         QTableWidgetItem *itemTT= new QTableWidgetItem(QString::number(process.getTT()));
+        QTableWidgetItem *itemTAMANO = new QTableWidgetItem(QString::number(process.getTamano()));
         ui->tblWdt_ProcLNuevos->setItem(row, ID, itemID);
         ui->tblWdt_ProcLNuevos->setItem(row, TME, itemTME);
-        ui->tblWdt_ProcLNuevos->setItem(row++, TT, itemTT);
+        ui->tblWdt_ProcLNuevos->setItem(row, TT, itemTT);
+        ui->tblWdt_ProcLNuevos->setItem(row++, TAMANO, itemTAMANO);
     }
+}
+
+void MainWindow::insertTableMemory(std::deque<Process> listos, std::deque<Process> bloqueados)
+{
+    // Sort by id to mantain the order. This is because at this point, using our deque
+    // will change the order.
+    std::sort(listos.begin(), listos.end());
+    std::sort(bloqueados.begin(), bloqueados.end());
+
+    processesLeft = listos.size();
+    for(auto process : listos) {
+         if(process.getEstado() == "EJECUCION") {
+            insertRunningProcessMemory(process);
+        } else if(process.getEstado() == "LISTOS") {
+            insertListosMemory(process);
+        }
+    }
+
+    for(auto process : bloqueados) {
+        insertBloqueadosMemory(process);
+    }
+}
+
+void MainWindow::insertRunningProcessMemory(const Process &process) {
+    Utility utility;
+    short frames = process.getTamano() / 5;
+    short remainder = process.getTamano() % 5;
+    bool repeated = false;
+
+    qDebug() << "";
+    qDebug() << "listos left: " << processesLeft;
+    qDebug() << "Dentro de insert running";
+    qDebug() << "process id: " << process.getId();
+    qDebug() << "process estado: " << process.getEstado();
+    qDebug() << "process size: " << process.getTamano();
+    qDebug() << "frames: " << frames;
+    qDebug() << "remainder: " << remainder;
+    qDebug() << "row: " << row;
+
+    // Set the flag to not repeat elements.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            repeated = true;
+            break;
+        }
+    }
+
+    // Save our start position from this process.
+    if(!repeated) {
+        utility.processID = process.getId();
+        utility.startRow = row;
+    }
+
+    // Get the start proper position of our process.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            row = e.startRow;
+            break;
+        }
+    }
+
+    while(frames--) {
+        QTableWidgetItem *item = new QTableWidgetItem();
+        QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+        item->setIcon(QIcon("images/rojo/rojo_lleno.png"));
+        ui->tblWgt_Memoria->setItem(row, 1, item);
+        ui->tblWgt_Memoria->setItem(row++, 2, item2);
+    }
+
+    switch(remainder) {
+        case 1: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/rojo/rojo_01.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 2: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/rojo/rojo_02.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 3: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/rojo/rojo_03.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 4: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/rojo/rojo_04.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+    }
+
+    // Save our start position from this process.
+    if(!repeated) {
+        utilidades.push_back(utility);
+    }
+}
+
+void MainWindow::insertListosMemory(const Process &process) {
+    Utility utility;
+    short frames = process.getTamano() / 5;
+    short remainder = process.getTamano() % 5;
+    bool repeated = false;
+
+    qDebug() << "";
+    qDebug() << "dentro de insert listos";
+    qDebug() << "process id: " << process.getId();
+    qDebug() << "listos left: " << processesLeft;
+    qDebug() << "process estado: " << process.getEstado();
+    qDebug() << "process size: " << process.getTamano();
+    qDebug() << "Frames " << frames;
+    qDebug() << "remainder: " << remainder;
+    qDebug() << "row: " << row;
+
+    // Set the flag to not repeat elements.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            repeated = true;
+            break;
+        }
+    }
+
+    if(!repeated) {
+        utility.processID = process.getId();
+        utility.startRow = row;
+    }
+
+    // Get the start proper position of our process.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            row = e.startRow ;
+            break;
+        }
+    }
+
+    while(frames--) {
+        QTableWidgetItem *item = new QTableWidgetItem();
+        QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+        item->setIcon(QIcon("images/azul/azul_lleno.png"));
+        ui->tblWgt_Memoria->setItem(row, 1, item);
+        ui->tblWgt_Memoria->setItem(row++, 2, item2);
+    }
+
+    switch(remainder) {
+        case 1: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/azul/azul_01.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 2: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/azul/azul_02.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row, 2, item2);
+        break;
+        }
+
+        case 3: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/azul/azul_03.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 4: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/azul/azul_04.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+    }
+
+    if(!repeated) {
+        utilidades.push_back(utility);
+    }
+}
+
+void MainWindow::insertBloqueadosMemory(const Process &process) {
+    short frames = process.getTamano() / 5;
+    short remainder = process.getTamano() % 5;
+
+    // Get the start proper position of our process.
+    for(const auto& e : utilidades) {
+        if(e.processID == process.getId()) {
+            row = e.startRow;
+            break;
+        }
+    }
+
+    qDebug() << "";
+    qDebug() << "listos left: " << processesLeft;
+    qDebug() << "Dentro de insert running";
+    qDebug() << "process id: " << process.getId();
+    qDebug() << "process estado: " << process.getEstado();
+    qDebug() << "process size: " << process.getTamano();
+    qDebug() << "Frames" << frames;
+    qDebug() << "remainder: " << remainder;
+
+    while(frames--) {
+        QTableWidgetItem *item = new QTableWidgetItem();
+        QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+        item->setIcon(QIcon("images/verde/verde_lleno.png"));
+        ui->tblWgt_Memoria->setItem(row, 1, item);
+        ui->tblWgt_Memoria->setItem(row++, 2, item2);
+    }
+
+    switch(remainder) {
+        case 1: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/verde/verde_01.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 2: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/verde/verde_02.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 3: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/verde/verde_03.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+
+        case 4: {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(process.getId()));
+            item->setIcon(QIcon("images/verde/verde_04.png"));
+            ui->tblWgt_Memoria->setItem(row, 1, item);
+            ui->tblWgt_Memoria->setItem(row++, 2, item2);
+        break;
+        }
+    }
+
+    // Start again from the beggining in our table.
+    if(--processesLeft == 0) {
+        row = 2;
+//        processesLeft = procLeftCopy;
+    }
+}
+
+void MainWindow::setColorOS(int row, int col)
+{
+    QTableWidgetItem *item = new QTableWidgetItem();
+    item->setBackgroundColor(Qt::black);
+    ui->tblWgt_Memoria->setItem(row, col, item);
+}
+
+void MainWindow::setTableMemory()
+{
+    // Table memoria.
+    ui->tblWgt_Memoria->setColumnCount(3);
+    ui->tblWgt_Memoria->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("No. Marco")));
+    ui->tblWgt_Memoria->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Paginas")));
+    ui->tblWgt_Memoria->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Ocupacion")));
+    ui->tblWgt_Memoria->horizontalHeader()->setStretchLastSection(true);
+    ui->tblWgt_Memoria->setIconSize(QSize(90,90));
+
+    // Insert rows.
+    ui->tblWgt_Memoria->setRowCount(40);
+    int i = 0;
+    int row = 0;
+    QFont font;
+    font.setBold(true);
+
+    setColorOS(0, 1);
+    setColorOS(1, 1);
+
+    while(i <= 40) {
+        QTableWidgetItem *item = new QTableWidgetItem(QString::number(i++));
+        item->setFont(font);
+
+        // To delete the default number that appear when a row is created.
+        ui->tblWgt_Memoria->setVerticalHeaderItem(row, new QTableWidgetItem());
+        ui->tblWgt_Memoria->setItem(row++, 0, item);
+    }
+
+//    i = 0;
+//    row = 0;
+//    while(i <= 40) {
+//        QTableWidgetItem *item = new QTableWidgetItem("");
+//        ui->tblWgt_Memoria->setItem(row++, 1, item);
+//    }
+}
+
+void MainWindow::clearRowMemory()
+{
+    ui->tblWgt_Memoria->setRowCount(0);
+    setTableMemory();
+
+    // First two processes are for OS.
+    setColorOS(0, 1);
+    setColorOS(1, 1);
 }
 
 void MainWindow::updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft)
@@ -888,7 +1249,7 @@ void MainWindow::updateTTBCounter()
         if(bloqueados.at(0).getTTB() < LIMITE_TTB) {
             int TTB_p1 = bloqueados.at(0).getTTB();
             QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
-            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
             bloqueados.at(0).setTTB(TTB_p1);
         } else {
             if(!listos.empty()) {
@@ -896,7 +1257,7 @@ void MainWindow::updateTTBCounter()
                 listos.push_back(bloqueados.at(0));
                 listos.back().setEstado("LISTOS");
                 bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
+//                ui->tblWgt_Bloqueados->removeRow(0);
 
                 for(auto& p : allProcesses) {
                     if(p.getId() == listos.back().getId()) {
@@ -906,7 +1267,7 @@ void MainWindow::updateTTBCounter()
                 }
 
                 insertLastTableListo(listos.back());
-                memory->insertTable(listos, bloqueados);
+//                memory->insertTable(listos, bloqueados);
             } else {
                 // Update our TT and TR counters.
                 int counterTimeElapsed = bloqueados.at(0).getTT();
@@ -941,8 +1302,8 @@ void MainWindow::updateTTBCounter()
                     listos.at(0).setTR(counterTimeLeft);
 
                     bloqueados.pop_front();
-                    ui->tblWgt_Bloqueados->removeRow(0);
-                    memory->insertTable(listos, bloqueados);
+//                    ui->tblWgt_Bloqueados->removeRow(0);
+//                    memory->insertTable(listos, bloqueados);
                 } else {
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
@@ -964,8 +1325,8 @@ void MainWindow::updateTTBCounter()
                     listos.at(0).setTR(counterTimeLeft);
 
                     bloqueados.pop_front();
-                    ui->tblWgt_Bloqueados->removeRow(0);
-                    memory->insertTable(listos, bloqueados);
+//                    ui->tblWgt_Bloqueados->removeRow(0);
+//                    memory->insertTable(listos, bloqueados);
                 }
             }
         }
@@ -979,15 +1340,15 @@ void MainWindow::updateTTBCounter()
             int TTB_p2 = bloqueados.at(1).getTTB();
             QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
             QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
-            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
-            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
             bloqueados.at(0).setTTB(TTB_p1);
             bloqueados.at(1).setTTB(TTB_p2);
         } else {
             // Update immediately the bloqueados table after the front process finish.
             int TTB_p2 = bloqueados.at(1).getTTB();
             QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
-            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
             bloqueados.at(1).setTTB(TTB_p2);
 
             if(!listos.empty()) {
@@ -995,7 +1356,7 @@ void MainWindow::updateTTBCounter()
                 listos.push_back(bloqueados.at(0));
                 listos.back().setEstado("LISTOS");
                 bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
+//                ui->tblWgt_Bloqueados->removeRow(0);
 
                 for(auto& p : allProcesses) {
                     if(p.getId() == listos.back().getId()) {
@@ -1005,7 +1366,7 @@ void MainWindow::updateTTBCounter()
                 }
 
                 insertLastTableListo(listos.back());
-                memory->insertTable(listos, bloqueados);
+//                memory->insertTable(listos, bloqueados);
             } else {
                 // Update our TT and TR counters.
                 int counterTimeElapsed = bloqueados.at(0).getTT();
@@ -1040,8 +1401,8 @@ void MainWindow::updateTTBCounter()
                     listos.at(0).setTR(counterTimeLeft);
 
                     bloqueados.pop_front();
-                    ui->tblWgt_Bloqueados->removeRow(0);
-                    memory->insertTable(listos, bloqueados);
+//                    ui->tblWgt_Bloqueados->removeRow(0);
+//                    memory->insertTable(listos, bloqueados);
                 } else {
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
@@ -1063,8 +1424,8 @@ void MainWindow::updateTTBCounter()
                     listos.at(0).setTR(counterTimeLeft);
 
                     bloqueados.pop_front();
-                    ui->tblWgt_Bloqueados->removeRow(0);
-                    memory->insertTable(listos, bloqueados);
+//                    ui->tblWgt_Bloqueados->removeRow(0);
+//                    memory->insertTable(listos, bloqueados);
                 }
             }
         }
@@ -1081,9 +1442,9 @@ void MainWindow::updateTTBCounter()
             QTableWidgetItem *itemTTB_p1 = new QTableWidgetItem(QString::number(++TTB_p1));
             QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
             QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
-            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
-            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
             bloqueados.at(0).setTTB(TTB_p1);
             bloqueados.at(1).setTTB(TTB_p2);
             bloqueados.at(2).setTTB(TTB_p3);
@@ -1093,8 +1454,8 @@ void MainWindow::updateTTBCounter()
             int TTB_p3 = bloqueados.at(2).getTTB();
             QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
             QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
-            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
             bloqueados.at(1).setTTB(TTB_p2);
             bloqueados.at(2).setTTB(TTB_p3);
 
@@ -1103,7 +1464,7 @@ void MainWindow::updateTTBCounter()
                 listos.push_back(bloqueados.at(0));
                 listos.back().setEstado("LISTOS");
                 bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
+//                ui->tblWgt_Bloqueados->removeRow(0);
 
                 for(auto& p : allProcesses) {
                     if(p.getId() == listos.back().getId()) {
@@ -1113,7 +1474,7 @@ void MainWindow::updateTTBCounter()
                 }
 
                 insertLastTableListo(listos.back());
-                memory->insertTable(listos, bloqueados);
+//                memory->insertTable(listos, bloqueados);
             } else {
                 // Update our TT and TR counters.
                 int counterTimeElapsed = bloqueados.at(0).getTT();
@@ -1148,8 +1509,8 @@ void MainWindow::updateTTBCounter()
                     listos.at(0).setTR(counterTimeLeft);
 
                     bloqueados.pop_front();
-                    ui->tblWgt_Bloqueados->removeRow(0);
-                    memory->insertTable(listos, bloqueados);
+//                    ui->tblWgt_Bloqueados->removeRow(0);
+//                    memory->insertTable(listos, bloqueados);
                 } else {
                     bloqueados.at(0).setTTB(0);
                     listos.push_back(bloqueados.at(0));
@@ -1171,8 +1532,8 @@ void MainWindow::updateTTBCounter()
                     listos.at(0).setTR(counterTimeLeft);
 
                     bloqueados.pop_front();
-                    ui->tblWgt_Bloqueados->removeRow(0);
-                    memory->insertTable(listos, bloqueados);
+//                    ui->tblWgt_Bloqueados->removeRow(0);
+//                    memory->insertTable(listos, bloqueados);
                 }
 
             }
@@ -1193,15 +1554,15 @@ void MainWindow::updateTTBCounter()
             QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
             QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
             QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
-            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
-            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
-            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
+//            ui->tblWgt_Bloqueados->setItem(0, TTB_BP, itemTTB_p1);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
             bloqueados.at(0).setTTB(TTB_p1);
             bloqueados.at(1).setTTB(TTB_p2);
             bloqueados.at(2).setTTB(TTB_p3);
             bloqueados.at(3).setTTB(TTB_p4);
-            memory->insertTable(listos, bloqueados);
+//            memory->insertTable(listos, bloqueados);
 
         } else {
             // Update immediately the bloqueados table after the front process finish.
@@ -1211,9 +1572,9 @@ void MainWindow::updateTTBCounter()
             QTableWidgetItem *itemTTB_p2 = new QTableWidgetItem(QString::number(++TTB_p2));
             QTableWidgetItem *itemTTB_p3 = new QTableWidgetItem(QString::number(++TTB_p3));
             QTableWidgetItem *itemTTB_p4 = new QTableWidgetItem(QString::number(++TTB_p4));
-            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
-            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
-            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
+//            ui->tblWgt_Bloqueados->setItem(1, TTB_BP, itemTTB_p2);
+//            ui->tblWgt_Bloqueados->setItem(2, TTB_BP, itemTTB_p3);
+//            ui->tblWgt_Bloqueados->setItem(3, TTB_BP, itemTTB_p4);
             bloqueados.at(1).setTTB(TTB_p2);
             bloqueados.at(2).setTTB(TTB_p3);
             bloqueados.at(3).setTTB(TTB_p4);
@@ -1253,8 +1614,8 @@ void MainWindow::updateTTBCounter()
                 listos.at(0).setTR(counterTimeLeft);
 
                 bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
-                memory->insertTable(listos, bloqueados);
+//                ui->tblWgt_Bloqueados->removeRow(0);
+//                memory->insertTable(listos, bloqueados);
             } else {
                 bloqueados.at(0).setTTB(0);
                 listos.push_back(bloqueados.at(0));
@@ -1276,8 +1637,8 @@ void MainWindow::updateTTBCounter()
                 listos.at(0).setTR(counterTimeLeft);
 
                 bloqueados.pop_front();
-                ui->tblWgt_Bloqueados->removeRow(0);
-                memory->insertTable(listos, bloqueados);
+//                ui->tblWgt_Bloqueados->removeRow(0);
+//                memory->insertTable(listos, bloqueados);
             }
         }
     }
@@ -1297,11 +1658,11 @@ void MainWindow::updateQuantumValue()
 
 void MainWindow::updateBloqueadosTable(const Process &process)
 {
-    ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
-    int fila = ui->tblWgt_Bloqueados->rowCount() - 1;
+//    ui->tblWgt_Bloqueados->insertRow(ui->tblWgt_Bloqueados->rowCount());
+//    int fila = ui->tblWgt_Bloqueados->rowCount() - 1;
 
     QTableWidgetItem *itemID = new QTableWidgetItem(QString::number(process.getId()));
-    ui->tblWgt_Bloqueados->setItem(fila, ID_BP, itemID);
+//    ui->tblWgt_Bloqueados->setItem(fila, ID_BP, itemID);
 }
 
 void MainWindow::insertDataTableRunningProcess(const Process &runningProcess) {
@@ -1340,10 +1701,11 @@ void MainWindow::reset()
     counterTimeElapsed = 0;
     globalCounter = 0;
     id = 1;
+    processesLeft = 0;
+    row = 2;
 
     ui->tblWdt_ProcesoEjec->clearContents();
     ui->tblWdt_Terminados->setRowCount(0);
-    ui->tblWdt_ProcListo->setRowCount(0);
     ui->lcd_ProcRestantes->display(0);
     ui->lnEdt_teclaPresionada->setText("");
     ui->spnBx_CantProcesos->setEnabled(true);
@@ -1358,25 +1720,16 @@ void MainWindow::updateProcCounter(int value)
 
 void MainWindow::deleteProcessesNuevo()
 {
-    if(nuevos.size() <= 4) {
-        while(!nuevos.empty()) {
-            nuevos.pop_front();
-        }
-    } else {
-        nuevos.erase(nuevos.begin(), nuevos.begin() + 4);
+    int countProcesses = memory.getCountProcess();
+    while(countProcesses--) {
+        nuevos.pop_front();
     }
 }
 
 void MainWindow::setInitialProcCounterValue()
 {
-    processesRemaining = ui->spnBx_CantProcesos->value();
-    if(processesRemaining > LIMITE_PROCESO) {
-        processesRemaining -= 4;
-        ui->lcd_ProcRestantes->display(processesRemaining);
-    } else {
-        processesRemaining = 0;
-        ui->lcd_ProcRestantes->display(processesRemaining);
-    }
+    processesRemaining = nuevos.size();
+    ui->lcd_ProcRestantes->display(processesRemaining);
 }
 
 void MainWindow::setNullProcess()
@@ -1393,37 +1746,6 @@ void MainWindow::setNullProcess()
     insertDataTableRunningProcess(nullProcess);
     updateTT_TR_counters(invalidNumber, invalidNumber);
     updateQuantumValue();
-}
-
-std::deque<Process> MainWindow::slice(std::deque<Process> &deque)
-{
-    std::deque<Process> listos;
-
-    // First case, only when there are less than 4 processes.
-    if(deque.size() <= 4) {
-        for(auto& process : deque) {
-            process.setEstado("LISTOS");
-            // First processes has a tiempo llegada 0.
-            listos.push_back(process);
-            allProcesses.push_back(process);
-        }
-    } else {
-        // Just push the first four processes when there are more than 4 processes.
-        for(size_t i = 0; i < deque.size(); ++i) {
-            if(i < 4) {
-                deque.at(i).setEstado("LISTOS");
-                listos.push_back(deque.at(i));
-                allProcesses.push_back(deque.at(i));
-            }
-            // The other processes are in nuevos.
-            else {
-                deque.at(i).setEstado("NUEVO");
-                allProcesses.push_back(deque.at(i));
-            }
-        }
-    }
-
-    return listos;
 }
 
 void MainWindow::sendData()
@@ -1460,16 +1782,20 @@ void MainWindow::on_action_Procesar_Procesos_triggered()
 
             nuevosdequeSize = nuevos.size();
 
-            // Push the first processes to our listos deque.
-            listos = slice(nuevos);
+            memory.setTotalFrames(nuevos, listos);
             deleteProcessesNuevo();
+
+            // Because now multiple processes can be in memory.
+            for(auto& p : listos) {
+                allProcesses.push_back(p);
+            }
 
             // Insert all nuevos processes into the table.
             insertDataTableNuevo(nuevos);
 
             setInitialProcCounterValue();
-            memory->setProcessesLeft(listos.size());
-            memory->setProcLeftCopy(listos.size());
+//            memory->setProcessesLeft(listos.size());
+//            memory->setProcLeftCopy(listos.size());
             runWithRandomData();
         }
     } else {

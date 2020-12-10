@@ -25,7 +25,7 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 enum CURRENT_BATCH {
-    ID, TME, TT
+    ID, TME, TT, TAMANO
 };;
 
 enum RUNNING_PROCESS {
@@ -40,6 +40,13 @@ enum BLOQUEADO_PROCESS {
     ID_BP, TTB_BP
 };
 
+/* We use this to know the row start and the process, to insert it to the proper row
+ * position table. */
+struct Utility{
+    int processID;
+    int startRow;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -52,16 +59,16 @@ private:
     Ui::MainWindow *ui;
 
     ProcessesDialog* processesDialog;
-    Memory* memory;
     dialogQuantum* quantumValueDialog;
     Process process;
+    Memory memory;
     std::deque<Process> nuevos;
     std::deque<Process> listos;
     std::deque<Process> bloqueados;
     std::vector<Process> allProcesses;
     std::vector<Process> terminados;
+    std::vector<Utility> utilidades;
 
-    const int LIMITE_PROCESO = 4;
     const int LIMITE_TTB = 8;
 
     bool pauseRequired;
@@ -79,6 +86,8 @@ private:
     int counterTimeElapsed;
     int counterTimeLeft;
     int quantumValue; // NEW
+    int processesLeft;
+    short row; // new
 
     void removeSpace(std::string& operation);
     void insertProcessRandomly();
@@ -94,6 +103,13 @@ private:
     void insertLastTableListo(const Process& process);
     void insertLastTableNuevo(const Process& process);
     void insertDataTableNuevo(const std::deque<Process>& nuevos);
+    void insertTableMemory(std::deque<Process> listos, std::deque<Process> bloqueados); // NEW
+    void insertRunningProcessMemory(const Process& process); // New
+    void insertListosMemory(const Process& process); // new
+    void insertBloqueadosMemory(const Process& process); // new
+    void setColorOS(int row, int col); // new
+    void setTableMemory();
+    void clearRowMemory();
     void updateTT_TR_counters(int& counterTimeElapsed, int& counterTimeLeft);
     void updateTTBCounter();
     void updateQuantumValue();
@@ -104,7 +120,6 @@ private:
     void deleteProcessesNuevo();
     void setInitialProcCounterValue();
     void setNullProcess();
-    std::deque<Process> slice(std::deque<Process> &deque);
     int getOperatorPos(const std::string& operation);
     int getOperandPos(const std::string& operation);
     int computeQueues(int numProcess);

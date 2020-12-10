@@ -1,52 +1,31 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <QDialog>
+#include<QDebug>
+
 #include <deque>
 
-#include "Process.h"
+#include "Marco.h"
 
-/* We use this to know the row start and the process, to insert it to the proper row
- * position table. */
-struct Utility{
-    int processID;
-    int start;
-};
-
-
-namespace Ui {
-class Memory;
-}
-
-class Memory : public QDialog
+class Memory
 {
-    Q_OBJECT
-
 public:
-    explicit Memory(QWidget *parent = nullptr);
+    Memory();
+
+    void setTotalFrames(std::deque<Process>& processes, std::deque<Process>& listos);
+    void removeFrames(const Process& process);
+    std::deque<Marco*> getMarcos() const;
+    short getMarcosSize() const;
+    short getCountProcess() const;
+    short getLimitFrames() const;
+//    void insertTable(std::deque<Process> listos, std::deque<Process> bloqueados);
     ~Memory();
 
-    void insertTable(std::deque<Process> listos, std::deque<Process> bloqueados);
-    void insertRunningProcess(const Process& process);
-    void insertListos(const Process& process);
-    void insertBloqueado(const Process& process);
-    void setTable();
-    void setColor(int row, int col);
-    void setProcessesLeft(int processesLeft);
-    void setProcLeftCopy(int procLeftCopy);
-    void setRow(int row);
-    void clearRow();
-    short getPagesNum(short& size);
-
 private:
-    Ui::Memory *ui;
-
-    std::vector<Utility> utilidades;
-    const short TAMANO_PAGINA = 5;
-    int processesLeft;
-    int procLeftCopy;
-    short row;
-    bool repeated;
+    std::deque<Marco*> marcos;
+    short countProcess;
+    const short LIMIT_FRAMES = 38;
+    const short NUM_PAGES = 5;
 };
 
 #endif // MEMORY_H

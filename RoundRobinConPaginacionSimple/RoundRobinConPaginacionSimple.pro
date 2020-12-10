@@ -16,14 +16,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Marco.cpp \
     Memory.cpp \
+    Pagina.cpp \
     ProcessesDialog.cpp \
     dialogQuantum.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    Marco.h \
     Memory.h \
+    Pagina.h \
     Process.h \
     ProcessesDialog.h \
     dialogQuantum.h \
